@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 
-id1=$(docker run -d --ipc="shareable"      oremda/basic_example_loader      /queue0 /queue1 /queue2)
-id2=$(docker run -d --ipc="container:$id1" oremda/basic_example_times_two   /queue0 /queue1)
-id3=$(docker run -d --ipc="container:$id1" oremda/basic_example_minus_three /queue1 /queue2)
-id4=$(docker run -d --ipc="container:$id1" oremda/basic_example_viewer      /queue2)
+OREMDA_VAR_DIR=/run/oremda
 
-# Wait for the loader to finish, since it hosts the ipc memory
-docker wait $id1
+plasma_id=$(docker run -d --ipc="shareable" -v $OREMDA_VAR_DIR:$OREMDA_VAR_DIR   oremda/basic_example_plasma)
+loader_id=$(docker run -d --ipc="container:$plasma_id" -v $OREMDA_VAR_DIR:$OREMDA_VAR_DIR     oremda/basic_example_loader)
+add_id=$(docker run -d --ipc="container:$plasma_id" -v $OREMDA_VAR_DIR:$OREMDA_VAR_DIR oremda/basic_example_add)
+multiply_id=$(docker run -d --ipc="container:$plasma_id" -v $OREMDA_VAR_DIR:$OREMDA_VAR_DIR oremda/basic_example_multiply)
+viewer_id=$(docker run -d --ipc="container:$plasma_id" -v $OREMDA_VAR_DIR:$OREMDA_VAR_DIR oremda/basic_example_viewer)
 
-docker logs $id1
-docker logs $id2
-docker logs $id3
-docker logs $id4
+# Wait for the loader to finish
+docker wait $loader_id
+
+docker kill $plasma_id $add_id $multiply_id $viewer_id
+
+docker logs $loader_id
+docker logs $viewer_id

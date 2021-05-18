@@ -1,3 +1,5 @@
-from .shared_resources import open_memory, open_queue
+from .shared_resources import Client
+from .operator import Operator
+from .pipeline import Pipeline
 
-__all__ = ['open_memory', 'open_queue']
+__all__ = ['Client', 'Operator', 'Pipeline']

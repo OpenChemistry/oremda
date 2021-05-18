@@ -3,6 +3,7 @@ from setuptools import setup
 install_requires = [
     'numpy',
     'posix-ipc',
+    'pyarrow',
 ]
 
 setup(
