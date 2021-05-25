@@ -7,9 +7,10 @@ build_singularity=false
 prefix="basic_example_"
 
 directories=(
+  plasma
   loader
-  minus_three
-  times_two
+  add
+  multiply
   viewer
 )
 

@@ -3,14 +3,14 @@ import numpy as np
 from oremda import Client as OremdaClient
 from oremda import Operator as OremdaOperator
 
-class ViewOperator(OremdaOperator):
+class MultiplyOperator(OremdaOperator):
     def kernel(self, input_data, parameters):
-        print("VIEW DATA", input_data, flush=True)
+        value = parameters.get('value', 1)
+        output_data = input_data * value
 
-        return input_data
-
+        return output_data
 
 client = OremdaClient('/run/oremda/plasma.sock')
 
-operator = ViewOperator('view', client)
+operator = MultiplyOperator('multiply', client)
 operator.start()
