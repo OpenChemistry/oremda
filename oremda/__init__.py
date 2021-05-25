@@ -1,5 +1,5 @@
 from .shared_resources import Client
-from .operator import Operator, operator
+from .operator import Operator, OperatorHandle, operator
 from .pipeline import Pipeline
 
-__all__ = ['Client', 'Operator', 'Pipeline', 'operator']
+__all__ = ['Client', 'Operator', 'OperatorHandle', 'Pipeline', 'operator']

@@ -19,8 +19,7 @@ if __name__ == '__main__':
 
     operator_list = [
         'add',
-        'multiply',
-        'view',
+        # 'multiply',
     ]
     if client.type == 'docker':
         run_list = [f'oremda/{prefix}{name}' for name in operator_list]
