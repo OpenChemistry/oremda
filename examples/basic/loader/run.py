@@ -31,7 +31,6 @@ operators = [
     {"name": "view"},
 ]
 
-dtype = np.dtype('int16')
-data = np.array([5, 9, 2, 3, 8, 10], dtype=dtype)
+data = np.array([5, 9, 2, 3, 8, 10], dtype=np.int16)
 
 output_data = pipeline.run(operators, data)

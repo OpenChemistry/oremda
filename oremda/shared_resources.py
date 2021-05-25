@@ -8,7 +8,7 @@ import pyarrow.plasma as plasma
 import numpy as np
 
 
-class Client(object):
+class Client:
     def __init__(self, plasma_socket):
         self.plasma_client = plasma.connect(plasma_socket)
 
@@ -44,19 +44,13 @@ class Client(object):
         """
         flags = 0
         if create:
-            flags = posix_ipc.O_CREX
+            flags = posix_ipc.O_CREAT if reuse else O_CREX
 
         queue = None
 
         try:
             queue = MessageQueue(name, flags=flags)
             yield queue
-        except posix_ipc.ExistentialError:
-            if reuse:
-                queue = MessageQueue(name, flags=0)
-                yield queue
-            else:
-                raise
         finally:
             if queue is not None:
                 queue.close()

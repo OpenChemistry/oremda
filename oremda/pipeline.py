@@ -3,7 +3,7 @@ import json
 import pyarrow.plasma as plasma
 from oremda.constants import OREMDA_FINISHED_QUEUE
 
-class Pipeline(object):
+class Pipeline:
     def __init__(self, client):
         self.client = client
 
