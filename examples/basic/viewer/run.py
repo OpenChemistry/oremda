@@ -5,6 +5,3 @@ from oremda.operator import operator
 def view(data, params):
     print('VIEW DATA', data, flush=True)
     return data
-
-
-view.start()

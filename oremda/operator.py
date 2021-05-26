@@ -47,7 +47,7 @@ class Operator(ABC):
         pass
 
 
-def operator(func=None, name=None,
+def operator(func=None, name=None, start=True,
              plasma_socket_path=DEFAULT_PLASMA_SOCKET_PATH):
 
     # A decorator to automatically make an Operator where the function
@@ -64,7 +64,12 @@ def operator(func=None, name=None,
             return func(*args, **kwargs)
 
         OpClass = type(name, (Operator,), {'kernel': kernel})
-        return OpClass(name, Client(plasma_socket_path))
+        obj = OpClass(name, Client(plasma_socket_path))
+
+        if start:
+            obj.start()
+
+        return obj
 
     if func is not None:
         return decorator(func)
