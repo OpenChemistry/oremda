@@ -11,7 +11,7 @@ directories=(
   loader
   add
   multiply
-  viewer
+  view
 )
 
 script_dir=$(dirname "$0")
