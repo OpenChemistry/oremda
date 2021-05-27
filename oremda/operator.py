@@ -63,7 +63,8 @@ def operator(func=None, name=None, start=True,
             # Remove self so the caller does not need to add it
             return func(*args, **kwargs)
 
-        OpClass = type(name, (Operator,), {'kernel': kernel})
+        class_name = f'{name.capitalize()}Operator'
+        OpClass = type(class_name, (Operator,), {'kernel': kernel})
         obj = OpClass(name, Client(plasma_socket_path))
 
         if start:
