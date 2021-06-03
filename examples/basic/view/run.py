@@ -1,4 +1,4 @@
-from oremda.operator import operator
+from oremda import operator
 
 
 @operator
