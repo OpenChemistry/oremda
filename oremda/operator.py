@@ -13,25 +13,41 @@ class Operator(ABC):
         self.name = name
         self.client = client
 
-    def start(self):
-        input_queue_name = f'/{self.name}'
-        output_queue_name = OREMDA_FINISHED_QUEUE
+    @property
+    def input_queue_name(self):
+        return f'/{self.name}'
 
-        with self.client.open_queue(input_queue_name, create=True, reuse=True) as input_queue:
+    @property
+    def output_queue_name(self):
+        return OREMDA_FINISHED_QUEUE
+
+    def start(self):
+        with self.client.open_queue(self.input_queue_name, create=True,
+                                    reuse=True, consume=True) as input_queue:
             while True:
                 message, priority = input_queue.receive()
                 info = json.loads(message)
-                object_id = plasma.ObjectID(bytes.fromhex(info.get('object_id')))
-                params = info.get('params', {})
+                task = info.get('task', 'operate')
 
-                output_object_id = self.execute(object_id, params)
+                if task == 'terminate':
+                    return
+                elif task == 'operate':
+                    self.operate(info)
+                else:
+                    raise Exception(f'Unknown task: {task}')
 
-                with self.client.open_queue(output_queue_name) as output_queue:
-                    info = {
-                        'object_id': output_object_id.binary().hex()
-                    }
+    def operate(self, info):
+        object_id = plasma.ObjectID(bytes.fromhex(info.get('object_id')))
+        params = info.get('params', {})
 
-                    output_queue.send(json.dumps(info))
+        output_object_id = self.execute(object_id, params)
+
+        with self.client.open_queue(self.output_queue_name) as output_queue:
+            info = {
+                'object_id': output_object_id.binary().hex()
+            }
+
+            output_queue.send(json.dumps(info))
 
     def execute(self, object_id, params):
         input_data = self.client.get_object(object_id)
