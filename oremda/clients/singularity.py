@@ -30,7 +30,7 @@ class SingularityClient(ClientBase):
         # This converts docker-style kwargs to singularity
         ret = {}
         options = []
-        if not kwargs.get('detach', False):
+        if kwargs.get('detach', False) is False:
             msg = 'Detach mode is currently required for singularity'
             raise Exception(msg)
 

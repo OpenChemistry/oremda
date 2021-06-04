@@ -4,6 +4,8 @@ install_requires = [
     'numpy',
     'posix-ipc',
     'pyarrow',
+    'docker',
+    'spython',
 ]
 
 setup(

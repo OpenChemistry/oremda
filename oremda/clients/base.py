@@ -36,3 +36,7 @@ class ContainerBase(ABC):
     @abstractmethod
     def remove(self):
         pass
+
+    @abstractmethod
+    def wait(self):
+        pass

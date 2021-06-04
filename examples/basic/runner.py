@@ -68,8 +68,8 @@ if __name__ == '__main__':
         with run_containers(client, run_list, args_list,
                             kwargs_list) as run_containers:
             containers += run_containers
+
             # Wait for the loader container to finish.
-            loader_container = run_containers[0]
             loader_container.wait()
 
             # Print out the logs
