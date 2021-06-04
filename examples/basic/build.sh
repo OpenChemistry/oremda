@@ -35,5 +35,5 @@ fi
 singularity_dir=$script_dir/.singularity
 for name in "${directories[@]}"
 do
-  singularity build $singularity_dir/$prefix$name.simg docker-daemon://oremda/$prefix$name:latest
+  singularity build --force $singularity_dir/$prefix$name.simg docker-daemon://oremda/$prefix$name:latest
 done
