@@ -7,7 +7,6 @@ build_singularity=false
 prefix="basic_example_"
 
 directories=(
-  plasma
   loader
   add
   multiply

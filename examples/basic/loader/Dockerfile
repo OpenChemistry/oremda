@@ -1,5 +1,7 @@
 FROM oremda/oremda
 
+RUN pip install pyarrow
+
 COPY run.py /
 
 # Since we leave this image open until the end, make sure all
