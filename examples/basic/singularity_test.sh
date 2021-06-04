@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
+OREMDA_VAR_DIR=/run/oremda
+
 script_dir=$(dirname "$0")
 singularity_dir=$script_dir/.singularity
 prefix=basic_example_
 
-singularity run $singularity_dir/basic_example_loader.simg      /queue0 /queue1 /queue2 &
-sleep 5
-singularity run $singularity_dir/basic_example_times_two.simg   /queue0 /queue1 &
-singularity run $singularity_dir/basic_example_minus_three.simg /queue1 /queue2 &
-singularity run $singularity_dir/basic_example_viewer.simg      /queue2 &
+singularity run --bind $OREMDA_VAR_DIR:$OREMDA_VAR_DIR $singularity_dir/${prefix}plasma.simg &
+sleep 10
+singularity run --bind $OREMDA_VAR_DIR:$OREMDA_VAR_DIR $singularity_dir/${prefix}loader.simg &
+singularity run --bind $OREMDA_VAR_DIR:$OREMDA_VAR_DIR $singularity_dir/${prefix}add.simg &
+singularity run --bind $OREMDA_VAR_DIR:$OREMDA_VAR_DIR $singularity_dir/${prefix}multiply.simg &
+singularity run --bind $OREMDA_VAR_DIR:$OREMDA_VAR_DIR $singularity_dir/${prefix}view.simg &
