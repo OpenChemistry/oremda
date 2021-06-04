@@ -35,8 +35,10 @@ class Pipeline:
                 object_id = plasma.ObjectID(bytes.fromhex(info.get('object_id')))
 
         self._terminate_operators(operators)
-        # with self.client.open_queue(OREMDA_FINISHED_QUEUE, consume=True) as done_queue:
-        #     pass
+
+        # Close the finished queue
+        with self.client.open_queue(OREMDA_FINISHED_QUEUE, consume=True):
+            pass
 
         return self.client.get_object(object_id)
 
