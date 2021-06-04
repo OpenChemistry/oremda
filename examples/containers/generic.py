@@ -7,7 +7,7 @@ client = Client('singularity')
 image = 'docker://ubuntu'
 command = ['echo', 'hello world']
 
-with run_container(client, image, command) as container:
+with run_container(client, image, command, detach=True) as container:
     # Wait for the command to run
     time.sleep(1)
 
@@ -16,7 +16,7 @@ with run_container(client, image, command) as container:
 
 
 command = ['echo', 'hello again']
-with run_container(client, image, command) as container:
+with run_container(client, image, command, detach=True) as container:
     # Wait for the command to run
     time.sleep(1)
 

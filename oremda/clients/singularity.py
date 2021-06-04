@@ -13,17 +13,47 @@ class SingularityClient(ClientBase):
     def client(self):
         return client
 
+    @property
+    def type(self):
+        return 'singularity'
+
     def run(self, image, *args, **kwargs):
+        kwargs = self._docker_kwargs_to_singularity(kwargs)
+
         name = Path(image).stem
-        container = SingularityContainer(image, name)
-        container.run(*args, **kwargs)
+        options = kwargs.get('options')
+        container = SingularityContainer(image, name, options=options)
+
+        if args:
+            container.run(*args, **kwargs)
+
         return container
+
+    def _docker_kwargs_to_singularity(self, kwargs):
+        # This converts docker-style kwargs to singularity
+        ret = {}
+        options = []
+        if not kwargs.get('detach', False):
+            msg = 'Detach mode is currently required for singularity'
+            raise Exception(msg)
+
+        if 'ipc_mode' in kwargs:
+            print('Warning: IPC mode will be ignored for singularity')
+
+        if 'volumes' in kwargs:
+            volumes = kwargs['volumes']
+            for key, val in volumes.items():
+                bind = val['bind']
+                options += ['--bind', f'{key}:{bind}']
+
+        ret['options'] = options
+        return ret
 
 
 class SingularityContainer(ContainerBase):
 
-    def __init__(self, image, name=None):
-        self.instance = client.instance(image, name=name)
+    def __init__(self, image, name=None, options=None):
+        self.instance = client.instance(image, name=name, options=options)
         self._logs_lock = Lock()
         self._logs = []
         self._stream_command = None
@@ -48,7 +78,7 @@ class SingularityContainer(ContainerBase):
         kwargs = kwargs.copy()
         kwargs['stream'] = True
 
-        self._stream_command = client.execute(self.instance, *args, **kwargs)
+        self._stream_command = client.run(self.instance, *args, **kwargs)
 
         # Append to the logs in a background thread
         ThreadPoolSingleton().submit(self._read_logs)

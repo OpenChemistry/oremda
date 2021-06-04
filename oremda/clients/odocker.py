@@ -8,6 +8,10 @@ class DockerClient(ClientBase):
     def client(self):
         return docker.from_env()
 
+    @property
+    def type(self):
+        return 'docker'
+
     def run(self, *args, **kwargs):
         # Always run in detached mode
         kwargs = kwargs.copy()
@@ -25,6 +29,10 @@ class DockerContainer(ContainerBase):
     def id(self):
         return self.container.id
 
+    @property
+    def status(self):
+        return self.container.status
+
     def logs(self, *args, **kwargs):
         return self.container.logs(*args, **kwargs).decode('utf-8')
 
@@ -33,3 +41,6 @@ class DockerContainer(ContainerBase):
 
     def remove(self, *args, **kwargs):
         return self.container.remove(*args, **kwargs)
+
+    def wait(self, *args, **kwargs):
+        return self.container.wait(*args, **kwargs)
