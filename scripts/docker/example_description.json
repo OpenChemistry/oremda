@@ -1,0 +1,21 @@
+{
+    "type": "add",
+    "ports": {
+        "input": {
+            "scalars": {
+                "type": "data"
+            },
+            "meta": {
+                "type": "meta"
+            }
+        },
+        "output": {
+            "scalars": {
+                "type": "data"
+            },
+            "meta": {
+                "type": "meta"
+            }
+        }
+    }
+}
