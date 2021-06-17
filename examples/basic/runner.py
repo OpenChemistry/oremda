@@ -15,11 +15,11 @@ if __name__ == '__main__':
     client = Client('docker')
 
     # Docker name prefixes
-    prefix = 'basic_example_'
+    prefix = ''
 
     operator_list = [
+        # 'eels_background_subtract',
         'add',
-        'multiply',
         'view',
     ]
     if client.type == 'docker':
@@ -36,13 +36,17 @@ if __name__ == '__main__':
     volumes = {
         '/run/oremda': {
             'bind': '/run/oremda',
-        }
+        },
+        '/home/patrick/virtualenvs/oremda/src/openNCEM/ncempy/data': {
+            'bind': '/data',
+        },
     }
 
     loader_kwargs = {
         'ipc_mode': 'shareable',
         'detach': True,
         'volumes': volumes,
+        'working_dir': '/data',
     }
 
     # Keep the loader running until the end, as it hosts the IPC shared memory
@@ -56,6 +60,7 @@ if __name__ == '__main__':
             'ipc_mode': f'container:{loader_container.id}',
             'detach': True,
             'volumes': volumes,
+            'working_dir': '/data',
         }
         containers = [loader_container]
         args_list = []

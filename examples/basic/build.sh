@@ -4,7 +4,7 @@ set -e
 # Whether or not to build singularity as well
 build_singularity=false
 
-prefix="basic_example_"
+prefix=""
 
 directories=(
   loader
