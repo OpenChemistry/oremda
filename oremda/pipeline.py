@@ -3,6 +3,7 @@ import json
 import pyarrow.plasma as plasma
 from oremda.constants import OREMDA_FINISHED_QUEUE
 
+
 class Pipeline:
     def __init__(self, client):
         self.client = client
@@ -33,10 +34,20 @@ class Pipeline:
 
                 object_id = plasma.ObjectID(bytes.fromhex(info.get('object_id')))
 
-        # with self.client.open_queue(OREMDA_FINISHED_QUEUE, consume=True) as done_queue:
-        #     pass
+        self._terminate_operators(operators)
+
+        # Close the finished queue
+        with self.client.open_queue(OREMDA_FINISHED_QUEUE, consume=True):
+            pass
 
         return self.client.get_object(object_id)
+
+    def _terminate_operators(self, operators):
+        message = json.dumps({'task': 'terminate'})
+        names = set(x['name'] for x in operators)
+        for name in names:
+            with self.client.open_queue(f'/{name}') as queue:
+                queue.send(message)
 
     def _create_queues(self, operators):
         with self.client.open_queue(OREMDA_FINISHED_QUEUE, create=True, reuse=True) as done_queue:

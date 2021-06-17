@@ -7,11 +7,10 @@ build_singularity=false
 prefix="basic_example_"
 
 directories=(
-  plasma
   loader
   add
   multiply
-  viewer
+  view
 )
 
 script_dir=$(dirname "$0")
@@ -35,5 +34,5 @@ fi
 singularity_dir=$script_dir/.singularity
 for name in "${directories[@]}"
 do
-  singularity build $singularity_dir/$prefix$name.simg docker-daemon://oremda/$prefix$name:latest
+  singularity build --force $singularity_dir/$prefix$name.simg docker-daemon://oremda/$prefix$name:latest
 done

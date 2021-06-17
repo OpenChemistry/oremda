@@ -1,9 +1,11 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 install_requires = [
     'numpy',
     'posix-ipc',
     'pyarrow',
+    'docker',
+    'spython',
 ]
 
 setup(
@@ -20,6 +22,6 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     keywords='',
-    packages=['oremda'],
+    packages=find_packages(),
     install_requires=install_requires,
 )
