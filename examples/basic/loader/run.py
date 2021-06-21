@@ -49,6 +49,24 @@ source_node_2.outputs = {
     data_port_info.name: data_port_info,
 }
 
+view_node_0 = oremda.pipeline.OperatorNode()
+view_node_0.inputs = {
+    meta_port_info.name: meta_port_info,
+    data_port_info.name: data_port_info,
+}
+
+view_node_1 = oremda.pipeline.OperatorNode()
+view_node_1.inputs = {
+    meta_port_info.name: meta_port_info,
+    data_port_info.name: data_port_info,
+}
+
+view_node_2 = oremda.pipeline.OperatorNode()
+view_node_2.inputs = {
+    meta_port_info.name: meta_port_info,
+    data_port_info.name: data_port_info,
+}
+
 meta_edge_0 = oremda.pipeline.PipelineEdge(source_node_0.id, meta_port_info, operator_node_0.id, meta_port_info)
 data_edge_0 = oremda.pipeline.PipelineEdge(source_node_0.id, data_port_info, operator_node_0.id, data_port_info)
 
@@ -61,12 +79,24 @@ data_edge_2 = oremda.pipeline.PipelineEdge(source_node_1.id, data_port_info, ope
 meta_edge_3 = oremda.pipeline.PipelineEdge(operator_node_1.id, meta_port_info, source_node_2.id, meta_port_info)
 data_edge_3 = oremda.pipeline.PipelineEdge(operator_node_1.id, data_port_info, source_node_2.id, data_port_info)
 
+meta_edge_4 = oremda.pipeline.PipelineEdge(source_node_0.id, meta_port_info, view_node_0.id, meta_port_info)
+data_edge_4 = oremda.pipeline.PipelineEdge(source_node_0.id, data_port_info, view_node_0.id, data_port_info)
+
+meta_edge_5 = oremda.pipeline.PipelineEdge(source_node_1.id, meta_port_info, view_node_1.id, meta_port_info)
+data_edge_5 = oremda.pipeline.PipelineEdge(source_node_1.id, data_port_info, view_node_1.id, data_port_info)
+
+meta_edge_6 = oremda.pipeline.PipelineEdge(source_node_2.id, meta_port_info, view_node_2.id, meta_port_info)
+data_edge_6 = oremda.pipeline.PipelineEdge(source_node_2.id, data_port_info, view_node_2.id, data_port_info)
+
 nodes = [
     source_node_0,
     operator_node_0,
     source_node_1,
     operator_node_1,
     source_node_2,
+    view_node_0,
+    view_node_1,
+    view_node_2,
 ]
 
 edges = [
@@ -78,6 +108,12 @@ edges = [
     data_edge_2,
     meta_edge_3,
     data_edge_3,
+    meta_edge_4,
+    data_edge_4,
+    meta_edge_5,
+    data_edge_5,
+    meta_edge_6,
+    data_edge_6,
 ]
 
 roots = [
@@ -110,6 +146,18 @@ with start_plasma_store(**kwargs):
     operator = OperatorHandle('add', client)
     operator.parameters = {'value': -5}
     operator_node_1.operator = operator
+
+    operator = OperatorHandle('view', client)
+    operator.parameters = {}
+    view_node_0.operator = operator
+
+    operator = OperatorHandle('view', client)
+    operator.parameters = {}
+    view_node_1.operator = operator
+
+    operator = OperatorHandle('view', client)
+    operator.parameters = {}
+    view_node_2.operator = operator
 
     pipeline.set_graph(nodes, edges, roots)
     pipeline.run()
