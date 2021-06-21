@@ -1,0 +1,121 @@
+{
+  "sources": [
+      {
+          "id": "0",
+          "root": true,
+          "ports": {
+              "scalars": {
+                  "type": "data"
+              },
+              "meta": {
+                  "type": "meta"
+              }
+          }
+      },
+      {
+          "id": "1",
+          "ports": {
+              "scalars": {
+                  "type": "data"
+              },
+              "meta": {
+                  "type": "meta"
+              }
+          }
+      }
+  ],
+  "operators": [
+      {
+          "id": "10",
+          "type": "add",
+          "ports": {
+              "input": {
+                  "scalars": {
+                      "type": "data"
+                  },
+                  "meta": {
+                      "type": "meta"
+                  }
+              },
+              "output": {
+                  "scalars": {
+                      "type": "data"
+                  },
+                  "meta": {
+                      "type": "meta"
+                  }
+              }
+          },
+          "params": {
+              "value": 3
+          }
+      },
+      {
+          "id": "11",
+          "type": "add",
+          "ports": {
+              "input": {
+                  "scalars": {
+                      "type": "data"
+                  },
+                  "meta": {
+                      "type": "meta"
+                  }
+              },
+              "output": {
+                  "scalars": {
+                      "type": "data"
+                  },
+                  "meta": {
+                      "type": "meta"
+                  }
+              }
+          },
+          "params": {
+              "value": -5
+          }
+      }
+  ],
+  "edges": [
+      {
+          "from": {
+              "id": "0",
+              "port": "meta"
+          },
+          "to": {
+              "id": "10",
+              "port": "meta"
+          }
+      },
+      {
+          "from": {
+              "id": "0",
+              "port": "scalars"
+          },
+          "to": {
+              "id": "10",
+              "port": "scalars"
+          }
+      },
+      {
+          "from": {
+              "id": "10",
+              "port": "meta"
+          },
+          "to": {
+              "id": "1",
+              "port": "meta"
+          }
+      },
+      {
+          "from": {
+              "id": "10",
+              "port": "scalars"
+          },
+          "to": {
+              "id": "1",
+              "port": "scalars"
+          }
+      }
+  ]
+}

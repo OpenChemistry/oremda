@@ -1,7 +1,7 @@
 from oremda import operator
 
-
 @operator
-def view(data, params):
-    print('VIEW DATA', data, flush=True)
-    return data
+def view(meta, data, parameters):
+    print('Meta:', meta, 'Data:', data, flush=True)
+
+    return {}, {}

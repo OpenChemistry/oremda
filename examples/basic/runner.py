@@ -50,7 +50,7 @@ if __name__ == '__main__':
                        **loader_kwargs) as loader_container:
         # Wait for the loader container to start
         # It'd be nice if we had a cleaner way to do this for singularity...
-        time.sleep(10)
+        time.sleep(5)
 
         default_kwargs = {
             'ipc_mode': f'container:{loader_container.id}',

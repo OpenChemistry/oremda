@@ -5,7 +5,8 @@ import json
 import pyarrow.plasma as plasma
 
 from oremda import Client
-from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH, OREMDA_FINISHED_QUEUE
+from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH, OREMDA_FINISHED_QUEUE, TaskType
+from oremda.source import DataArray
 
 
 class Operator(ABC):
@@ -27,39 +28,54 @@ class Operator(ABC):
             while True:
                 message, priority = input_queue.receive()
                 info = json.loads(message)
+
                 task = info.get('task', 'operate')
 
-                if task == 'terminate':
+                if task == TaskType.Terminate:
                     return
-                elif task == 'operate':
+                elif task == TaskType.Operate:
                     self.operate(info)
                 else:
                     raise Exception(f'Unknown task: {task}')
-
+    
     def operate(self, info):
-        object_id = plasma.ObjectID(bytes.fromhex(info.get('object_id')))
+        _data_inputs = info.get('data_inputs', {})
+        meta_inputs = info.get('meta_inputs', {})
         params = info.get('params', {})
 
-        output_object_id = self.execute(object_id, params)
+        data_inputs = {}
+        for key, object_id in _data_inputs.items():
+            data_inputs[key] = plasma.ObjectID(bytes.fromhex(object_id))
+
+        meta_outputs, data_outputs = self.execute(meta_inputs, data_inputs, params)
+
+        _data_outputs = {}
+        for key, object_id in data_outputs.items():
+            _data_outputs[key] = object_id.binary().hex()
 
         with self.client.open_queue(self.output_queue_name) as output_queue:
             info = {
-                'object_id': output_object_id.binary().hex()
+                'meta_outputs': meta_outputs,
+                'data_outputs': _data_outputs
             }
 
             output_queue.send(json.dumps(info))
 
-    def execute(self, object_id, params):
-        input_data = self.client.get_object(object_id)
+    def execute(self, meta_inputs, data_inputs_id, params):
+        data_inputs = {}
+        for key, object_id in data_inputs_id.items():
+            data_inputs[key] = self.client.get_object(object_id)
 
-        output_data = self.kernel(input_data, params)
+        meta_outputs, data_outputs = self.kernel(meta_inputs, data_inputs, params)
 
-        output_object_id = self.client.create_object(output_data)
+        data_outputs_id = {}
+        for key, array in data_outputs.items():
+            data_outputs_id[key] = self.client.create_object(array)
 
-        return output_object_id
+        return meta_outputs, data_outputs_id
 
     @abstractmethod
-    def kernel(self, input_data, parameters):
+    def kernel(self, meta, data, parameters):
         pass
 
 
@@ -92,3 +108,53 @@ def operator(func=None, name=None, start=True,
         return decorator(func)
 
     return decorator
+
+class OperatorHandle:
+    def __init__(self, name, client):
+        self.name = name
+        self.client = client
+        self._parameters = {}
+    
+    @property
+    def parameters(self):
+        return self._parameters
+    
+    @parameters.setter
+    def parameters(self, params):
+        self._parameters = params
+
+    def execute(self, meta_inputs, data_inputs):
+        data_inputs_id = {}
+
+        for key, arr in data_inputs.items():
+            data_inputs_id[key] = arr.object_id.binary().hex()
+        
+        info = {
+            'task': TaskType.Operate,
+            'data_inputs': data_inputs_id,
+            'meta_inputs': meta_inputs,
+            'params': self.parameters
+        }
+
+        with self.client.open_queue(self.queue_name, create=True, reuse=True) as op_queue:
+            op_queue.send(json.dumps(info))
+
+        with self.client.open_queue(OREMDA_FINISHED_QUEUE, create=True, reuse=True) as done_queue:
+            message, priority = done_queue.receive()
+
+            info = json.loads(message)
+
+            meta_outputs = info.get('meta_outputs', {})
+            data_outputs_id = info.get('data_outputs', {})
+
+            data_outputs = {}
+            for key, object_id in data_outputs_id.items():
+                arr = DataArray(self.client)
+                arr.object_id = plasma.ObjectID(bytes.fromhex(object_id))
+                data_outputs[key] = arr
+
+            return meta_outputs, data_outputs
+
+    @property
+    def queue_name(self):
+        return f'/{self.name}'
