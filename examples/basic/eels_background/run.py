@@ -5,7 +5,6 @@ from oremda import OperatorHandle
 
 import oremda.pipeline
 from oremda.pipeline import PipelineEdge
-import oremda.source
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
 from oremda.utils.plasma import start_plasma_store
 
@@ -24,12 +23,6 @@ reader_node.outputs = {
     spec_port_info.name: spec_port_info,
 }
 
-source_node_0 = oremda.pipeline.SourceNode()
-source_node_0.outputs = {
-    eloss_port_info.name: eloss_port_info,
-    spec_port_info.name: spec_port_info,
-}
-
 plot_node_0 = oremda.pipeline.OperatorNode()
 plot_node_0.inputs = {
     x0_port_info.name: x0_port_info,
@@ -42,12 +35,6 @@ background_fit_node.inputs = {
     spec_port_info.name: spec_port_info,
 }
 background_fit_node.outputs = {
-    eloss_port_info.name: eloss_port_info,
-    background_port_info.name: background_port_info,
-}
-
-source_node_1 = oremda.pipeline.SourceNode()
-source_node_1.outputs = {
     eloss_port_info.name: eloss_port_info,
     background_port_info.name: background_port_info,
 }
@@ -72,12 +59,6 @@ subtract_node.outputs = {
     spec_port_info.name: spec_port_info,
 }
 
-source_node_2 = oremda.pipeline.SourceNode()
-source_node_2.outputs = {
-    eloss_port_info.name: eloss_port_info,
-    spec_port_info.name: spec_port_info,
-}
-
 plot_node_2 = oremda.pipeline.OperatorNode()
 plot_node_2.inputs = {
     x0_port_info.name: x0_port_info,
@@ -86,43 +67,35 @@ plot_node_2.inputs = {
 
 nodes = [
     reader_node,
-    source_node_0,
     plot_node_0,
     background_fit_node,
-    source_node_1,
     plot_node_1,
     subtract_node,
-    source_node_2,
     plot_node_2,
 ]
 
 edges = [
-    # Reader
-    PipelineEdge(reader_node.id, eloss_port_info, source_node_0.id, eloss_port_info),
-    PipelineEdge(reader_node.id, spec_port_info, source_node_0.id, spec_port_info),
-    # Plot source_0
-    PipelineEdge(source_node_0.id, eloss_port_info, plot_node_0.id, x0_port_info),
-    PipelineEdge(source_node_0.id, spec_port_info, plot_node_0.id, y0_port_info),
-    # Background fit
-    PipelineEdge(source_node_0.id, eloss_port_info, background_fit_node.id, eloss_port_info),
-    PipelineEdge(source_node_0.id, spec_port_info, background_fit_node.id, spec_port_info),
-    PipelineEdge(background_fit_node.id, eloss_port_info, source_node_1.id, eloss_port_info),
-    PipelineEdge(background_fit_node.id, background_port_info, source_node_1.id, background_port_info),
-    # Plot source_1
-    PipelineEdge(source_node_0.id, eloss_port_info, plot_node_1.id, x0_port_info),
-    PipelineEdge(source_node_0.id, spec_port_info, plot_node_1.id, y0_port_info),
-    PipelineEdge(source_node_1.id, eloss_port_info, plot_node_1.id, x1_port_info),
-    PipelineEdge(source_node_1.id, background_port_info, plot_node_1.id, y1_port_info),
-    # Background subtraction
-    PipelineEdge(source_node_0.id, eloss_port_info, subtract_node.id, eloss_port_info),
-    PipelineEdge(source_node_0.id, spec_port_info, subtract_node.id, spec_port_info),
-    PipelineEdge(source_node_1.id, eloss_port_info, subtract_node.id, elossbg_port_info),
-    PipelineEdge(source_node_1.id, background_port_info, subtract_node.id, background_port_info),
-    PipelineEdge(subtract_node.id, eloss_port_info, source_node_2.id, eloss_port_info),
-    PipelineEdge(subtract_node.id, spec_port_info, source_node_2.id, spec_port_info),
-    # Plot source_2
-    PipelineEdge(source_node_2.id, eloss_port_info, plot_node_2.id, x0_port_info),
-    PipelineEdge(source_node_2.id, spec_port_info, plot_node_2.id, y0_port_info),
+    # -> Reader
+
+    # -> Plot_0
+    PipelineEdge(reader_node.id, eloss_port_info, plot_node_0.id, x0_port_info),
+    PipelineEdge(reader_node.id, spec_port_info, plot_node_0.id, y0_port_info),
+    # -> Background fit
+    PipelineEdge(reader_node.id, eloss_port_info, background_fit_node.id, eloss_port_info),
+    PipelineEdge(reader_node.id, spec_port_info, background_fit_node.id, spec_port_info),
+    # -> Plot_1
+    PipelineEdge(reader_node.id, eloss_port_info, plot_node_1.id, x0_port_info),
+    PipelineEdge(reader_node.id, spec_port_info, plot_node_1.id, y0_port_info),
+    PipelineEdge(background_fit_node.id, eloss_port_info, plot_node_1.id, x1_port_info),
+    PipelineEdge(background_fit_node.id, background_port_info, plot_node_1.id, y1_port_info),
+    # -> Background subtraction
+    PipelineEdge(reader_node.id, eloss_port_info, subtract_node.id, eloss_port_info),
+    PipelineEdge(reader_node.id, spec_port_info, subtract_node.id, spec_port_info),
+    PipelineEdge(background_fit_node.id, eloss_port_info, subtract_node.id, elossbg_port_info),
+    PipelineEdge(background_fit_node.id, background_port_info, subtract_node.id, background_port_info),
+    # -> Plot_2
+    PipelineEdge(subtract_node.id, eloss_port_info, plot_node_2.id, x0_port_info),
+    PipelineEdge(subtract_node.id, spec_port_info, plot_node_2.id, y0_port_info),
 ]
 
 kwargs = {

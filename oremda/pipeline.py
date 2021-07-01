@@ -3,8 +3,7 @@ import json
 import pyarrow.plasma as plasma
 from oremda.constants import OREMDA_FINISHED_QUEUE
 from oremda.constants import NodeType, PortType, IOType, TaskType
-from oremda.utils.id import unique_id
-import oremda.source
+from oremda.utils.id import unique_id, port_id
 
 class PortInfo:
     def __init__(self, port_type, name):
@@ -75,41 +74,6 @@ class PipelineNode:
 
         return _port == port
 
-class ReaderNode(PipelineNode):
-    inputs = PipelineNode.inputs
-
-    def __init__(self, id=None):
-        super().__init__(NodeType.Reader, id)
-
-    @inputs.setter
-    def inputs(self, inputs):
-        raise Exception('A Reader can only have output ports')
-
-class SourceNode(PipelineNode):
-    inputs = PipelineNode.inputs
-    outputs = PipelineNode.outputs
-
-    def __init__(self, multi_output=True, id=None):
-        super().__init__(NodeType.Source, id)
-        self._source = None
-
-    @property
-    def source(self):
-        return self._source
-    
-    @source.setter
-    def source(self, source):
-        self._source = source
-    
-    @inputs.setter
-    def inputs(self, inputs):
-        self.outputs = inputs
-
-    @outputs.setter
-    def outputs(self, outputs):
-        self._outputs = outputs
-        self._inputs = outputs
-
 class OperatorNode(PipelineNode):
     def __init__(self, id=None):
         super().__init__(NodeType.Operator, id)
@@ -147,6 +111,8 @@ class Pipeline:
         self.nodes = {}
         self.edges = {}
         self.node_to_edges = {}
+        self.data = {}
+        self.meta = {}
         
     def set_graph(self, nodes, edges):
         self_nodes = {}
@@ -176,6 +142,8 @@ class Pipeline:
         self.nodes = self_nodes
         self.edges = self_edges
         self.node_to_edges = self_node_to_edges
+        self.data = {}
+        self.meta = {}
 
     def run(self):
         all_operators = set(
@@ -206,22 +174,21 @@ class Pipeline:
                 input_meta = {}
 
                 for edge in input_edges:
-                    input_source_node = self.nodes[edge.output_node_id]
-                    input_source = input_source_node.source
-                    if input_source is None:
+                    source_port_id = port_id(edge.output_node_id, edge.output_port.name)
+
+                    if edge.output_port.type == PortType.Data:
+                        data_dict = self.data
+                        input_dict = input_data
+                    else:
+                        data_dict = self.meta
+                        input_dict = input_meta
+
+                    d = data_dict.get(source_port_id)
+                    if d is None:
                         do_run = False
                         break
 
-                    source_port = edge.output_port
-                    operator_port = edge.input_port
-                    if input_source.has(source_port):
-                        if source_port.type == PortType.Data:
-                            input_data[operator_port.name] = input_source.get(source_port)
-                        else:
-                            input_meta[operator_port.name] = input_source.get(source_port)
-                    else:
-                        do_run = False
-                        break
+                    input_dict[edge.input_port.name] = d
 
                 if do_run:
                     operator = operator_node.operator
@@ -232,19 +199,12 @@ class Pipeline:
                     output_meta, output_data = operator.execute(input_meta, input_data)
 
                     for edge in output_edges:
-                        output_source_node = self.nodes[edge.input_node_id]
-                        output_source = output_source_node.source
-                        if output_source is None:
-                            output_source = oremda.source.Source(self.client)
-                            output_source_node.source = output_source
+                        sink_port_id = port_id(edge.output_node_id, edge.output_port.name)
 
-                        source_port = edge.input_port
-                        operator_port = edge.output_port
-
-                        if operator_port.type == PortType.Data:
-                            output_source.set(source_port, output_data[operator_port.name])
+                        if edge.output_port.type == PortType.Data:
+                            self.data[sink_port_id] = output_data[edge.output_port.name]
                         else:
-                            output_source.set(source_port, output_meta[operator_port.name])
+                            self.meta[sink_port_id] = output_meta[edge.output_port.name]
 
                     run_operators.add(operator_id)
                     count = count + 1
