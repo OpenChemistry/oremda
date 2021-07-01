@@ -148,10 +148,9 @@ class Pipeline:
         self.edges = {}
         self.node_to_edges = {}
         
-    def set_graph(self, nodes, edges, roots):
+    def set_graph(self, nodes, edges):
         self_nodes = {}
         self_edges = {}
-        self_roots = roots
         self_node_to_edges = {}
 
         for node in nodes:
@@ -174,19 +173,8 @@ class Pipeline:
             self_node_to_edges.setdefault(output_node.id, set()).add(edge.id)
             self_node_to_edges.setdefault(input_node.id, set()).add(edge.id)
 
-        if len(self_roots) < 1:
-            raise Exception("Please specify at least one root node")
-
-        for root_id in self_roots:
-            root_node = self_nodes.get(root_id)
-            if root_node is None:
-                raise Exception(f"The root node {root_id} does not exist.")
-            elif root_node.type != NodeType.Source:
-                raise Exception("Only a Source node can be a root node.")
-
         self.nodes = self_nodes
         self.edges = self_edges
-        self.roots = self_roots
         self.node_to_edges = self_node_to_edges
 
     def run(self):
