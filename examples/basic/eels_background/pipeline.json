@@ -1,0 +1,77 @@
+{
+  "sources": [
+    {
+      "id": "0",
+      "ports": {
+        "eloss": { "type": "data"},
+        "spec": { "type": "data"}
+      }
+    },
+    {
+      "id": "1",
+      "ports": {
+        "eloss": { "type": "data"},
+        "background": { "type": "data"}
+      }
+    },
+    {
+      "id": "2",
+      "ports": {
+        "eloss": { "type": "data"},
+        "spec": { "type": "data"}
+      }
+    }
+  ],
+  "operators": [
+    {
+      "id": "10",
+      "type": "ncem_reader",
+      "ports": {
+        "input": {},
+        "output": {
+          "eloss": { "type": "data"},
+          "spec": { "type": "data"}
+        }
+      },
+      "params": {
+          "filename": "08_carbon.dm3"
+      }
+    },
+    {
+      "id": "11",
+      "type": "background_fit",
+      "ports": {
+        "input": {
+          "eloss": { "type": "data"},
+          "spec": { "type": "data"}
+        },
+        "output": {
+          "eloss": { "type": "data"},
+          "background": { "type": "data"}
+        }
+      },
+      "params": {
+          "start": 268,
+          "stop": 277
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": { "id": "10", "port": "eloss" },
+      "to": { "id": "0", "port": "eloss" }
+    },
+    {
+      "from": { "id": "10", "port": "spec" },
+      "to": { "id": "0", "port": "spec" }
+    },
+    {
+      "from": { "id": "0", "port": "eloss" },
+      "to": { "id": "11", "port": "eloss" }
+    },
+    {
+      "from": { "id": "0", "port": "spec" },
+      "to": { "id": "11", "port": "spec" }
+    }
+  ]
+}

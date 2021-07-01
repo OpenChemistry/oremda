@@ -19,17 +19,21 @@ if __name__ == '__main__':
 
     operator_list = [
         # 'eels_background_subtract',
-        'add',
-        'view',
+        # 'add',
+        # 'view',
+        'ncem_reader',
+        'plot',
+        'background_fit',
+        'subtract',
     ]
     if client.type == 'docker':
         run_list = [f'oremda/{prefix}{name}' for name in operator_list]
-        loader_image = f'oremda/{prefix}loader'
+        loader_image = f'oremda/{prefix}eels_background'
     elif client.type == 'singularity':
         suffix = '.simg'
         run_list = [f'{SINGULARITY_DIR}/{prefix}{name}{suffix}'
                     for name in operator_list]
-        loader_image = f'{SINGULARITY_DIR}/{prefix}loader{suffix}'
+        loader_image = f'{SINGULARITY_DIR}/{prefix}eels_background{suffix}'
     else:
         raise Exception(f'Unknown client type: {client.type}')
 
@@ -37,7 +41,7 @@ if __name__ == '__main__':
         '/run/oremda': {
             'bind': '/run/oremda',
         },
-        '/home/patrick/virtualenvs/oremda/src/openNCEM/ncempy/data': {
+        '/home/alessandro/oremda_data': {
             'bind': '/data',
         },
     }
