@@ -56,3 +56,16 @@ class Client:
                 queue.close()
                 if consume:
                     queue.unlink()
+
+class DataArray:
+    def __init__(self, client):
+        self.client = client
+        self.object_id = None
+
+    @property
+    def data(self):
+        return self.client.get_object(self.object_id)
+
+    @data.setter
+    def data(self, array):
+        self.object_id = self.client.create_object(array)

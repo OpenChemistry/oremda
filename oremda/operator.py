@@ -4,9 +4,8 @@ import json
 
 import pyarrow.plasma as plasma
 
-from oremda import Client
+from oremda import Client, DataArray
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH, OREMDA_FINISHED_QUEUE, TaskType
-from oremda.source import DataArray
 
 
 class Operator(ABC):

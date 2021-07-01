@@ -7,7 +7,6 @@ build_singularity=false
 prefix=""
 
 directories=(
-  loader
   add
   multiply
   view
