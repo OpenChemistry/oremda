@@ -286,3 +286,56 @@ def deserialize_pipeline(obj, client):
     pipeline.set_graph(nodes, edges)
 
     return pipeline
+
+def serialize_pipeline(pipeline):
+    _nodes = []
+
+    for node in pipeline.nodes.values():
+        operator = node.operator
+        if operator is None:
+            continue
+
+        _input_ports = {}
+        for port in node.inputs.values():
+            _input_ports[port.name] = { 'type': port.type }
+
+        _output_ports = {}
+        for port in node.outputs.values():
+            _output_ports[port.name] = { 'type': port.type }
+
+        _params = {}
+        for name, value in operator.parameters.items():
+            _params[name] = value
+
+        _node = {
+            'id': node.id,
+            'queue': operator.name,
+            'ports': {
+                'input': _input_ports,
+                'output': _output_ports
+            },
+            'params': _params
+        }
+
+        _nodes.append(_node)
+
+    _edges = []
+
+    for edge in pipeline.edges.values():
+        port_type = edge.output_port.type
+
+        _edge = {
+            'type': port_type,
+            'from': {
+                'id': edge.output_node_id,
+                'port': edge.output_port.name
+            },
+            'to': {
+                'id': edge.input_node_id,
+                'port': edge.input_port.name
+            }
+        }
+
+        _edges.append(_edge)
+
+    return {'nodes': _nodes, 'edges': _edges}
