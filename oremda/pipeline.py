@@ -225,12 +225,15 @@ class Pipeline:
             pass
 
 def validate_port_type(type):
-    if type == PortType.Data:
-        return PortType.Data
-    elif type == PortType.Meta:
-        return PortType.Meta
-    else:
+    valid_types = [
+        PortType.Data,
+        PortType.Meta,
+    ]
+
+    if type not in valid_types:
         raise Exception(f'Unknown port type: {type}')
+
+    return type
 
 def deserialize_pipeline(obj, client):
     _nodes = obj.get('nodes', [])
