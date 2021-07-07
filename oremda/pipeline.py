@@ -1,8 +1,9 @@
 import json
 
 import pyarrow.plasma as plasma
-from oremda.constants import OREMDA_FINISHED_QUEUE
+from oremda.constants import OREMDA_FINISHED_QUEUE, DEFAULT_PLASMA_SOCKET_PATH
 from oremda.constants import NodeType, PortType, IOType, TaskType
+from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
 
 class PortInfo:
@@ -31,7 +32,7 @@ class PipelineEdge:
         self.input_port = input_port
 
 class PipelineNode:
-    def __init__(self, t, multi_input=False, multi_output=False, id=None):
+    def __init__(self, t, id=None):
         self._id = unique_id(id)
         self._type = t
         self._inputs = {}
@@ -222,3 +223,122 @@ class Pipeline:
     def _create_queues(self, operators):
         with self.client.open_queue(OREMDA_FINISHED_QUEUE, create=True, reuse=True) as done_queue:
             pass
+
+def validate_port_type(type):
+    valid_types = [
+        PortType.Data,
+        PortType.Meta,
+    ]
+
+    if type not in valid_types:
+        raise Exception(f'Unknown port type: {type}')
+
+    return type
+
+def deserialize_pipeline(obj, client):
+    _nodes = obj.get('nodes', [])
+    _edges = obj.get('edges', [])
+
+    nodes = []
+
+    for _node in _nodes:
+        node = OperatorNode(_node.get('id'))
+
+        _input_ports = _node.get('ports', {}).get('input', {})
+        _output_ports = _node.get('ports', {}).get('output', {})
+        _params = _node.get('params', {})
+        _queue_name = _node['queue']
+
+        input_ports = {}
+        for name, port in _input_ports.items():
+            port_type = validate_port_type(port.get('type'))
+            input_ports[name] = PortInfo(port_type, name)
+
+        output_ports = {}
+        for name, port in _output_ports.items():
+            port_type = validate_port_type(port.get('type'))
+            output_ports[name] = PortInfo(port_type, name)
+
+        params = {}
+        for name, value in _params.items():
+            params[name] = value
+
+        operator = OperatorHandle(_queue_name, client)
+        operator.parameters = params
+
+        node.inputs = input_ports
+        node.outputs = output_ports
+        node.operator = operator
+
+        nodes.append(node)
+
+    edges = []
+
+    for _edge in _edges:
+        port_type = validate_port_type(_edge.get('type'))
+        from_node = _edge['from']
+        to_node = _edge['to']
+        from_port = PortInfo(port_type, from_node['port'])
+        to_port = PortInfo(port_type, to_node['port'])
+        edge = PipelineEdge(from_node['id'], from_port, to_node['id'], to_port)
+
+        edges.append(edge)
+
+    pipeline = Pipeline(client)
+
+    pipeline.set_graph(nodes, edges)
+
+    return pipeline
+
+def serialize_pipeline(pipeline):
+    _nodes = []
+
+    for node in pipeline.nodes.values():
+        operator = node.operator
+        if operator is None:
+            continue
+
+        _input_ports = {}
+        for port in node.inputs.values():
+            _input_ports[port.name] = { 'type': port.type }
+
+        _output_ports = {}
+        for port in node.outputs.values():
+            _output_ports[port.name] = { 'type': port.type }
+
+        _params = {}
+        for name, value in operator.parameters.items():
+            _params[name] = value
+
+        _node = {
+            'id': node.id,
+            'queue': operator.name,
+            'ports': {
+                'input': _input_ports,
+                'output': _output_ports
+            },
+            'params': _params
+        }
+
+        _nodes.append(_node)
+
+    _edges = []
+
+    for edge in pipeline.edges.values():
+        port_type = edge.output_port.type
+
+        _edge = {
+            'type': port_type,
+            'from': {
+                'id': edge.output_node_id,
+                'port': edge.output_port.name
+            },
+            'to': {
+                'id': edge.input_node_id,
+                'port': edge.input_port.name
+            }
+        }
+
+        _edges.append(_edge)
+
+    return {'nodes': _nodes, 'edges': _edges}
