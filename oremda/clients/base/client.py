@@ -14,5 +14,9 @@ class ClientBase(ABC):
         pass
 
     @abstractmethod
+    def image(self):
+        pass
+
+    @abstractmethod
     def run(self):
         pass
