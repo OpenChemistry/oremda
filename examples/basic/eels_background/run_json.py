@@ -1,5 +1,3 @@
-import numpy as np
-
 import json
 
 from oremda import Client as OremdaClient

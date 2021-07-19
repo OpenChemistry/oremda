@@ -7,6 +7,8 @@ build_singularity=false
 prefix=""
 
 directories=(
+  plasma
+  runner
   add
   multiply
   view
