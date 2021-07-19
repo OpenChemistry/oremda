@@ -1,24 +1,4 @@
-import docker
-
-from oremda.clients.base import ClientBase, ContainerBase
-
-
-class DockerClient(ClientBase):
-    @property
-    def client(self):
-        return docker.from_env()
-
-    @property
-    def type(self):
-        return 'docker'
-
-    def run(self, *args, **kwargs):
-        # Always run in detached mode
-        kwargs = kwargs.copy()
-        kwargs['detach'] = True
-
-        container = self.client.containers.run(*args, **kwargs)
-        return DockerContainer(container)
+from oremda.clients.base import ContainerBase
 
 
 class DockerContainer(ContainerBase):

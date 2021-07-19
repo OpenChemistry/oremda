@@ -1,4 +1,4 @@
-from oremda.clients.odocker import DockerClient
+from oremda.clients.docker import DockerClient
 from oremda.clients.singularity import SingularityClient
 
 

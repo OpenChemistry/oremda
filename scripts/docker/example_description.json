@@ -1,0 +1,30 @@
+{
+    "oremda": {
+        "type": "add",
+        "ports": {
+            "input": {
+                "scalars": {
+                    "type": "data"
+                },
+                "meta": {
+                    "type": "meta"
+                }
+            },
+            "output": {
+                "scalars": {
+                    "type": "data"
+                },
+                "meta": {
+                    "type": "meta"
+                }
+            }
+        },
+        "params": {
+            "foo": {
+                "type": "number",
+                "required": true,
+                "default": 0
+            }
+        }
+    }
+}
