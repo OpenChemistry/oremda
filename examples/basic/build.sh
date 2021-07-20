@@ -9,10 +9,6 @@ prefix=""
 directories=(
   plasma
   runner
-  add
-  multiply
-  view
-  eels_background
 )
 
 script_dir=$(dirname "$0")
