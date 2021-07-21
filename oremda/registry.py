@@ -4,7 +4,7 @@ class Registry:
         self.images = {}
         self.run_kwargs = {}
 
-    def _inspect(self, image_name, prefix='oremda', delimiter='.'):
+    def _inspect(self, image_name):
         image = self.client.image(image_name)
 
         labels = image.oremda_labels
@@ -14,10 +14,8 @@ class Registry:
         ports.setdefault('output', {})
 
         name = labels.get('name')
-        queue = labels.get('queue')
 
-        # assert(name is not None)
-        # assert(port is not None)
+        assert(name is not None)
 
         return labels
 
