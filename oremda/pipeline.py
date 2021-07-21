@@ -145,22 +145,13 @@ class Pipeline:
 
         # Verify that all the required operator input ports have a connection
         for node in nodes:
-            required_input_ports = set()
-            for port in node.inputs.values():
-                if port.required:
-                    required_input_ports.add(port.name)
 
-            existing_input_ports = set()
-            for edge_id in self_node_to_edges[node.id]:
-                edge = self_edges[edge_id]
-                if edge.input_node_id == node.id:
-                        existing_input_ports.add(edge.input_port.name)
-
+            required_input_ports = {port.name for port in node.inputs.values() if port.required}
+            existing_input_ports = {self_edges[edge_id].input_port.name for edge_id in self_node_to_edges[node.id] if self_edges[edge_id].input_node_id == node.id}
             missing_input_ports = required_input_ports.difference(existing_input_ports)
 
-            if len(missing_input_ports) > 0:
+            if missing_input_ports:
                 raise Exception(f"The node {node.id} has the following missing input connections: {missing_input_ports}")
-
 
         self.nodes = self_nodes
         self.edges = self_edges
@@ -177,7 +168,7 @@ class Pipeline:
         )
         run_operators = set()
 
-        while len(all_operators.difference(run_operators)) > 0:
+        while all_operators.difference(run_operators):
             count = 0
             for operator_id, operator_node in node_iter(self.nodes, NodeType.Operator):
                 if operator_id in run_operators:
@@ -191,7 +182,7 @@ class Pipeline:
                         input_edges.append(edge)
                     elif edge.output_node_id == operator_id:
                         output_edges.append(edge)
-                
+
                 do_run = True
                 input_data = {}
                 input_meta = {}
