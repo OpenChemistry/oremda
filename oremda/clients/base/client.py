@@ -14,9 +14,17 @@ class ClientBase(ABC):
         pass
 
     @abstractmethod
-    def image(self):
+    def image(self, name):
         pass
 
     @abstractmethod
-    def run(self):
+    def container(self, id):
+        pass
+
+    @abstractmethod
+    def self_container(self):
+        pass
+
+    @abstractmethod
+    def run(self, *args, **kwargs):
         pass

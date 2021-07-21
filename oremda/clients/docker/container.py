@@ -13,6 +13,18 @@ class DockerContainer(ContainerBase):
     def status(self):
         return self.container.status
 
+    @property
+    def mounts(self):
+        return list(
+            map(
+                lambda mount: {'source': mount['Source'], 'destination': mount['Destination']},
+                filter(
+                    lambda mount: mount['Type'] == 'bind',
+                    self.container.attrs.get('Mounts', [])
+                )
+            )
+        )
+
     def logs(self, *args, **kwargs):
         return self.container.logs(*args, **kwargs).decode('utf-8')
 
