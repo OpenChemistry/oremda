@@ -1,11 +1,16 @@
+import json
+
+from oremda.constants import TaskType
+
 class Registry:
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, memory_client, container_client):
+        self.memory_client = memory_client
+        self.container_client = container_client
         self.images = {}
         self.run_kwargs = {}
 
     def _inspect(self, image_name):
-        image = self.client.image(image_name)
+        image = self.container_client.image(image_name)
 
         labels = image.oremda_labels
 
@@ -52,7 +57,7 @@ class Registry:
         container = info['container']
         if container is None:
             try:
-                container = self.client.run(image_name, **self.run_kwargs)
+                container = self.container_client.run(image_name, **self.run_kwargs)
                 info['container'] = container
             except Exception as e:
                 print(f'An exception was caught: {e}')
@@ -63,15 +68,14 @@ class Registry:
         return container
 
     def stop(self, image_name):
-        info = self._info(image_name)
-        container = info['container']
-        if container is None:
+        if not self.running(image_name):
             return
 
-        container.stop()
+        queue_name = self.name(image_name)
+        message = json.dumps({'task': TaskType.Terminate})
+        with self.memory_client.open_queue(f'/{queue_name}') as queue:
+            queue.send(message)
 
     def release(self):
-        for image_name, info in self.images.items():
-            container = info['container']
-            if container is not None:
-                container.stop()
+        for image_name in self.images:
+            self.stop(image_name)

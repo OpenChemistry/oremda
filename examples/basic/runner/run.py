@@ -7,10 +7,10 @@ from oremda.registry import Registry
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
 import oremda.pipeline
 
-container_client = ContainerClient('docker')
-registry = Registry(container_client)
-
 memory_client = MemoryClient(DEFAULT_PLASMA_SOCKET_PATH)
+container_client = ContainerClient('docker')
+
+registry = Registry(memory_client, container_client)
 
 self_attrs = container_client.client.containers.get(os.environ.get('HOSTNAME')).attrs
 ipc_mode = self_attrs['HostConfig']['IpcMode']
