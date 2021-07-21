@@ -1,8 +1,4 @@
-import json
-
-import pyarrow.plasma as plasma
-from oremda.constants import OREMDA_FINISHED_QUEUE, DEFAULT_PLASMA_SOCKET_PATH
-from oremda.constants import NodeType, PortType, IOType, TaskType
+from oremda.constants import NodeType, PortType, IOType
 from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.utils.types import bool_from_str
@@ -15,15 +11,6 @@ class PortInfo:
     
     def __eq__(self, other):
         return self.type == other.type and self.name == other.name
-
-
-class InputInfo:
-    def __init__(self, required=True):
-        self.required = required
-
-class OutputInfo:
-    def __init__(self):
-        pass
 
 class PipelineEdge:
     def __init__(self, output_node_id, output_port, input_node_id, input_port, id=None):
@@ -229,17 +216,6 @@ class Pipeline:
 
             if count == 0:
                 raise Exception("The pipeline couldn't be resolved")
-
-    def _terminate_operators(self, operators):
-        message = json.dumps({'task': TaskType.Terminate})
-        names = set(x['name'] for x in operators)
-        for name in names:
-            with self.client.open_queue(f'/{name}') as queue:
-                queue.send(message)
-
-    def _create_queues(self, operators):
-        with self.client.open_queue(OREMDA_FINISHED_QUEUE, create=True, reuse=True) as done_queue:
-            pass
 
 def validate_port_type(type):
     valid_types = [
