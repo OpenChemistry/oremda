@@ -1,6 +1,8 @@
+from oremda.typing import IdType
+from typing import Optional
 import uuid
 
-def unique_id(id=None):
+def unique_id(id: Optional[IdType] = None) -> IdType:
     if id is None:
         return uuid.uuid4()
     else:

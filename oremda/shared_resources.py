@@ -1,5 +1,7 @@
 from contextlib import contextmanager
-from multiprocessing.shared_memory import SharedMemory
+from typing import Optional
+
+from oremda.typing import DataType, ObjectId
 
 import posix_ipc
 from posix_ipc import MessageQueue
@@ -9,19 +11,19 @@ import numpy as np
 
 
 class Client:
-    def __init__(self, plasma_socket):
+    def __init__(self, plasma_socket: str):
         self.plasma_client = plasma.connect(plasma_socket)
 
-    def create_object(self, obj):
-        object_id = self.plasma_client.put(obj)
+    def create_object(self, obj: DataType):
+        object_id: ObjectId = self.plasma_client.put(obj)
 
         return object_id
 
-    def get_object(self, object_id):
+    def get_object(self, object_id: ObjectId) -> DataType:
         return self.plasma_client.get(object_id)
 
     @contextmanager
-    def open_queue(self, name, create=False, consume=False, reuse=False):
+    def open_queue(self, name: str, create=False, consume=False, reuse=False):
         """Open a message queue via a context manager
 
         The message queue will automatically be closed when the
@@ -44,7 +46,7 @@ class Client:
         """
         flags = 0
         if create:
-            flags = posix_ipc.O_CREAT if reuse else O_CREX
+            flags = posix_ipc.O_CREAT if reuse else posix_ipc.O_CREX
 
         queue = None
 
@@ -58,14 +60,17 @@ class Client:
                     queue.unlink()
 
 class DataArray:
-    def __init__(self, client):
+    def __init__(self, client: Client):
         self.client = client
-        self.object_id = None
+        self.object_id: Optional[ObjectId] = None
 
     @property
-    def data(self):
-        return self.client.get_object(self.object_id)
+    def data(self) -> Optional[DataType]:
+        if self.object_id is None:
+            return None
+
+        self.client.get_object(self.object_id)
 
     @data.setter
-    def data(self, array):
+    def data(self, array: DataType):
         self.object_id = self.client.create_object(array)

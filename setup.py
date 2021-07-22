@@ -6,6 +6,7 @@ install_requires = [
     'pyarrow',
     'docker',
     'spython',
+    'pydantic',
 ]
 
 setup(

@@ -1,6 +1,7 @@
 import json
+from typing import Dict
 
-from oremda.constants import TaskType
+from oremda.typing import TerminateTaskMessage
 
 class Registry:
     def __init__(self, memory_client, container_client):
@@ -72,7 +73,7 @@ class Registry:
             return
 
         queue_name = self.name(image_name)
-        message = json.dumps({'task': TaskType.Terminate})
+        message = json.dumps(TerminateTaskMessage().dict())
         with self.memory_client.open_queue(f'/{queue_name}') as queue:
             queue.send(message)
 
