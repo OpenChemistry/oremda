@@ -1,27 +1,16 @@
-import json
-
-import pyarrow.plasma as plasma
-from oremda.constants import OREMDA_FINISHED_QUEUE, DEFAULT_PLASMA_SOCKET_PATH
-from oremda.constants import NodeType, PortType, IOType, TaskType
+from oremda.constants import NodeType, PortType, IOType
 from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
+from oremda.utils.types import bool_from_str
 
 class PortInfo:
-    def __init__(self, port_type, name):
+    def __init__(self, port_type, name, required=False):
         self.type = port_type
         self.name = name
+        self.required = required
     
     def __eq__(self, other):
         return self.type == other.type and self.name == other.name
-
-
-class InputInfo:
-    def __init__(self, required=True):
-        self.required = required
-
-class OutputInfo:
-    def __init__(self):
-        pass
 
 class PipelineEdge:
     def __init__(self, output_node_id, output_port, input_node_id, input_port, id=None):
@@ -107,8 +96,9 @@ def node_iter(nodes, type):
 
 
 class Pipeline:
-    def __init__(self, client):
+    def __init__(self, client, registry):
         self.client = client
+        self.registry = registry
         self.nodes = {}
         self.edges = {}
         self.node_to_edges = {}
@@ -140,6 +130,16 @@ class Pipeline:
             self_node_to_edges.setdefault(output_node.id, set()).add(edge.id)
             self_node_to_edges.setdefault(input_node.id, set()).add(edge.id)
 
+        # Verify that all the required operator input ports have a connection
+        for node in nodes:
+
+            required_input_ports = {port.name for port in node.inputs.values() if port.required}
+            existing_input_ports = {self_edges[edge_id].input_port.name for edge_id in self_node_to_edges[node.id] if self_edges[edge_id].input_node_id == node.id}
+            missing_input_ports = required_input_ports.difference(existing_input_ports)
+
+            if missing_input_ports:
+                raise Exception(f"The node {node.id} has the following missing input connections: {missing_input_ports}")
+
         self.nodes = self_nodes
         self.edges = self_edges
         self.node_to_edges = self_node_to_edges
@@ -155,7 +155,7 @@ class Pipeline:
         )
         run_operators = set()
 
-        while len(all_operators.difference(run_operators)) > 0:
+        while all_operators.difference(run_operators):
             count = 0
             for operator_id, operator_node in node_iter(self.nodes, NodeType.Operator):
                 if operator_id in run_operators:
@@ -169,7 +169,7 @@ class Pipeline:
                         input_edges.append(edge)
                     elif edge.output_node_id == operator_id:
                         output_edges.append(edge)
-                
+
                 do_run = True
                 input_data = {}
                 input_meta = {}
@@ -197,6 +197,10 @@ class Pipeline:
                     if operator is None:
                         raise Exception(f"The operator node {operator_id} does not have an associated operator handle.")
 
+                    # Ensure an instance of this operator is running
+                    if not self.registry.running(operator.image_name):
+                        self.registry.run(operator.image_name)
+
                     output_meta, output_data = operator.execute(input_meta, input_data)
 
                     for edge in output_edges:
@@ -213,17 +217,6 @@ class Pipeline:
             if count == 0:
                 raise Exception("The pipeline couldn't be resolved")
 
-    def _terminate_operators(self, operators):
-        message = json.dumps({'task': TaskType.Terminate})
-        names = set(x['name'] for x in operators)
-        for name in names:
-            with self.client.open_queue(f'/{name}') as queue:
-                queue.send(message)
-
-    def _create_queues(self, operators):
-        with self.client.open_queue(OREMDA_FINISHED_QUEUE, create=True, reuse=True) as done_queue:
-            pass
-
 def validate_port_type(type):
     valid_types = [
         PortType.Data,
@@ -235,7 +228,7 @@ def validate_port_type(type):
 
     return type
 
-def deserialize_pipeline(obj, client):
+def deserialize_pipeline(obj, client, registry):
     _nodes = obj.get('nodes', [])
     _edges = obj.get('edges', [])
 
@@ -244,15 +237,18 @@ def deserialize_pipeline(obj, client):
     for _node in _nodes:
         node = OperatorNode(_node.get('id'))
 
-        _input_ports = _node.get('ports', {}).get('input', {})
-        _output_ports = _node.get('ports', {}).get('output', {})
+        _image_name = _node['image']
+        _ports = registry.ports(_image_name)
+        _input_ports = _ports.get('input', {})
+        _output_ports = _ports.get('output', {})
+        _queue_name = registry.name(_image_name)
         _params = _node.get('params', {})
-        _queue_name = _node['queue']
 
         input_ports = {}
         for name, port in _input_ports.items():
             port_type = validate_port_type(port.get('type'))
-            input_ports[name] = PortInfo(port_type, name)
+            required = bool_from_str(port.get('required', 'true'))
+            input_ports[name] = PortInfo(port_type, name, required)
 
         output_ports = {}
         for name, port in _output_ports.items():
@@ -263,7 +259,7 @@ def deserialize_pipeline(obj, client):
         for name, value in _params.items():
             params[name] = value
 
-        operator = OperatorHandle(_queue_name, client)
+        operator = OperatorHandle(_image_name, _queue_name, client)
         operator.parameters = params
 
         node.inputs = input_ports
@@ -284,7 +280,7 @@ def deserialize_pipeline(obj, client):
 
         edges.append(edge)
 
-    pipeline = Pipeline(client)
+    pipeline = Pipeline(client, registry)
 
     pipeline.set_graph(nodes, edges)
 
@@ -298,25 +294,13 @@ def serialize_pipeline(pipeline):
         if operator is None:
             continue
 
-        _input_ports = {}
-        for port in node.inputs.values():
-            _input_ports[port.name] = { 'type': port.type }
-
-        _output_ports = {}
-        for port in node.outputs.values():
-            _output_ports[port.name] = { 'type': port.type }
-
         _params = {}
         for name, value in operator.parameters.items():
             _params[name] = value
 
         _node = {
             'id': node.id,
-            'queue': operator.name,
-            'ports': {
-                'input': _input_ports,
-                'output': _output_ports
-            },
+            'image': operator.image_name,
             'params': _params
         }
 

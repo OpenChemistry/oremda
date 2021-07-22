@@ -70,7 +70,5 @@ def flat_to_nested(flat, delimiter='.'):
 def flat_get_item(flat, item, delimiter='.'):
     prefix = f'{item}{delimiter}'
     keys = [x for x in flat.keys() if x.startswith(prefix)]
-    if not keys:
-        raise KeyError(item)
 
     return {key[len(prefix):]: flat[key] for key in keys}

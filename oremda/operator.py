@@ -109,7 +109,8 @@ def operator(func=None, name=None, start=True,
     return decorator
 
 class OperatorHandle:
-    def __init__(self, name, client):
+    def __init__(self, image_name, name, client):
+        self.image_name = image_name
         self.name = name
         self.client = client
         self._parameters = {}

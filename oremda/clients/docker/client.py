@@ -1,4 +1,5 @@
 import docker
+import os
 
 from oremda.clients.base import ClientBase
 from oremda.clients.docker.container import DockerContainer
@@ -16,6 +17,12 @@ class DockerClient(ClientBase):
 
     def image(self, name):
         return DockerImage(self.client, name)
+
+    def container(self, id):
+        return DockerContainer(self.client.containers.get(id))
+
+    def self_container(self):
+        return self.container(os.environ.get('HOSTNAME'))
 
     def run(self, *args, **kwargs):
         # Always run in detached mode

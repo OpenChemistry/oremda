@@ -8,6 +8,11 @@ class ContainerBase(ABC):
     def id(self):
         pass
 
+    @property
+    @abstractmethod
+    def mounts(self):
+        pass
+
     @abstractmethod
     def logs(self):
         pass

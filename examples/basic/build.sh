@@ -7,10 +7,8 @@ build_singularity=false
 prefix=""
 
 directories=(
-  add
-  multiply
-  view
-  eels_background
+  plasma
+  runner
 )
 
 script_dir=$(dirname "$0")
