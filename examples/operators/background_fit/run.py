@@ -1,6 +1,9 @@
+from typing import Dict, Tuple
+
 import numpy as np
 
 from oremda import operator
+from oremda.typing import JSONType, PortKey, MetaType, DataType
 
 def power_fit(sig, box):
     """Fit a power law to the EELS background.
@@ -36,7 +39,7 @@ def power_fit(sig, box):
         pp = (0,0)
         raise
     # fullEloss = np.linspace(0, sig.shape[0], sig.shape[0], endpoint=False)
-    fullEloss = np.linspace(box[0], sig.shape[0], np.int(np.abs(sig.shape[0] - box[0])))
+    fullEloss = np.linspace(box[0], sig.shape[0], int(np.abs(sig.shape[0] - box[0])))
     try:
         bgnd = np.exp(pp[1])*fullEloss**pp[0]
     except:
@@ -51,20 +54,24 @@ def eloss_to_pixel(eloss, energy):
 
 
 @operator
-def background_fit(meta, data, parameters):
+def background_fit(
+        meta: Dict[PortKey, MetaType],
+        data: Dict[PortKey, DataType],
+        parameters: JSONType
+    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
     start_eloss = parameters.get('start', 0)
     stop_eloss = parameters.get('stop', 0)
 
-    eloss = data.get('eloss')
-    spec = data.get('spec')
+    eloss = data['eloss']
+    spec = data['spec']
 
     start = eloss_to_pixel(eloss, start_eloss)
     end = eloss_to_pixel(eloss, stop_eloss)
 
     background, _ = power_fit(spec, (start, end))
 
-    output_meta = {}
-    output_data = {
+    output_meta: Dict[PortKey, MetaType] = {}
+    output_data: Dict[PortKey, DataType] = {
         'eloss': eloss[start:],
         'background': background,
     }

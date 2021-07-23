@@ -2,7 +2,7 @@ from pathlib import Path
 
 from spython.main import Client as client
 
-from oremda.clients.base import ClientBase
+from oremda.clients.base.client import ClientBase
 from oremda.clients.singularity.container import SingularityContainer
 from oremda.clients.singularity.image import SingularityImage
 

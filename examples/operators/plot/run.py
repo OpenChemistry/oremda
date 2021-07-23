@@ -1,9 +1,16 @@
+from typing import Dict, Tuple
+
 import matplotlib.pyplot as plt
 
 from oremda import operator
+from oremda.typing import JSONType, PortKey, MetaType, DataType
 
 @operator
-def plot(meta, data, parameters):
+def plot(
+        meta: Dict[PortKey, MetaType],
+        data: Dict[PortKey, DataType],
+        parameters: JSONType
+    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
     filename = parameters.get('filename')
     x_label = parameters.get('xLabel', 'x')
     y_label = parameters.get('yLabel', 'y')

@@ -1,19 +1,20 @@
-from oremda.constants import NodeType, PortType, IOType
+from oremda.typing import EdgeJSON, JSONType, IdType, NodeJSON, PipelineJSON, PortKey, PortInfo
+from typing import Optional, Dict, Sequence, Set
 from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
-from oremda.utils.types import bool_from_str
-
-class PortInfo:
-    def __init__(self, port_type, name, required=False):
-        self.type = port_type
-        self.name = name
-        self.required = required
-    
-    def __eq__(self, other):
-        return self.type == other.type and self.name == other.name
+from oremda.typing import PortType, NodeType, IOType
+from oremda.registry import Registry
+from oremda.shared_resources import Client as MemoryClient, DataArray
 
 class PipelineEdge:
-    def __init__(self, output_node_id, output_port, input_node_id, input_port, id=None):
+    def __init__(
+        self,
+        output_node_id: IdType,
+        output_port: PortInfo,
+        input_node_id: IdType,
+        input_port: PortInfo,
+        id: Optional[IdType]=None
+    ):
         self.id = unique_id(id)
         self.output_node_id = output_node_id
         self.input_node_id = input_node_id
@@ -21,11 +22,11 @@ class PipelineEdge:
         self.input_port = input_port
 
 class PipelineNode:
-    def __init__(self, t, id=None):
+    def __init__(self, t: NodeType, id: Optional[IdType]=None):
         self._id = unique_id(id)
         self._type = t
-        self._inputs = {}
-        self._outputs = {}
+        self._inputs: Dict[PortKey, PortInfo] = {}
+        self._outputs: Dict[PortKey, PortInfo] = {}
 
     @property
     def id(self):
@@ -38,20 +39,20 @@ class PipelineNode:
     @property
     def inputs(self):
         return self._inputs
-    
+
     @inputs.setter
-    def inputs(self, inputs):
+    def inputs(self, inputs: Dict[PortKey, PortInfo]):
         self._inputs = inputs
 
     @property
     def outputs(self):
         return self._outputs
-    
+
     @outputs.setter
-    def outputs(self, outputs):
+    def outputs(self, outputs: Dict[PortKey, PortInfo]):
         self._outputs = outputs
-    
-    def has(self, port, io):
+
+    def has(self, port: PortInfo, io: IOType):
         _port = None
 
         if io == IOType.In:
@@ -67,48 +68,46 @@ class PipelineNode:
 class OperatorNode(PipelineNode):
     def __init__(self, id=None):
         super().__init__(NodeType.Operator, id)
-        self._operator = None
-    
+        self._operator: Optional[OperatorHandle] = None
+
     @property
     def operator(self):
         return self._operator
-    
+
     @operator.setter
-    def operator(self, operator):
+    def operator(self, operator: OperatorHandle):
         self._operator = operator
 
-def validate_edge(output_node, output_port, input_node, input_port):
+def validate_edge(output_node: PipelineNode, output_port: PortInfo, input_node: PipelineNode, input_port: PortInfo):
     if output_port.type != input_port.type:
         raise Exception('Cannot connect a Meta port to a Data port')
 
-    port_type = output_port.type
-
     if not output_node.has(output_port, IOType.Out):
         raise Exception(f'The port "{output_port.name}" with type "{output_port.type}" does not exist on the output node.')
-    
+
     if not input_node.has(input_port, IOType.In):
         raise Exception(f'The port "{input_port.name}" with type "{input_port.type}" does not exist on the input node.')
 
-def node_iter(nodes, type):
+def node_iter(nodes: Dict[IdType, PipelineNode], type: NodeType):
     for node_id, node in nodes.items():
         if node.type == type:
             yield node_id, node
 
 
 class Pipeline:
-    def __init__(self, client, registry):
+    def __init__(self, client: MemoryClient, registry: Registry):
         self.client = client
         self.registry = registry
-        self.nodes = {}
-        self.edges = {}
-        self.node_to_edges = {}
-        self.data = {}
-        self.meta = {}
-        
-    def set_graph(self, nodes, edges):
-        self_nodes = {}
-        self_edges = {}
-        self_node_to_edges = {}
+        self.nodes: Dict[IdType, OperatorNode] = {}
+        self.edges: Dict[IdType, PipelineEdge] = {}
+        self.node_to_edges: Dict[IdType, Set[IdType]] = {}
+        self.data: Dict[str, DataArray] = {}
+        self.meta: Dict[str, JSONType] = {}
+
+    def set_graph(self, nodes: Sequence[OperatorNode], edges: Sequence[PipelineEdge]):
+        self_nodes: Dict[IdType, OperatorNode] = {}
+        self_edges: Dict[IdType, PipelineEdge] = {}
+        self_node_to_edges: Dict[IdType, Set[IdType]] = {}
 
         for node in nodes:
             self_nodes[node.id] = node
@@ -150,14 +149,14 @@ class Pipeline:
         all_operators = set(
             map(
                 lambda t: t[0],
-                node_iter(self.nodes, NodeType.Operator)
+                self.nodes.items()
             )
         )
         run_operators = set()
 
         while all_operators.difference(run_operators):
             count = 0
-            for operator_id, operator_node in node_iter(self.nodes, NodeType.Operator):
+            for operator_id, operator_node in self.nodes.items():
                 if operator_id in run_operators:
                     continue
 
@@ -228,32 +227,21 @@ def validate_port_type(type):
 
     return type
 
-def deserialize_pipeline(obj, client, registry):
-    _nodes = obj.get('nodes', [])
-    _edges = obj.get('edges', [])
+def deserialize_pipeline(obj: JSONType, client: MemoryClient, registry: Registry):
+    pipeline_json = PipelineJSON(**obj)
+    _nodes = pipeline_json.nodes
+    _edges = pipeline_json.edges
 
-    nodes = []
+    nodes: Sequence[OperatorNode] = []
 
     for _node in _nodes:
-        node = OperatorNode(_node.get('id'))
+        node = OperatorNode(_node.id)
 
-        _image_name = _node['image']
-        _ports = registry.ports(_image_name)
-        _input_ports = _ports.get('input', {})
-        _output_ports = _ports.get('output', {})
+        _image_name = _node.image
+        input_ports = registry.ports(_image_name, IOType.In)
+        output_ports = registry.ports(_image_name, IOType.Out)
         _queue_name = registry.name(_image_name)
-        _params = _node.get('params', {})
-
-        input_ports = {}
-        for name, port in _input_ports.items():
-            port_type = validate_port_type(port.get('type'))
-            required = bool_from_str(port.get('required', 'true'))
-            input_ports[name] = PortInfo(port_type, name, required)
-
-        output_ports = {}
-        for name, port in _output_ports.items():
-            port_type = validate_port_type(port.get('type'))
-            output_ports[name] = PortInfo(port_type, name)
+        _params = _node.params
 
         params = {}
         for name, value in _params.items():
@@ -268,15 +256,15 @@ def deserialize_pipeline(obj, client, registry):
 
         nodes.append(node)
 
-    edges = []
+    edges: Sequence[PipelineEdge] = []
 
     for _edge in _edges:
-        port_type = validate_port_type(_edge.get('type'))
-        from_node = _edge['from']
-        to_node = _edge['to']
-        from_port = PortInfo(port_type, from_node['port'])
-        to_port = PortInfo(port_type, to_node['port'])
-        edge = PipelineEdge(from_node['id'], from_port, to_node['id'], to_port)
+        port_type = _edge.type
+        from_node = _edge.start
+        to_node = _edge.stop
+        from_port = PortInfo(type=port_type, name=from_node.port)
+        to_port = PortInfo(type=port_type, name=to_node.port)
+        edge = PipelineEdge(from_node.id, from_port, to_node.id, to_port)
 
         edges.append(edge)
 
@@ -286,8 +274,8 @@ def deserialize_pipeline(obj, client, registry):
 
     return pipeline
 
-def serialize_pipeline(pipeline):
-    _nodes = []
+def serialize_pipeline(pipeline: Pipeline) -> PipelineJSON:
+    _nodes: Sequence[NodeJSON] = []
 
     for node in pipeline.nodes.values():
         operator = node.operator
@@ -298,20 +286,20 @@ def serialize_pipeline(pipeline):
         for name, value in operator.parameters.items():
             _params[name] = value
 
-        _node = {
+        _node = NodeJSON(**{
             'id': node.id,
             'image': operator.image_name,
             'params': _params
-        }
+        })
 
         _nodes.append(_node)
 
-    _edges = []
+    _edges: Sequence[EdgeJSON] = []
 
     for edge in pipeline.edges.values():
         port_type = edge.output_port.type
 
-        _edge = {
+        _edge = EdgeJSON(**{
             'type': port_type,
             'from': {
                 'id': edge.output_node_id,
@@ -321,8 +309,8 @@ def serialize_pipeline(pipeline):
                 'id': edge.input_node_id,
                 'port': edge.input_port.name
             }
-        }
+        })
 
         _edges.append(_edge)
 
-    return {'nodes': _nodes, 'edges': _edges}
+    return PipelineJSON(**{'nodes': _nodes, 'edges': _edges})

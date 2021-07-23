@@ -5,7 +5,9 @@ install_requires = [
     'posix-ipc',
     'pyarrow',
     'docker',
+    'six', # because of docker
     'spython',
+    'pydantic',
 ]
 
 setup(
