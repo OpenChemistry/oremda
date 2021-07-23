@@ -1,0 +1,32 @@
+{
+  "nodes": [
+    {
+      "id": "10",
+      "image": "oremda/ncem_reader",
+      "params": {
+          "filename": "08_carbon.dm3"
+      }
+    },
+    {
+      "id": "20",
+      "image": "oremda/plot",
+      "params": {
+        "filename": "spectrum.png",
+        "xLabel": "eLoss (eV)",
+        "yLabel": ""
+      }
+    }
+  ],
+  "edges": [
+    {
+      "type": "data",
+      "from": { "id": "10", "port": "eloss" },
+      "to": { "id": "20", "port": "x0" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "10", "port": "spec" },
+      "to": { "id": "20", "port": "y0" }
+    }
+  ]
+}

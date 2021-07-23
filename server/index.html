@@ -1,0 +1,64 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <h1>Oremda client</h1>
+    <h3>Session</h3>
+    <span id="session-span"></span>
+
+    <h3>Pipeline</h3>
+    <span id="pipeline-span"></span>
+
+    <h3>Websocket</h3>
+    <span id="websocket-span">Disconnected</span>
+
+    <h3>Messages</h3>
+    <ul id="message-list"></ul>
+  </body>
+  <script>
+    async function main() {
+      const session = await fetch('/sessions', {method: 'POST'}).then(res => res.json())
+      const queryParams = new URLSearchParams({sessionId: session.id});
+      const sessionSpan = document.getElementById('session-span')
+      sessionSpan.innerText = session.id
+
+      console.log("Session", session)
+
+      const ws = new WebSocket(`ws://${location.host}/ws?${queryParams.toString()}`)
+      ws.onopen = () => {
+        const wsSpan = document.getElementById('websocket-span')
+        wsSpan.innerText = 'Connected'
+      }
+      ws.onclose = () => {
+        const wsSpan = document.getElementById('websocket-span')
+        wsSpan.innerText = 'Disconnected'
+      }
+      ws.onmessage = (ev) => {
+        const messageList = document.getElementById('message-list')
+        const element = document.createElement('li')
+        element.innerText = ev.data
+        messageList.appendChild(element)
+      }
+
+      pipeline_json = await fetch('/pipeline.json').then(res => res.json())
+
+      const pipeline = await fetch(
+        `/pipelines?${queryParams.toString()}`,
+        {
+          method: 'POST',
+          body: JSON.stringify(pipeline_json),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      ).then(res => res.json())
+
+      const pipelineSpan = document.getElementById('pipeline-span')
+      pipelineSpan.innerText = pipeline.id
+
+      console.log("Pipeline", pipeline)
+    }
+
+    main()
+  </script>
+</html>
