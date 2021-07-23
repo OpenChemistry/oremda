@@ -1,4 +1,4 @@
-from typing import Any, Dict, NewType, Optional, Sequence, Type, Union
+from typing import Any, Dict, Optional, Sequence, Union
 from abc import ABC, abstractmethod
 from uuid import UUID
 import numpy as np
@@ -32,6 +32,22 @@ class PortType(str, Enum):
 class IOType(str, Enum):
     In = 'in'
     Out = 'out'
+
+class ContainerType(str, Enum):
+    Docker = 'docker'
+    Singularity = 'singularity'
+
+class PortInfo(BaseModel):
+    type: PortType = Field(...)
+    name: PortKey = Field(...)
+    required: bool = False
+
+    def __eq__(self, other: 'PortInfo'):
+        return self.type == other.type and self.name == other.name
+
+class MountInfo(BaseModel):
+    source: str = Field(...)
+    destination: str = Field(...)
 
 class TaskType(str, Enum):
     Operate = 'operate'

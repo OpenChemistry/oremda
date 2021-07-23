@@ -1,21 +1,10 @@
-from pydantic.main import BaseModel
-from oremda.typing import EdgeJSON, JSONType, IdType, NodeJSON, PipelineJSON, PortKey
+from oremda.typing import EdgeJSON, JSONType, IdType, NodeJSON, PipelineJSON, PortKey, PortInfo
 from typing import Optional, Dict, Sequence, Set
 from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
-from oremda.utils.types import bool_from_str
 from oremda.typing import PortType, NodeType, IOType
 from oremda.registry import Registry
 from oremda.shared_resources import Client as MemoryClient, DataArray
-
-class PortInfo:
-    def __init__(self, port_type: PortType, name: PortKey, required: bool = False):
-        self.type = port_type
-        self.name = name
-        self.required = required
-
-    def __eq__(self, other: 'PortInfo'):
-        return self.type == other.type and self.name == other.name
 
 class PipelineEdge:
     def __init__(
@@ -249,22 +238,10 @@ def deserialize_pipeline(obj: JSONType, client: MemoryClient, registry: Registry
         node = OperatorNode(_node.id)
 
         _image_name = _node.image
-        _ports = registry.ports(_image_name)
-        _input_ports = _ports.get('input', {})
-        _output_ports = _ports.get('output', {})
+        input_ports = registry.ports(_image_name, IOType.In)
+        output_ports = registry.ports(_image_name, IOType.Out)
         _queue_name = registry.name(_image_name)
         _params = _node.params
-
-        input_ports = {}
-        for name, port in _input_ports.items():
-            port_type = validate_port_type(port.get('type'))
-            required = bool_from_str(port.get('required', 'true'))
-            input_ports[name] = PortInfo(port_type, name, required)
-
-        output_ports = {}
-        for name, port in _output_ports.items():
-            port_type = validate_port_type(port.get('type'))
-            output_ports[name] = PortInfo(port_type, name)
 
         params = {}
         for name, value in _params.items():
@@ -285,8 +262,8 @@ def deserialize_pipeline(obj: JSONType, client: MemoryClient, registry: Registry
         port_type = _edge.type
         from_node = _edge.start
         to_node = _edge.stop
-        from_port = PortInfo(port_type, from_node.port)
-        to_port = PortInfo(port_type, to_node.port)
+        from_port = PortInfo(type=port_type, name=from_node.port)
+        to_port = PortInfo(type=port_type, name=to_node.port)
         edge = PipelineEdge(from_node.id, from_port, to_node.id, to_port)
 
         edges.append(edge)

@@ -1,4 +1,7 @@
+from typing import Any
+
 from oremda.clients.base import ContainerBase
+from oremda.typing import MountInfo
 
 
 class DockerContainer(ContainerBase):
@@ -15,11 +18,20 @@ class DockerContainer(ContainerBase):
 
     @property
     def mounts(self):
+        def filter_fn(mount: Any) -> Any:
+            return mount['Type'] == 'bind'
+
+        def map_fn(mount: Any) -> MountInfo:
+            return MountInfo(**{
+                'source': mount['Source'],
+                'destination': mount['Destination']
+            })
+
         return list(
             map(
-                lambda mount: {'source': mount['Source'], 'destination': mount['Destination']},
+                map_fn,
                 filter(
-                    lambda mount: mount['Type'] == 'bind',
+                    filter_fn,
                     self.container.attrs.get('Mounts', [])
                 )
             )

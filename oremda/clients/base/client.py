@@ -1,30 +1,33 @@
 from abc import ABC, abstractmethod
-
+from oremda.clients.base.container import ContainerBase
+from oremda.clients.base.image import ImageBase
+from oremda.typing import ContainerType
+from typing import Any
 
 class ClientBase(ABC):
 
     @property
     @abstractmethod
-    def client(self):
+    def client(self) -> Any:
         pass
 
     @property
     @abstractmethod
-    def type(self):
+    def type(self) -> ContainerType:
         pass
 
     @abstractmethod
-    def image(self, name):
+    def image(self, name: str) -> ImageBase:
         pass
 
     @abstractmethod
-    def container(self, id):
+    def container(self, id) -> ContainerBase:
         pass
 
     @abstractmethod
-    def self_container(self):
+    def self_container(self) -> ContainerBase:
         pass
 
     @abstractmethod
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs) -> ContainerBase:
         pass

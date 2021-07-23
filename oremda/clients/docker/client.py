@@ -1,7 +1,7 @@
 import docker
 import os
 
-from oremda.clients.base import ClientBase
+from oremda.clients.base.client import ClientBase
 from oremda.clients.docker.container import DockerContainer
 from oremda.clients.docker.image import DockerImage
 
