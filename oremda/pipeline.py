@@ -13,7 +13,7 @@ class PortInfo:
         self.type = port_type
         self.name = name
         self.required = required
-    
+
     def __eq__(self, other: 'PortInfo'):
         return self.type == other.type and self.name == other.name
 
@@ -50,7 +50,7 @@ class PipelineNode:
     @property
     def inputs(self):
         return self._inputs
-    
+
     @inputs.setter
     def inputs(self, inputs: Dict[PortKey, PortInfo]):
         self._inputs = inputs
@@ -58,11 +58,11 @@ class PipelineNode:
     @property
     def outputs(self):
         return self._outputs
-    
+
     @outputs.setter
     def outputs(self, outputs: Dict[PortKey, PortInfo]):
         self._outputs = outputs
-    
+
     def has(self, port: PortInfo, io: IOType):
         _port = None
 
@@ -95,7 +95,7 @@ def validate_edge(output_node: PipelineNode, output_port: PortInfo, input_node: 
 
     if not output_node.has(output_port, IOType.Out):
         raise Exception(f'The port "{output_port.name}" with type "{output_port.type}" does not exist on the output node.')
-    
+
     if not input_node.has(input_port, IOType.In):
         raise Exception(f'The port "{input_port.name}" with type "{input_port.type}" does not exist on the input node.')
 
@@ -114,7 +114,7 @@ class Pipeline:
         self.node_to_edges: Dict[IdType, Set[IdType]] = {}
         self.data: Dict[str, DataArray] = {}
         self.meta: Dict[str, JSONType] = {}
-        
+
     def set_graph(self, nodes: Sequence[OperatorNode], edges: Sequence[PipelineEdge]):
         self_nodes: Dict[IdType, OperatorNode] = {}
         self_edges: Dict[IdType, PipelineEdge] = {}

@@ -36,7 +36,7 @@ class Registry:
             self.images[image_name] = info
 
         return info
-    
+
     def name(self, image_name):
         info = self._info(image_name)
         return info['labels']['name']

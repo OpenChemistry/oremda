@@ -114,7 +114,7 @@ def operator(func: Optional[KernelFn] = None, _name : Optional[str] = None, star
             # Remove self so the caller does not need to add it
             return func(*args, **kwargs)
 
-        class_name = f'{name.capitalize()}Operator'      
+        class_name = f'{name.capitalize()}Operator'
         OpClass = type(class_name, (Operator,), {'kernel': kernel})
         obj = OpClass(name, Client(plasma_socket_path))
 
@@ -134,11 +134,11 @@ class OperatorHandle:
         self.name = name
         self.client = client
         self._parameters: JSONType = {}
-    
+
     @property
     def parameters(self):
         return self._parameters
-    
+
     @parameters.setter
     def parameters(self, params: JSONType):
         self._parameters = params
