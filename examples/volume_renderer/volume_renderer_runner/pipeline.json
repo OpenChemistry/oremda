@@ -1,0 +1,57 @@
+{
+  "nodes": [
+    {
+      "id": "10",
+      "image": "oremda/vtk_reader",
+      "params": {
+          "filename": "recon.vti"
+      }
+    },
+    {
+      "id": "11",
+      "image": "oremda/vtk_reader",
+      "params": {
+          "filename": "nanoparticle.vti"
+      }
+    },
+    {
+      "id": "12",
+      "image": "oremda/stateful_volume_renderer",
+      "params": {
+          "filename": "only_recon.png"
+      }
+    },
+    {
+      "id": "13",
+      "image": "oremda/stateful_volume_renderer",
+      "params": {
+          "filename": "only_nano.png",
+          "clear": true
+      }
+    },
+    {
+      "id": "14",
+      "image": "oremda/stateful_volume_renderer",
+      "params": {
+          "filename": "both.png"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "type": "data",
+      "from": { "id": "10", "port": "data" },
+      "to": { "id": "12", "port": "data" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "11", "port": "data" },
+      "to": { "id": "13", "port": "data" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "10", "port": "data" },
+      "to": { "id": "14", "port": "data" }
+    }
+  ]
+}

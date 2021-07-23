@@ -7,12 +7,7 @@ build_singularity=false
 prefix=""
 
 directories=(
-  background_fit
-  ncem_reader
-  plot
-  stateful_volume_renderer
-  subtract
-  vtk_reader
+  volume_renderer_runner
 )
 
 script_dir=$(dirname "$0")
@@ -26,7 +21,7 @@ $root_dir/docker/oremda/build.sh
 # Next, build all the example directories
 for name in "${directories[@]}"
 do
-  bash $script_dir/$name/build.sh
+  docker build -t oremda/$prefix$name -f $script_dir/$name/Dockerfile $script_dir/$name
 done
 
 if [ "$build_singularity" != true ]; then
@@ -37,3 +32,4 @@ singularity_dir=$script_dir/.singularity
 for name in "${directories[@]}"
 do
   singularity build --force $singularity_dir/$prefix$name.simg docker-daemon://oremda/$prefix$name:latest
+done
