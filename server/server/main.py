@@ -19,7 +19,8 @@ from oremda.typing import ContainerType
 from oremda.pipeline import deserialize_pipeline
 
 from .models import SessionModel, SerializablePipelineModel, PipelineModel, WebsocketModel
-from .messages import pipeline_created, pipeline_started, pipeline_completed
+from .messages import NotificationMessage, pipeline_created
+from .observer import ServerPipelineObserver
 
 app = FastAPI()
 
@@ -92,18 +93,10 @@ async def run_pipeline(session_id: IdType, pipeline_id: IdType, context: GlobalC
     model = context.pipelines[pipeline_id]
     pipeline = model.pipeline
 
-    message = pipeline_started(model)
-
-    await notify_clients(message.dict(), session_id, context)
-
     # pipeline.run is a blocking function, run it in a separate thread to free the
     # server to perform other tasks such as sending notifications
     # TODO: convert pipeline.run to an async function
     await asyncio.to_thread(pipeline.run)
-
-    message = pipeline_completed(model)
-
-    await notify_clients(message.dict(), session_id, context)
 
 def unique_id():
     return str(uuid.uuid4())
@@ -151,9 +144,16 @@ async def create_pipeline(
     if session_id not in context.sessions:
         raise Exception(f"Session {session_id} does not exist")
 
+    pipeline_id = unique_id()
+    graph.id = pipeline_id
     pipeline = deserialize_pipeline(graph.dict(by_alias=True), context.memory_client, context.registry)
 
-    model = PipelineModel(id=unique_id(), graph=graph, pipeline=pipeline)
+    def notify(message: NotificationMessage):
+        asyncio.run(notify_clients(message.dict(), session_id, context))
+
+    pipeline.observer = ServerPipelineObserver(notify)
+
+    model = PipelineModel(id=pipeline_id, graph=graph, pipeline=pipeline)
 
     pipeline_ids = context.session_pipelines.setdefault(session_id, set())
     pipeline_ids.add(model.id)

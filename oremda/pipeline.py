@@ -1,5 +1,5 @@
 from oremda.typing import EdgeJSON, JSONType, IdType, NodeJSON, PipelineJSON, PortKey, PortInfo
-from typing import Optional, Dict, Sequence, Set
+from typing import Any, Optional, Dict, Sequence, Set
 from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
@@ -95,7 +95,8 @@ def node_iter(nodes: Dict[IdType, PipelineNode], type: NodeType):
 
 
 class Pipeline:
-    def __init__(self, client: MemoryClient, registry: Registry):
+    def __init__(self, client: MemoryClient, registry: Registry, id: Optional[IdType]=None):
+        self._id = unique_id(id)
         self.client = client
         self.registry = registry
         self.nodes: Dict[IdType, OperatorNode] = {}
@@ -103,6 +104,11 @@ class Pipeline:
         self.node_to_edges: Dict[IdType, Set[IdType]] = {}
         self.data: Dict[str, DataArray] = {}
         self.meta: Dict[str, JSONType] = {}
+        self.observer: PipelineObserver = PipelineObserver()
+
+    @property
+    def id(self):
+        return self._id
 
     def set_graph(self, nodes: Sequence[OperatorNode], edges: Sequence[PipelineEdge]):
         self_nodes: Dict[IdType, OperatorNode] = {}
@@ -154,6 +160,8 @@ class Pipeline:
         )
         run_operators = set()
 
+        self.observer.on_start(self)
+
         while all_operators.difference(run_operators):
             count = 0
             for operator_id, operator_node in self.nodes.items():
@@ -191,16 +199,26 @@ class Pipeline:
                     input_dict[edge.input_port.name] = d
 
                 if do_run:
+                    self.observer.on_operator_start(self, operator_node)
+
                     operator = operator_node.operator
 
                     if operator is None:
-                        raise Exception(f"The operator node {operator_id} does not have an associated operator handle.")
+                        err = Exception(f"The operator node {operator_id} does not have an associated operator handle.")
+                        self.observer.on_operator_error(self, operator_node, err)
+                        self.observer.on_error(self, err)
+                        raise err
 
                     # Ensure an instance of this operator is running
                     if not self.registry.running(operator.image_name):
                         self.registry.run(operator.image_name)
 
-                    output_meta, output_data = operator.execute(input_meta, input_data)
+                    try:
+                        output_meta, output_data = operator.execute(input_meta, input_data)
+                    except Exception as err:
+                        self.observer.on_operator_error(self, operator_node, err)
+                        self.observer.on_error(self, err)
+                        raise
 
                     for edge in output_edges:
                         sink_port_id = port_id(edge.output_node_id, edge.output_port.name)
@@ -213,8 +231,32 @@ class Pipeline:
                     run_operators.add(operator_id)
                     count = count + 1
 
+                    self.observer.on_operator_complete(self, operator_node)
+
             if count == 0:
                 raise Exception("The pipeline couldn't be resolved")
+
+        self.observer.on_complete(self)
+
+class PipelineObserver:
+    def on_start(self, pipeline: Pipeline):
+        pass
+
+    def on_complete(self, pipeline: Pipeline):
+        pass
+
+    def on_error(self, pipeline: Pipeline, error: Any):
+        pass
+
+    def on_operator_start(self, pipeline: Pipeline, operator: OperatorNode):
+        pass
+
+    def on_operator_complete(self, pipeline: Pipeline, operator: OperatorNode):
+        pass
+
+    def on_operator_error(self, pipeline: Pipeline, operator: OperatorNode, error: Any):
+        pass
+
 
 def validate_port_type(type):
     valid_types = [
@@ -229,6 +271,7 @@ def validate_port_type(type):
 
 def deserialize_pipeline(obj: JSONType, client: MemoryClient, registry: Registry):
     pipeline_json = PipelineJSON(**obj)
+    _id = pipeline_json.id
     _nodes = pipeline_json.nodes
     _edges = pipeline_json.edges
 
@@ -268,7 +311,7 @@ def deserialize_pipeline(obj: JSONType, client: MemoryClient, registry: Registry
 
         edges.append(edge)
 
-    pipeline = Pipeline(client, registry)
+    pipeline = Pipeline(client, registry, _id)
 
     pipeline.set_graph(nodes, edges)
 
@@ -313,4 +356,4 @@ def serialize_pipeline(pipeline: Pipeline) -> PipelineJSON:
 
         _edges.append(_edge)
 
-    return PipelineJSON(**{'nodes': _nodes, 'edges': _edges})
+    return PipelineJSON(**{'nodes': _nodes, 'edges': _edges, 'id': pipeline.id})

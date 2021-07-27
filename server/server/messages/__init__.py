@@ -12,6 +12,8 @@ class ActionType(str, Enum):
     PipelineUpdated = 'PIPELINE_UPDATED'
     PipelineStarted = 'PIPELINE_STARTED'
     PipelineCompleted = 'PIPELINE_COMPLETED'
+    OperatorStarted = 'OPERATOR_STARTED'
+    OperatorCompleted = 'OPERATOR_COMPLETED'
 
 class NotificationMessage(BaseModel):
     type = OREMDA_TOKEN
@@ -24,14 +26,26 @@ def pipeline_created(pipeline: PipelineModel):
         'payload': SerializablePipelineModel(**pipeline.dict(by_alias=True))
     })
 
-def pipeline_started(pipeline: PipelineModel):
+def pipeline_started(payload: JSONType):
     return NotificationMessage(**{
         'action': ActionType.PipelineStarted,
-        'payload': ObjectModel(**pipeline.dict())
+        'payload': payload
     })
 
-def pipeline_completed(pipeline: PipelineModel):
+def pipeline_completed(payload: JSONType):
     return NotificationMessage(**{
         'action': ActionType.PipelineCompleted,
-        'payload': ObjectModel(**pipeline.dict())
+        'payload': payload
+    })
+
+def operator_started(payload: JSONType):
+    return NotificationMessage(**{
+        'action': ActionType.OperatorStarted,
+        'payload': payload
+    })
+
+def operator_completed(payload: JSONType):
+    return NotificationMessage(**{
+        'action': ActionType.OperatorCompleted,
+        'payload': payload
     })
