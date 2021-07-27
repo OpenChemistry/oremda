@@ -27,8 +27,8 @@ app = FastAPI()
 def lifespan(_app):
     global context
 
-    OREMDA_VAR_DIR = '/home/alessandro/run/oremda'
-    OREMDA_DATA_DIR = '/home/alessandro/oremda_data'
+    OREMDA_VAR_DIR = os.environ['OREMDA_VAR_DIR']
+    OREMDA_DATA_DIR = os.environ['OREMDA_DATA_DIR']
     PLASMA_SOCKET = f'{OREMDA_VAR_DIR}/plasma.sock'
 
     plasma_kwargs = {
@@ -45,7 +45,6 @@ def lifespan(_app):
             'volumes': {
                 OREMDA_VAR_DIR: {'bind': DEFAULT_OREMDA_VAR_DIR},
                 OREMDA_DATA_DIR: {'bind': '/data'},
-                '/var/run/docker.sock': {'bind': '/var/run/docker.sock'}
             },
             'ipc_mode': 'host',
             'detach': True,
