@@ -7,7 +7,8 @@
     <span id="session-span"></span>
 
     <h3>Pipeline</h3>
-    <span id="pipeline-span"></span>
+    <button id="pipeline-btn">Create pipeline</button>
+    <ul id="pipeline-list"></ul>
 
     <h3>Websocket</h3>
     <span id="websocket-span">Disconnected</span>
@@ -40,23 +41,28 @@
         messageList.appendChild(element)
       }
 
-      pipeline_json = await fetch('/pipeline.json').then(res => res.json())
+      const pipelineBtn = document.getElementById('pipeline-btn');
+      pipelineBtn.onclick = async function() {
+        pipeline_json = await fetch('/pipeline.json').then(res => res.json())
 
-      const pipeline = await fetch(
-        `/pipelines?${queryParams.toString()}`,
-        {
-          method: 'POST',
-          body: JSON.stringify(pipeline_json),
-          headers: {
-            'Content-Type': 'application/json'
+        const pipeline = await fetch(
+          `/pipelines?${queryParams.toString()}`,
+          {
+            method: 'POST',
+            body: JSON.stringify(pipeline_json),
+            headers: {
+              'Content-Type': 'application/json'
+            }
           }
-        }
-      ).then(res => res.json())
+        ).then(res => res.json())
 
-      const pipelineSpan = document.getElementById('pipeline-span')
-      pipelineSpan.innerText = pipeline.id
+        console.log("Pipeline", pipeline)
 
-      console.log("Pipeline", pipeline)
+        const pipelineList = document.getElementById('pipeline-list')
+        const element = document.createElement('li')
+        element.innerText = pipeline.id
+        pipelineList.appendChild(element)
+      }
     }
 
     main()
