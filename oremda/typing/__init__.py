@@ -84,5 +84,6 @@ class EdgeJSON(BaseModel):
     stop: PortJSON = Field(..., alias='to')
 
 class PipelineJSON(BaseModel):
+    id: Optional[IdType] = None
     nodes: Sequence[NodeJSON] = []
     edges: Sequence[EdgeJSON] = []
