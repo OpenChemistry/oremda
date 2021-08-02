@@ -28,7 +28,7 @@ class Registry:
     def _inspect(self, image_name: str):
         image: Any = self.container_client.image(image_name)
 
-        labels = image.oremda_labels
+        labels = image.labels
 
         ports = labels.setdefault('ports', {})
         ports.setdefault('input', {})

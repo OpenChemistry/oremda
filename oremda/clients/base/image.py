@@ -7,10 +7,10 @@ class ImageBase(ABC):
 
     @property
     @abstractmethod
-    def labels(self):
+    def raw_labels(self):
         pass
 
     @property
-    def oremda_labels(self):
-        oremda_labels = flat_get_item(self.labels, 'oremda')
-        return flat_to_nested(oremda_labels)
+    def labels(self):
+        labels = flat_get_item(self.raw_labels, 'oremda')
+        return flat_to_nested(labels)
