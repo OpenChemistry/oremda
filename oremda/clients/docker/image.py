@@ -7,5 +7,5 @@ class DockerImage(ImageBase):
         self.image = client.images.get(name)
 
     @property
-    def labels(self):
+    def raw_labels(self):
         return self.image.labels

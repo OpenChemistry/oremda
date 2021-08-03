@@ -7,7 +7,7 @@ class SingularityImage(ImageBase):
         self.path = path
 
     @property
-    def labels(self):
+    def raw_labels(self):
         out = self.client.inspect(self.path)
         if 'attributes' not in out:
             raise Exception(f'Failed to get attributes: {out}')

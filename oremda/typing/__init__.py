@@ -7,6 +7,7 @@ from enum import Enum
 
 IdType = Union[str, UUID]
 PortKey = str
+ParamKey = str
 JSONType = Dict[str, Any]
 DataType = np.ndarray
 MetaType = JSONType
@@ -87,3 +88,20 @@ class PipelineJSON(BaseModel):
     id: Optional[IdType] = None
     nodes: Sequence[NodeJSON] = []
     edges: Sequence[EdgeJSON] = []
+
+class PortLabels(BaseModel):
+    type: PortType = PortType.Data
+    required: bool = True
+
+class PortsLabels(BaseModel):
+    input: Dict[PortKey, PortLabels] = {}
+    output: Dict[PortKey, PortLabels] = {}
+
+class ParamLabels(BaseModel):
+    type: str
+    required: bool = True
+
+class OperatorLabels(BaseModel):
+    name: str
+    ports: PortsLabels
+    params: Dict[ParamKey, ParamLabels] = {}
