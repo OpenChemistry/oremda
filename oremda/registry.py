@@ -27,18 +27,7 @@ class Registry:
 
     def _inspect(self, image_name: str):
         image: Any = self.container_client.image(image_name)
-
-        labels = image.labels
-
-        ports = labels.setdefault('ports', {})
-        ports.setdefault('input', {})
-        ports.setdefault('output', {})
-
-        name = labels.get('name')
-
-        assert(name is not None)
-
-        return labels
+        return image.labels
 
     def _info(self, image_name: str):
         info = self.images.get(image_name)
@@ -46,19 +35,19 @@ class Registry:
             labels = self._inspect(image_name)
 
             info = ImageInfo(**{
-                'name': labels['name'],
+                'name': labels.name,
                 'inputs': {
                     name: PortInfo(**{
                         'name': name,
-                        'type': value['type']
-                    }) for name, value in labels['ports']['input'].items()
+                        'type': value.type
+                    }) for name, value in labels.ports.input.items()
                 },
                 'outputs': {
                     name: PortInfo(**{
-                        'name': name, 'type': value['type']
-                    }) for name, value in labels['ports']['output'].items()
+                        'name': name, 'type': value.type
+                    }) for name, value in labels.ports.output.items()
                 },
-                'params': labels['params']
+                'params': {k: v.dict() for k, v in labels.params.items()}
             })
             self.images[image_name] = info
 

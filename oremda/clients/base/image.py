@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 
+from pydantic.error_wrappers import ValidationError
+
 from oremda.clients.utils import flat_get_item, flat_to_nested
+from oremda.typing import OperatorLabels
 
 
 class ImageBase(ABC):
@@ -11,6 +14,13 @@ class ImageBase(ABC):
         pass
 
     @property
-    def labels(self):
+    def labels(self) -> OperatorLabels:
         labels = flat_get_item(self.raw_labels, 'oremda')
-        return flat_to_nested(labels)
+        return OperatorLabels(**flat_to_nested(labels))
+
+    def validate_labels(self):
+        try:
+            self.labels
+        except ValidationError as e:
+            msg = f'Required labels are missing under the oremda prefix:\n{e}'
+            raise Exception(msg) from None

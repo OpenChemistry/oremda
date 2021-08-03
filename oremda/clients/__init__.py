@@ -25,9 +25,8 @@ def client_from_image(image_path: Union[str, PurePath]) -> ClientBase:
     # Try to automatically determine the type of client based upon
     # the image provided, and return it.
 
-    if ':' in image_path or not Path(image_path).exists():
-        # If it contains a colon, or the file path does not exist,
-        # assume it is docker.
+    if not Path(image_path).exists():
+        # If the file path does not exist, assume it is docker.
         return Client('docker')
 
     return Client('singularity')
