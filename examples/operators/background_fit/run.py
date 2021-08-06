@@ -5,6 +5,7 @@ import numpy as np
 from oremda import operator
 from oremda.typing import JSONType, PortKey, MetaType, DataType
 
+
 def power_fit(sig, box):
     """Fit a power law to the EELS background.
 
@@ -27,23 +28,23 @@ def power_fit(sig, box):
         >> bgnd, bgnd_eloss = power_fit(spectrum, (100, 120))
 
     """
-    eLoss = np.linspace(box[0], box[1]-1, int(np.abs(box[1] - box[0])))
+    eLoss = np.linspace(box[0], box[1] - 1, int(np.abs(box[1] - box[0])))
     try:
         yy = np.copy(sig)
         yy[yy < 0] = 0
         yy += 1
 
-        pp = np.polyfit(np.log(eLoss), np.log(yy[box[0]:box[1]]), 1) #log-log fit
-    except:
-        print('fitting problem')
-        pp = (0,0)
+        pp = np.polyfit(np.log(eLoss), np.log(yy[box[0] : box[1]]), 1)  # log-log fit
+    except Exception:
+        print("fitting problem")
+        pp = (0, 0)
         raise
     # fullEloss = np.linspace(0, sig.shape[0], sig.shape[0], endpoint=False)
     fullEloss = np.linspace(box[0], sig.shape[0], int(np.abs(sig.shape[0] - box[0])))
     try:
-        bgnd = np.exp(pp[1])*fullEloss**pp[0]
-    except:
-        print('bgnd creation problem')
+        bgnd = np.exp(pp[1]) * fullEloss ** pp[0]
+    except Exception:
+        print("bgnd creation problem")
         bgnd = np.zeros_like(fullEloss)
     return bgnd, fullEloss
 
@@ -55,15 +56,13 @@ def eloss_to_pixel(eloss, energy):
 
 @operator
 def background_fit(
-        meta: Dict[PortKey, MetaType],
-        data: Dict[PortKey, DataType],
-        parameters: JSONType
-    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
-    start_eloss = parameters.get('start', 0)
-    stop_eloss = parameters.get('stop', 0)
+    meta: Dict[PortKey, MetaType], data: Dict[PortKey, DataType], parameters: JSONType
+) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
+    start_eloss = parameters.get("start", 0)
+    stop_eloss = parameters.get("stop", 0)
 
-    eloss = data['eloss']
-    spec = data['spec']
+    eloss = data["eloss"]
+    spec = data["spec"]
 
     start = eloss_to_pixel(eloss, start_eloss)
     end = eloss_to_pixel(eloss, stop_eloss)
@@ -72,8 +71,8 @@ def background_fit(
 
     output_meta: Dict[PortKey, MetaType] = {}
     output_data: Dict[PortKey, DataType] = {
-        'eloss': eloss[start:],
-        'background': background,
+        "eloss": eloss[start:],
+        "background": background,
     }
 
     return output_meta, output_data

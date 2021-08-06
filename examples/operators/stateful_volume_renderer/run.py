@@ -22,11 +22,11 @@ style = vtk.vtkInteractorStyleTrackballCamera()
 iren.SetInteractorStyle(style)
 
 ren_win.SetSize(800, 600)
-ren_win.SetWindowName('Volumes')
+ren_win.SetWindowName("Volumes")
 
 
 def activate_virtual_framebuffer():
-    '''
+    """
     Activates a virtual (headless) framebuffer for rendering 3D
     scenes via VTK.
 
@@ -35,12 +35,11 @@ def activate_virtual_framebuffer():
 
     * Requires the following packages:
       * `sudo apt-get install libgl1-mesa-dev xvfb`
-    '''
+    """
 
-    os.environ['DISPLAY'] = ':99.0'
+    os.environ["DISPLAY"] = ":99.0"
 
-    commands = ['Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &',
-                'sleep 3']
+    commands = ["Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &", "sleep 3"]
 
     for command in commands:
         subprocess.call(command, shell=True)
@@ -145,15 +144,15 @@ def write_window(ren_win, filename):
 
 @operator
 def stateful_volume_renderer(meta, data, parameters):
-    filename = parameters.get('filename', '')
-    clear = parameters.get('clear', False)
+    filename = parameters.get("filename", "")
+    clear = parameters.get("clear", False)
 
-    filepath = Path('/data') / filename
+    filepath = Path("/data") / filename
 
     if clear:
         ren.RemoveAllViewProps()
 
-    add_volume(data['data'])
+    add_volume(data["data"])
 
     ren.ResetCamera()
     ren_win.Render()

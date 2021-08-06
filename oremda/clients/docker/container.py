@@ -19,26 +19,19 @@ class DockerContainer(ContainerBase):
     @property
     def mounts(self):
         def filter_fn(mount: Any) -> Any:
-            return mount['Type'] == 'bind'
+            return mount["Type"] == "bind"
 
         def map_fn(mount: Any) -> MountInfo:
-            return MountInfo(**{
-                'source': mount['Source'],
-                'destination': mount['Destination']
-            })
+            return MountInfo(
+                **{"source": mount["Source"], "destination": mount["Destination"]}
+            )
 
         return list(
-            map(
-                map_fn,
-                filter(
-                    filter_fn,
-                    self.container.attrs.get('Mounts', [])
-                )
-            )
+            map(map_fn, filter(filter_fn, self.container.attrs.get("Mounts", [])))
         )
 
     def logs(self, *args, **kwargs):
-        return self.container.logs(*args, **kwargs).decode('utf-8')
+        return self.container.logs(*args, **kwargs).decode("utf-8")
 
     def stop(self, *args, **kwargs):
         return self.container.stop(*args, **kwargs)

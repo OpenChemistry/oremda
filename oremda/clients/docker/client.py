@@ -13,7 +13,7 @@ class DockerClient(ClientBase):
 
     @property
     def type(self):
-        return 'docker'
+        return "docker"
 
     def image(self, name):
         return DockerImage(self.client, name)
@@ -22,12 +22,12 @@ class DockerClient(ClientBase):
         return DockerContainer(self.client.containers.get(id))
 
     def self_container(self):
-        return self.container(os.environ.get('HOSTNAME'))
+        return self.container(os.environ.get("HOSTNAME"))
 
     def run(self, *args, **kwargs):
         # Always run in detached mode
         kwargs = kwargs.copy()
-        kwargs['detach'] = True
+        kwargs["detach"] = True
 
         container = self.client.containers.run(*args, **kwargs)
         return DockerContainer(container)

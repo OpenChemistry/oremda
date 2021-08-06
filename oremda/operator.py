@@ -7,7 +7,17 @@ import pyarrow.plasma as plasma
 
 from oremda import Client, DataArray
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH, OREMDA_FINISHED_QUEUE
-from oremda.typing import JSONType, OperateTaskMessage, PortKey, DataType, MetaType, ResultTaskMessage, TaskMessage, TaskType, ObjectId
+from oremda.typing import (
+    JSONType,
+    OperateTaskMessage,
+    PortKey,
+    DataType,
+    MetaType,
+    ResultTaskMessage,
+    TaskMessage,
+    TaskType,
+    ObjectId,
+)
 
 
 class Operator(ABC):
@@ -17,15 +27,16 @@ class Operator(ABC):
 
     @property
     def input_queue_name(self) -> str:
-        return f'/{self.name}'
+        return f"/{self.name}"
 
     @property
     def output_queue_name(self) -> str:
         return OREMDA_FINISHED_QUEUE
 
     def start(self):
-        with self.client.open_queue(self.input_queue_name, create=True,
-                                    reuse=True, consume=True) as input_queue:
+        with self.client.open_queue(
+            self.input_queue_name, create=True, reuse=True, consume=True
+        ) as input_queue:
             while True:
                 message, priority = input_queue.receive()
                 message = json.loads(message)
@@ -38,7 +49,7 @@ class Operator(ABC):
                 elif task_message.task == TaskType.Terminate:
                     return
                 else:
-                    raise Exception(f'Unknown task: {task_message.task}')
+                    raise Exception(f"Unknown task: {task_message.task}")
 
     def operate(self, task_message: OperateTaskMessage):
         _data_inputs = task_message.data_inputs
@@ -56,10 +67,9 @@ class Operator(ABC):
             _data_outputs[key] = object_id.binary().hex()
 
         with self.client.open_queue(self.output_queue_name) as output_queue:
-            result = ResultTaskMessage(**{
-                'meta_outputs': meta_outputs,
-                'data_outputs': _data_outputs
-            })
+            result = ResultTaskMessage(
+                **{"meta_outputs": meta_outputs, "data_outputs": _data_outputs}
+            )
 
             output_queue.send(json.dumps(result.dict()))
 
@@ -67,7 +77,7 @@ class Operator(ABC):
         self,
         meta_inputs: Dict[PortKey, MetaType],
         data_inputs_id: Dict[PortKey, ObjectId],
-        params: JSONType
+        params: JSONType,
     ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, plasma.ObjectID]]:
         data_inputs: Dict[PortKey, DataType] = {}
         for key, object_id in data_inputs_id.items():
@@ -86,17 +96,23 @@ class Operator(ABC):
         self,
         meta: Dict[PortKey, MetaType],
         data: Dict[PortKey, DataType],
-        parameters: JSONType
+        parameters: JSONType,
     ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
         pass
 
+
 KernelFn = Callable[
     [Dict[PortKey, MetaType], Dict[PortKey, DataType], JSONType],
-    Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]
+    Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]],
 ]
 
-def operator(func: Optional[KernelFn] = None, _name : Optional[str] = None, start: bool = True,
-             plasma_socket_path: str = DEFAULT_PLASMA_SOCKET_PATH):
+
+def operator(
+    func: Optional[KernelFn] = None,
+    _name: Optional[str] = None,
+    start: bool = True,
+    plasma_socket_path: str = DEFAULT_PLASMA_SOCKET_PATH,
+):
 
     # A decorator to automatically make an Operator where the function
     # that is decorated will be the kernel function.
@@ -114,8 +130,8 @@ def operator(func: Optional[KernelFn] = None, _name : Optional[str] = None, star
             # Remove self so the caller does not need to add it
             return func(*args, **kwargs)
 
-        class_name = f'{name.capitalize()}Operator'
-        OpClass = type(class_name, (Operator,), {'kernel': kernel})
+        class_name = f"{name.capitalize()}Operator"
+        OpClass = type(class_name, (Operator,), {"kernel": kernel})
         obj = OpClass(name, Client(plasma_socket_path))
 
         if start:
@@ -127,6 +143,7 @@ def operator(func: Optional[KernelFn] = None, _name : Optional[str] = None, star
         return decorator(func)
 
     return decorator
+
 
 class OperatorHandle:
     def __init__(self, image_name: str, name: str, client: Client):
@@ -144,26 +161,36 @@ class OperatorHandle:
         self._parameters = params
 
     def execute(
-        self, meta_inputs: Dict[PortKey, MetaType], data_inputs: Dict[PortKey, DataArray]
+        self,
+        meta_inputs: Dict[PortKey, MetaType],
+        data_inputs: Dict[PortKey, DataArray],
     ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataArray]]:
         data_inputs_id: Dict[PortKey, str] = {}
 
         for key, arr in data_inputs.items():
             if arr.object_id is None:
-                raise Exception('Trying to perform operator on un-initialized DataArray')
+                raise Exception(
+                    "Trying to perform operator on un-initialized DataArray"
+                )
 
             data_inputs_id[key] = arr.object_id.binary().hex()
 
-        task = OperateTaskMessage(**{
-            'data_inputs': data_inputs_id,
-            'meta_inputs': meta_inputs,
-            'params': self.parameters
-        })
+        task = OperateTaskMessage(
+            **{
+                "data_inputs": data_inputs_id,
+                "meta_inputs": meta_inputs,
+                "params": self.parameters,
+            }
+        )
 
-        with self.client.open_queue(self.queue_name, create=True, reuse=True) as op_queue:
+        with self.client.open_queue(
+            self.queue_name, create=True, reuse=True
+        ) as op_queue:
             op_queue.send(json.dumps(task.dict()))
 
-        with self.client.open_queue(OREMDA_FINISHED_QUEUE, create=True, reuse=True) as done_queue:
+        with self.client.open_queue(
+            OREMDA_FINISHED_QUEUE, create=True, reuse=True
+        ) as done_queue:
             message, priority = done_queue.receive()
             message = json.loads(message)
 
@@ -182,4 +209,4 @@ class OperatorHandle:
 
     @property
     def queue_name(self):
-        return f'/{self.name}'
+        return f"/{self.name}"

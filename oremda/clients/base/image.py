@@ -7,7 +7,6 @@ from oremda.typing import OperatorLabels
 
 
 class ImageBase(ABC):
-
     @property
     @abstractmethod
     def raw_labels(self):
@@ -15,12 +14,12 @@ class ImageBase(ABC):
 
     @property
     def labels(self) -> OperatorLabels:
-        labels = flat_get_item(self.raw_labels, 'oremda')
+        labels = flat_get_item(self.raw_labels, "oremda")
         return OperatorLabels(**flat_to_nested(labels))
 
     def validate_labels(self):
         try:
             self.labels
         except ValidationError as e:
-            msg = f'Required labels are missing under the oremda prefix:\n{e}'
+            msg = f"Required labels are missing under the oremda prefix:\n{e}"
             raise Exception(msg) from None

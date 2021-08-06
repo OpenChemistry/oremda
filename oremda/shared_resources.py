@@ -7,7 +7,6 @@ import posix_ipc
 from posix_ipc import MessageQueue
 
 import pyarrow.plasma as plasma
-import numpy as np
 
 
 class Client:
@@ -58,6 +57,7 @@ class Client:
                 queue.close()
                 if consume:
                     queue.unlink()
+
 
 class DataArray:
     def __init__(self, client: Client):

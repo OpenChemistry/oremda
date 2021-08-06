@@ -16,7 +16,7 @@ container_types = {
 def Client(type: Union[ContainerType, str] = ContainerType.Docker) -> ClientBase:
     type = ContainerType(type)
     if type not in container_types:
-        raise Exception(f'Unknown container type: {type}')
+        raise Exception(f"Unknown container type: {type}")
 
     return container_types[type]()
 
@@ -27,6 +27,6 @@ def client_from_image(image_path: Union[str, PurePath]) -> ClientBase:
 
     if not Path(image_path).exists():
         # If the file path does not exist, assume it is docker.
-        return Client('docker')
+        return Client("docker")
 
-    return Client('singularity')
+    return Client("singularity")

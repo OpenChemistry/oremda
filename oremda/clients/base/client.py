@@ -4,8 +4,8 @@ from oremda.clients.base.image import ImageBase
 from oremda.typing import ContainerType
 from typing import Any
 
-class ClientBase(ABC):
 
+class ClientBase(ABC):
     @property
     @abstractmethod
     def client(self) -> Any:

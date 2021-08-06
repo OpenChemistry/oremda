@@ -3,7 +3,7 @@ from .container import SingularityContainer
 from .image import SingularityImage
 
 __all__ = [
-    'SingularityClient',
-    'SingularityContainer',
-    'SingularityImage',
+    "SingularityClient",
+    "SingularityContainer",
+    "SingularityImage",
 ]
