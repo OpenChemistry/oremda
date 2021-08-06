@@ -6,7 +6,7 @@ import json
 import pyarrow.plasma as plasma
 
 from oremda import Client, DataArray
-from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH, OREMDA_FINISHED_QUEUE
+from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
 from oremda.typing import (
     JSONType,
     OperateTaskMessage,
@@ -28,10 +28,6 @@ class Operator(ABC):
     @property
     def input_queue_name(self) -> str:
         return f"/{self.name}"
-
-    @property
-    def output_queue_name(self) -> str:
-        return OREMDA_FINISHED_QUEUE
 
     def start(self):
         with self.client.open_queue(
@@ -55,6 +51,7 @@ class Operator(ABC):
         _data_inputs = task_message.data_inputs
         meta_inputs = task_message.meta_inputs
         params = task_message.params
+        output_queue_name = task_message.output_queue
 
         data_inputs: Dict[PortKey, ObjectId] = {}
         for key, object_id in _data_inputs.items():
@@ -66,7 +63,7 @@ class Operator(ABC):
         for key, object_id in data_outputs.items():
             _data_outputs[key] = object_id.binary().hex()
 
-        with self.client.open_queue(self.output_queue_name) as output_queue:
+        with self.client.open_queue(output_queue_name) as output_queue:
             result = ResultTaskMessage(
                 **{"meta_outputs": meta_outputs, "data_outputs": _data_outputs}
             )
@@ -164,6 +161,7 @@ class OperatorHandle:
         self,
         meta_inputs: Dict[PortKey, MetaType],
         data_inputs: Dict[PortKey, DataArray],
+        output_queue: str,
     ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataArray]]:
         data_inputs_id: Dict[PortKey, str] = {}
 
@@ -180,16 +178,20 @@ class OperatorHandle:
                 "data_inputs": data_inputs_id,
                 "meta_inputs": meta_inputs,
                 "params": self.parameters,
+                "output_queue": output_queue,
             }
         )
 
         with self.client.open_queue(
-            self.queue_name, create=True, reuse=True
+            self.input_queue_name, create=True, reuse=True
         ) as op_queue:
             op_queue.send(json.dumps(task.dict()))
 
         with self.client.open_queue(
-            OREMDA_FINISHED_QUEUE, create=True, reuse=True
+            output_queue,
+            create=True,
+            reuse=True,
+            consume=True,
         ) as done_queue:
             message, priority = done_queue.receive()
             message = json.loads(message)
@@ -208,5 +210,5 @@ class OperatorHandle:
             return meta_outputs, data_outputs
 
     @property
-    def queue_name(self):
+    def input_queue_name(self):
         return f"/{self.name}"

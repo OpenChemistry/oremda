@@ -257,9 +257,10 @@ class Pipeline:
                         self.observer.on_error(self, err)
                         raise err
 
+                    output_queue = f"/{self.id}_{operator_node.id}"
                     try:
                         output_meta, output_data = operator.execute(
-                            input_meta, input_data
+                            input_meta, input_data, output_queue
                         )
                     except Exception as err:
                         self.observer.on_operator_error(self, operator_node, err)
