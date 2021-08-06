@@ -1,0 +1,10 @@
+[flake8]
+
+# Match the max line length we have set for black
+max-line-length = 88
+
+# Explanations for ignoring errors:
+#
+#   E203: not PEP 8 compliant.
+#
+ignore: E203
