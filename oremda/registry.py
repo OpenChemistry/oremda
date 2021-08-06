@@ -91,6 +91,9 @@ class Registry:
 
         return container
 
+    def start_containers(self, image_names):
+        return [self.run(name) for name in image_names]
+
     def stop(self, image_name):
         if not self.running(image_name):
             return

@@ -136,6 +136,13 @@ class Pipeline:
     def id(self):
         return self._id
 
+    @property
+    def image_names(self):
+        return list(set(node.operator.image_name for node in self.nodes.values()))
+
+    def start_containers(self):
+        self.registry.start_containers(self.image_names)
+
     def set_graph(self, nodes: Sequence[OperatorNode], edges: Sequence[PipelineEdge]):
         self_nodes: Dict[IdType, OperatorNode] = {}
         self_edges: Dict[IdType, PipelineEdge] = {}
@@ -193,6 +200,8 @@ class Pipeline:
         self.meta = {}
 
     def run(self):
+        self.start_containers()
+
         all_operators = set(map(lambda t: t[0], self.nodes.items()))
         run_operators = set()
 
@@ -247,10 +256,6 @@ class Pipeline:
                         self.observer.on_operator_error(self, operator_node, err)
                         self.observer.on_error(self, err)
                         raise err
-
-                    # Ensure an instance of this operator is running
-                    if not self.registry.running(operator.image_name):
-                        self.registry.run(operator.image_name)
 
                     try:
                         output_meta, output_data = operator.execute(
