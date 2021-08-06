@@ -4,7 +4,6 @@ from oremda.typing import IdType, MountInfo
 
 
 class ContainerBase(ABC):
-
     @property
     @abstractmethod
     def id(self) -> IdType:

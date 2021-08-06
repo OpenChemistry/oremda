@@ -7,8 +7,8 @@ def run_container(client, name, *args, **kwargs):
     try:
         yield container
     except Exception as e:
-        print(f'An exception was caught: {e}')
-        print('Logs:', container.logs())
+        print(f"An exception was caught: {e}")
+        print("Logs:", container.logs())
         raise
     finally:
         container.stop()
@@ -22,20 +22,21 @@ def run_containers(client, names, args_list, kwargs_list):
         try:
             for name, args, kwargs in zip(names, args_list, kwargs_list):
                 container = stack.enter_context(
-                                run_container(client, name, *args, **kwargs))
+                    run_container(client, name, *args, **kwargs)
+                )
                 containers.append(container)
 
             yield containers
         except Exception as e:
-            print(f'An exception was caught: {e}')
-            print('Logs:')
+            print(f"An exception was caught: {e}")
+            print("Logs:")
             for container in containers:
-                print(f'{container.id}: {container.logs()}')
+                print(f"{container.id}: {container.logs()}")
             raise
 
 
-def nested_to_flat(nested, delimiter='.'):
-    path = ''
+def nested_to_flat(nested, delimiter="."):
+    path = ""
     flat = {}
 
     def recurse(cur):
@@ -54,7 +55,7 @@ def nested_to_flat(nested, delimiter='.'):
     return flat
 
 
-def flat_to_nested(flat, delimiter='.'):
+def flat_to_nested(flat, delimiter="."):
     nested = {}
     for full_key, value in flat.items():
         keys = full_key.split(delimiter)
@@ -67,8 +68,8 @@ def flat_to_nested(flat, delimiter='.'):
     return nested
 
 
-def flat_get_item(flat, item, delimiter='.'):
-    prefix = f'{item}{delimiter}'
+def flat_get_item(flat, item, delimiter="."):
+    prefix = f"{item}{delimiter}"
     keys = [x for x in flat.keys() if x.startswith(prefix)]
 
-    return {key[len(prefix):]: flat[key] for key in keys}
+    return {key[len(prefix) :]: flat[key] for key in keys}

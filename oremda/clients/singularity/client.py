@@ -8,14 +8,13 @@ from oremda.clients.singularity.image import SingularityImage
 
 
 class SingularityClient(ClientBase):
-
     @property
     def client(self):
         return client
 
     @property
     def type(self):
-        return 'singularity'
+        return "singularity"
 
     def image(self, path):
         return SingularityImage(self.client, path)
@@ -33,18 +32,18 @@ class SingularityClient(ClientBase):
         # This converts docker-style kwargs to singularity
         ret = {}
         options = []
-        if kwargs.get('detach', False) is False:
-            msg = 'Detach mode is currently required for singularity'
+        if kwargs.get("detach", False) is False:
+            msg = "Detach mode is currently required for singularity"
             raise Exception(msg)
 
-        if 'ipc_mode' in kwargs:
-            print('Warning: IPC mode will be ignored for singularity')
+        if "ipc_mode" in kwargs:
+            print("Warning: IPC mode will be ignored for singularity")
 
-        if 'volumes' in kwargs:
-            volumes = kwargs['volumes']
+        if "volumes" in kwargs:
+            volumes = kwargs["volumes"]
             for key, val in volumes.items():
-                bind = val['bind']
-                options += ['--bind', f'{key}:{bind}']
+                bind = val["bind"]
+                options += ["--bind", f"{key}:{bind}"]
 
-        ret['options'] = options
+        ret["options"] = options
         return ret

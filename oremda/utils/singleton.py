@@ -12,4 +12,5 @@ class SingletonMetaclass(type):
 
 class Singleton(metaclass=SingletonMetaclass):
     """Inherit from this class to easily use the metaclass singleton..."""
+
     pass

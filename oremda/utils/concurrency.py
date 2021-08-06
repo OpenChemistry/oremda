@@ -11,6 +11,7 @@ class ThreadPoolSingleton(Singleton):
     in order to re-use threads and limit the number of threads that
     get launched.
     """
+
     def __init__(self):
         self.executor = ThreadPoolExecutor(max_workers=os.cpu_count())
         self.submit = self.executor.submit

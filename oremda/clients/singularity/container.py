@@ -7,7 +7,6 @@ from oremda.clients.base import ContainerBase
 
 
 class SingularityContainer(ContainerBase):
-
     def __init__(self, image, name=None):
         self.image = image
         self.name = name
@@ -26,7 +25,7 @@ class SingularityContainer(ContainerBase):
 
     def run(self, *args, **kwargs):
         if self._stream_command is not None:
-            msg = f'A command is already running for {self.id}'
+            msg = f"A command is already running for {self.id}"
             raise Exception(msg)
 
         # Clear the logs
@@ -40,13 +39,13 @@ class SingularityContainer(ContainerBase):
         # This function should run in a background thread
 
         kwargs = kwargs.copy()
-        kwargs['image'] = self.image
+        kwargs["image"] = self.image
 
         # Always stream
-        kwargs['stream'] = True
+        kwargs["stream"] = True
 
         # spython will error if we don't return the result...
-        kwargs['return_result'] = True
+        kwargs["return_result"] = True
 
         self._stream_command = client.run(**kwargs)
 
@@ -59,7 +58,7 @@ class SingularityContainer(ContainerBase):
 
     def logs(self, *args, **kwargs):
         with self._logs_lock:
-            return ''.join(self._logs)
+            return "".join(self._logs)
 
     def stop(self, *args, **kwargs):
         # We cannot force kill the singularity containers right now,

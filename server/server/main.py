@@ -4,7 +4,14 @@ import json
 import asyncio
 
 from typing import Dict, List, Set
-from fastapi import FastAPI, Query, Body, WebSocket, WebSocketDisconnect, BackgroundTasks
+from fastapi import (
+    FastAPI,
+    Query,
+    Body,
+    WebSocket,
+    WebSocketDisconnect,
+    BackgroundTasks,
+)
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
@@ -18,24 +25,27 @@ from oremda.utils.plasma import start_plasma_store
 from oremda.typing import ContainerType
 from oremda.pipeline import deserialize_pipeline
 
-from .models import SessionModel, SerializablePipelineModel, PipelineModel, WebsocketModel
+from .models import (
+    SessionModel,
+    SerializablePipelineModel,
+    PipelineModel,
+    WebsocketModel,
+)
 from .messages import NotificationMessage, pipeline_created
 from .observer import ServerPipelineObserver
 
 app = FastAPI()
 
+
 # Setup and teardown of the required oremda objects
 def lifespan(_app):
     global context
 
-    OREMDA_VAR_DIR = os.environ['OREMDA_VAR_DIR']
-    OREMDA_DATA_DIR = os.environ['OREMDA_DATA_DIR']
-    PLASMA_SOCKET = f'{OREMDA_VAR_DIR}/plasma.sock'
+    OREMDA_VAR_DIR = os.environ["OREMDA_VAR_DIR"]
+    OREMDA_DATA_DIR = os.environ["OREMDA_DATA_DIR"]
+    PLASMA_SOCKET = f"{OREMDA_VAR_DIR}/plasma.sock"
 
-    plasma_kwargs = {
-        'memory': 50_000_000,
-        'socket_path': PLASMA_SOCKET
-    }
+    plasma_kwargs = {"memory": 50_000_000, "socket_path": PLASMA_SOCKET}
 
     with start_plasma_store(**plasma_kwargs):
         memory_client = MemoryClient(PLASMA_SOCKET)
@@ -43,26 +53,30 @@ def lifespan(_app):
         registry = Registry(memory_client, container_client)
 
         registry.run_kwargs = {
-            'volumes': {
-                OREMDA_VAR_DIR: {'bind': DEFAULT_OREMDA_VAR_DIR},
-                OREMDA_DATA_DIR: {'bind': '/data'},
+            "volumes": {
+                OREMDA_VAR_DIR: {"bind": DEFAULT_OREMDA_VAR_DIR},
+                OREMDA_DATA_DIR: {"bind": "/data"},
             },
-            'ipc_mode': 'host',
-            'detach': True,
-            'working_dir': '/data'
+            "ipc_mode": "host",
+            "detach": True,
+            "working_dir": "/data",
         }
 
-        context = GlobalContext(**{
-            'memory_client': memory_client,
-            'container_client': container_client,
-            'registry': registry
-        })
+        context = GlobalContext(
+            **{
+                "memory_client": memory_client,
+                "container_client": container_client,
+                "registry": registry,
+            }
+        )
 
         yield
 
     registry.release()
 
+
 app.router.lifespan_context = lifespan
+
 
 class GlobalContext(BaseModel):
     memory_client: MemoryClient = Field(...)
@@ -77,13 +91,16 @@ class GlobalContext(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
+
 context: GlobalContext
+
 
 async def notify_clients(message: JSONType, session_id: IdType, context: GlobalContext):
     websocket_ids = context.session_websockets.get(session_id, set())
     for websocket_id in websocket_ids:
         websocket = context.websockets[websocket_id]
         await websocket.socket.send_json(message)
+
 
 async def run_pipeline(session_id: IdType, pipeline_id: IdType, context: GlobalContext):
     pipeline_ids = context.session_pipelines.get(session_id, set())
@@ -98,14 +115,17 @@ async def run_pipeline(session_id: IdType, pipeline_id: IdType, context: GlobalC
     # TODO: convert pipeline.run to an async function
     await asyncio.to_thread(pipeline.run)
 
+
 def unique_id():
     return str(uuid.uuid4())
+
 
 @app.get("/sessions", response_model=List[SessionModel])
 async def get_sessions():
     global context
 
     return list(context.sessions.values())
+
 
 @app.post("/sessions", response_model=SessionModel)
 async def create_session():
@@ -117,10 +137,9 @@ async def create_session():
 
     return session
 
+
 @app.get("/pipelines", response_model=List[SerializablePipelineModel])
-async def get_pipelines(
-    session_id: IdType = Query(..., alias='sessionId')
-):
+async def get_pipelines(session_id: IdType = Query(..., alias="sessionId")):
     global context
 
     if session_id not in context.sessions:
@@ -128,7 +147,9 @@ async def get_pipelines(
 
     pipeline_ids = context.session_pipelines.get(session_id, set())
 
-    pipelines = list(map(lambda pipeline_id: context.pipelines[pipeline_id], pipeline_ids))
+    pipelines = list(
+        map(lambda pipeline_id: context.pipelines[pipeline_id], pipeline_ids)
+    )
 
     return pipelines
 
@@ -136,8 +157,8 @@ async def get_pipelines(
 @app.post("/pipelines", response_model=SerializablePipelineModel)
 async def create_pipeline(
     background_tasks: BackgroundTasks,
-    session_id: IdType = Query(..., alias='sessionId'),
-    graph: PipelineJSON = Body(...)
+    session_id: IdType = Query(..., alias="sessionId"),
+    graph: PipelineJSON = Body(...),
 ):
     global context
 
@@ -146,7 +167,9 @@ async def create_pipeline(
 
     pipeline_id = unique_id()
     graph.id = pipeline_id
-    pipeline = deserialize_pipeline(graph.dict(by_alias=True), context.memory_client, context.registry)
+    pipeline = deserialize_pipeline(
+        graph.dict(by_alias=True), context.memory_client, context.registry
+    )
 
     def notify(message: NotificationMessage):
         asyncio.run(notify_clients(message.dict(), session_id, context))
@@ -167,10 +190,10 @@ async def create_pipeline(
 
     return model
 
+
 @app.websocket("/ws")
 async def create_websocket(
-    socket: WebSocket,
-    session_id: IdType = Query(..., alias='sessionId')
+    socket: WebSocket, session_id: IdType = Query(..., alias="sessionId")
 ):
     global context
 
@@ -189,11 +212,13 @@ async def create_websocket(
     except WebSocketDisconnect:
         websocket_ids.remove(websocket.id)
 
+
 @app.get("/")
 async def get_index():
     index_file = f"{os.path.join(os.path.dirname(__file__), 'index.html')}"
     with open(index_file) as f:
         return HTMLResponse(content=f.read(), status_code=200)
+
 
 @app.get("/pipeline.json")
 async def sample_pipeline():

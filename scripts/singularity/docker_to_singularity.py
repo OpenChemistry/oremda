@@ -18,7 +18,7 @@ import docker
 from spython.main import Client as sclient
 
 if len(sys.argv) < 2:
-    sys.exit('Usage: <script> <docker_image>')
+    sys.exit("Usage: <script> <docker_image>")
 
 dclient = docker.from_env()
 image_name = sys.argv[1]
@@ -26,9 +26,9 @@ image_name = sys.argv[1]
 image = dclient.images.get(image_name)
 labels = image.labels
 
-labels_string = ''
+labels_string = ""
 for key, value in labels.items():
-    labels_string += f'    {key} {value}\n'
+    labels_string += f"    {key} {value}\n"
 
 definition = f"""\
 Bootstrap: docker-daemon
@@ -38,12 +38,12 @@ From: {image.id}
 {labels_string}
 """
 
-output_name = re.sub('[:/]', '_', f'{image_name}.simg')
+output_name = re.sub("[:/]", "_", f"{image_name}.simg")
 
-tf = tempfile.NamedTemporaryFile('w', delete=False)
+tf = tempfile.NamedTemporaryFile("w", delete=False)
 try:
     tf.close()
-    with open(tf.name, 'w') as wf:
+    with open(tf.name, "w") as wf:
         wf.write(definition)
 
     sclient.build(tf.name, image=output_name, sudo=True)
