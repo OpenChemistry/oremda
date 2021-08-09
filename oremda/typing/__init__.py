@@ -72,7 +72,7 @@ class OperateTaskMessage(TaskMessage):
     data_inputs: Dict[PortKey, str] = {}
     meta_inputs: Dict[PortKey, MetaType] = {}
     params: JSONType = {}
-    output_queue: str = ""
+    output_queue: str
 
 
 class ResultTaskMessage(BaseModel):
