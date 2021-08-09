@@ -138,7 +138,7 @@ class Pipeline:
 
     @property
     def image_names(self):
-        return list(set(node.operator.image_name for node in self.nodes.values()))
+        return set(node.operator.image_name for node in self.nodes.values())
 
     def start_containers(self):
         self.registry.start_containers(self.image_names)
