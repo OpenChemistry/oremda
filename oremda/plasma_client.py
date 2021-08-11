@@ -9,7 +9,7 @@ from posix_ipc import MessageQueue
 import pyarrow.plasma as plasma
 
 
-class Client:
+class PlasmaClient:
     def __init__(self, plasma_socket: str):
         self.plasma_client = plasma.connect(plasma_socket)
 
@@ -60,7 +60,7 @@ class Client:
 
 
 class DataArray:
-    def __init__(self, client: Client):
+    def __init__(self, client: PlasmaClient):
         self.client = client
         self.object_id: Optional[ObjectId] = None
 

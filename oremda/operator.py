@@ -5,7 +5,7 @@ import json
 
 import pyarrow.plasma as plasma
 
-from oremda import Client, DataArray
+from oremda import DataArray, PlasmaClient
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
 from oremda.typing import (
     JSONType,
@@ -21,7 +21,7 @@ from oremda.typing import (
 
 
 class Operator(ABC):
-    def __init__(self, name: str, client: Client):
+    def __init__(self, name: str, client: PlasmaClient):
         self.name = name
         self.client = client
 
@@ -129,7 +129,7 @@ def operator(
 
         class_name = f"{name.capitalize()}Operator"
         OpClass = type(class_name, (Operator,), {"kernel": kernel})
-        obj = OpClass(name, Client(plasma_socket_path))
+        obj = OpClass(name, PlasmaClient(plasma_socket_path))
 
         if start:
             obj.start()
@@ -143,7 +143,7 @@ def operator(
 
 
 class OperatorHandle:
-    def __init__(self, image_name: str, name: str, client: Client):
+    def __init__(self, image_name: str, name: str, client: PlasmaClient):
         self.image_name = image_name
         self.name = name
         self.client = client
