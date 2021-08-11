@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Optional
+from typing import Optional, Union
 
 from oremda.typing import DataType, ObjectId
 
@@ -60,9 +60,29 @@ class PlasmaClient:
 
 
 class DataArray:
-    def __init__(self, client: PlasmaClient):
+    def __init__(
+        self, client: PlasmaClient, object_id: Optional[Union[ObjectId, str]] = None
+    ):
         self.client = client
-        self.object_id: Optional[ObjectId] = None
+        self.object_id = object_id
+
+    @property
+    def object_id(self) -> Optional[ObjectId]:
+        return self._object_id
+
+    @object_id.setter
+    def object_id(self, id: Optional[Union[ObjectId, str]]):
+        conversions = {
+            str: lambda x: plasma.ObjectID(bytes.fromhex(x)),
+            plasma.ObjectID: lambda x: x,
+            type(None): lambda x: x,
+        }
+
+        id_type = type(id)
+        if id_type not in conversions:
+            raise Exception(f"Cannot convert type {id_type} to ObjectID")
+
+        self._object_id = conversions[id_type](id)
 
     @property
     def data(self) -> Optional[DataType]:

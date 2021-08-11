@@ -203,9 +203,7 @@ class OperatorHandle:
 
             data_outputs: Dict[PortKey, DataArray] = {}
             for key, object_id in data_outputs_id.items():
-                arr = DataArray(self.client)
-                arr.object_id = plasma.ObjectID(bytes.fromhex(object_id))
-                data_outputs[key] = arr
+                data_outputs[key] = DataArray(self.client, object_id)
 
             return meta_outputs, data_outputs
 
