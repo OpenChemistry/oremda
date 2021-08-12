@@ -12,7 +12,7 @@ from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
 from oremda.registry import Registry
-from oremda.plasma_client import DataArray, PlasmaClient
+from oremda.plasma_client import PlasmaArray, PlasmaClient
 
 
 class PipelineEdge:
@@ -128,7 +128,7 @@ class Pipeline:
         self.nodes: Dict[IdType, OperatorNode] = {}
         self.edges: Dict[IdType, PipelineEdge] = {}
         self.node_to_edges: Dict[IdType, Set[IdType]] = {}
-        self.data: Dict[str, DataArray] = {}
+        self.data: Dict[str, PlasmaArray] = {}
         self.meta: Dict[str, JSONType] = {}
         self.observer: PipelineObserver = PipelineObserver()
 

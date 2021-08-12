@@ -5,7 +5,7 @@ import json
 
 import pyarrow.plasma as plasma
 
-from oremda import DataArray, PlasmaClient
+from oremda import PlasmaArray, PlasmaClient
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
 from oremda.typing import (
     JSONType,
@@ -160,19 +160,10 @@ class OperatorHandle:
     def execute(
         self,
         meta_inputs: Dict[PortKey, MetaType],
-        data_inputs: Dict[PortKey, DataArray],
+        data_inputs: Dict[PortKey, PlasmaArray],
         output_queue: str,
-    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataArray]]:
-        data_inputs_id: Dict[PortKey, str] = {}
-
-        for key, arr in data_inputs.items():
-            if arr.object_id is None:
-                raise Exception(
-                    "Trying to perform operator on un-initialized DataArray"
-                )
-
-            data_inputs_id[key] = arr.object_id.binary().hex()
-
+    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, PlasmaArray]]:
+        data_inputs_id = {key: arr.hex_id for key, arr in data_inputs.items()}
         task = OperateTaskMessage(
             **{
                 "data_inputs": data_inputs_id,
@@ -201,9 +192,9 @@ class OperatorHandle:
             meta_outputs = result.meta_outputs
             data_outputs_id = result.data_outputs
 
-            data_outputs: Dict[PortKey, DataArray] = {}
+            data_outputs: Dict[PortKey, PlasmaArray] = {}
             for key, object_id in data_outputs_id.items():
-                data_outputs[key] = DataArray(self.client, object_id)
+                data_outputs[key] = PlasmaArray(self.client, object_id)
 
             return meta_outputs, data_outputs
 
