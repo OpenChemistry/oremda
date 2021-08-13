@@ -2,7 +2,7 @@
 import json
 
 from oremda.clients import Client as ContainerClient
-from oremda.shared_resources import Client as MemoryClient
+from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH, DEFAULT_DATA_DIR
 from oremda.utils.plasma import start_plasma_store
@@ -14,7 +14,7 @@ plasma_kwargs = {
 }
 
 with start_plasma_store(**plasma_kwargs):
-    memory_client = MemoryClient(DEFAULT_PLASMA_SOCKET_PATH)
+    memory_client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
     container_client = ContainerClient("docker")
 
     registry = Registry(memory_client, container_client)

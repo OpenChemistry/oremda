@@ -12,7 +12,7 @@ from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
 from oremda.registry import Registry
-from oremda.shared_resources import Client as MemoryClient, DataArray
+from oremda.plasma_client import PlasmaArray, PlasmaClient
 
 
 class PipelineEdge:
@@ -120,7 +120,7 @@ def node_iter(nodes: Dict[IdType, PipelineNode], type: NodeType):
 
 class Pipeline:
     def __init__(
-        self, client: MemoryClient, registry: Registry, id: Optional[IdType] = None
+        self, client: PlasmaClient, registry: Registry, id: Optional[IdType] = None
     ):
         self._id = unique_id(id)
         self.client = client
@@ -128,13 +128,20 @@ class Pipeline:
         self.nodes: Dict[IdType, OperatorNode] = {}
         self.edges: Dict[IdType, PipelineEdge] = {}
         self.node_to_edges: Dict[IdType, Set[IdType]] = {}
-        self.data: Dict[str, DataArray] = {}
+        self.data: Dict[str, PlasmaArray] = {}
         self.meta: Dict[str, JSONType] = {}
         self.observer: PipelineObserver = PipelineObserver()
 
     @property
     def id(self):
         return self._id
+
+    @property
+    def image_names(self):
+        return set(node.operator.image_name for node in self.nodes.values())
+
+    def start_containers(self):
+        self.registry.start_containers(self.image_names)
 
     def set_graph(self, nodes: Sequence[OperatorNode], edges: Sequence[PipelineEdge]):
         self_nodes: Dict[IdType, OperatorNode] = {}
@@ -193,6 +200,8 @@ class Pipeline:
         self.meta = {}
 
     def run(self):
+        self.start_containers()
+
         all_operators = set(map(lambda t: t[0], self.nodes.items()))
         run_operators = set()
 
@@ -248,13 +257,10 @@ class Pipeline:
                         self.observer.on_error(self, err)
                         raise err
 
-                    # Ensure an instance of this operator is running
-                    if not self.registry.running(operator.image_name):
-                        self.registry.run(operator.image_name)
-
+                    output_queue = f"/{self.id}_{operator_node.id}"
                     try:
                         output_meta, output_data = operator.execute(
-                            input_meta, input_data
+                            input_meta, input_data, output_queue
                         )
                     except Exception as err:
                         self.observer.on_operator_error(self, operator_node, err)
@@ -314,7 +320,7 @@ def validate_port_type(type):
     return type
 
 
-def deserialize_pipeline(obj: JSONType, client: MemoryClient, registry: Registry):
+def deserialize_pipeline(obj: JSONType, client: PlasmaClient, registry: Registry):
     pipeline_json = PipelineJSON(**obj)
     _id = pipeline_json.id
     _nodes = pipeline_json.nodes

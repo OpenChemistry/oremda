@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from oremda.typing import IdType, JSONType, PipelineJSON
 from oremda.clients import Client as ContainerClientFactory
 from oremda.clients.base import ClientBase as ContainerClient
-from oremda.shared_resources import Client as MemoryClient
+from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
 from oremda.constants import DEFAULT_OREMDA_VAR_DIR
 from oremda.utils.plasma import start_plasma_store
@@ -48,9 +48,9 @@ def lifespan(_app):
     plasma_kwargs = {"memory": 50_000_000, "socket_path": PLASMA_SOCKET}
 
     with start_plasma_store(**plasma_kwargs):
-        memory_client = MemoryClient(PLASMA_SOCKET)
+        plasma_client = PlasmaClient(PLASMA_SOCKET)
         container_client = ContainerClientFactory(ContainerType.Docker)
-        registry = Registry(memory_client, container_client)
+        registry = Registry(plasma_client, container_client)
 
         registry.run_kwargs = {
             "volumes": {
@@ -64,7 +64,7 @@ def lifespan(_app):
 
         context = GlobalContext(
             **{
-                "memory_client": memory_client,
+                "plasma_client": plasma_client,
                 "container_client": container_client,
                 "registry": registry,
             }
@@ -79,7 +79,7 @@ app.router.lifespan_context = lifespan
 
 
 class GlobalContext(BaseModel):
-    memory_client: MemoryClient = Field(...)
+    plasma_client: PlasmaClient = Field(...)
     container_client: ContainerClient = Field(...)
     registry: Registry = Field(...)
     sessions: Dict[IdType, SessionModel] = {}
@@ -168,7 +168,7 @@ async def create_pipeline(
     pipeline_id = unique_id()
     graph.id = pipeline_id
     pipeline = deserialize_pipeline(
-        graph.dict(by_alias=True), context.memory_client, context.registry
+        graph.dict(by_alias=True), context.plasma_client, context.registry
     )
 
     def notify(message: NotificationMessage):

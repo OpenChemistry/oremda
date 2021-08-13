@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
 from oremda.typing import IOType, JSONType, PortKey, PortInfo, TerminateTaskMessage
-from oremda.shared_resources import Client as MemoryClient
+from oremda.plasma_client import PlasmaClient
 from oremda.clients.base.client import ClientBase as ContainerClient
 from oremda.clients.base.container import ContainerBase
 
@@ -21,7 +21,7 @@ class ImageInfo(BaseModel):
 
 
 class Registry:
-    def __init__(self, memory_client: MemoryClient, container_client: ContainerClient):
+    def __init__(self, memory_client: PlasmaClient, container_client: ContainerClient):
         self.memory_client = memory_client
         self.container_client = container_client
         self.images: Dict[str, ImageInfo] = {}
@@ -90,6 +90,9 @@ class Registry:
                 raise
 
         return container
+
+    def start_containers(self, image_names):
+        return [self.run(name) for name in image_names]
 
     def stop(self, image_name):
         if not self.running(image_name):

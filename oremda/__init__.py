@@ -1,5 +1,12 @@
-from .shared_resources import Client, DataArray
+from .plasma_client import PlasmaArray, PlasmaClient
 from .operator import Operator, OperatorHandle, operator
 from .pipeline import Pipeline
 
-__all__ = ["Client", "Operator", "OperatorHandle", "Pipeline", "operator", "DataArray"]
+__all__ = [
+    "Operator",
+    "operator",
+    "OperatorHandle",
+    "Pipeline",
+    "PlasmaArray",
+    "PlasmaClient",
+]
