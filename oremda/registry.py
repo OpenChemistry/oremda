@@ -1,4 +1,3 @@
-import json
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
@@ -7,6 +6,7 @@ from oremda.typing import IOType, JSONType, PortKey, PortInfo, TerminateTaskMess
 from oremda.plasma_client import PlasmaClient
 from oremda.clients.base.client import ClientBase as ContainerClient
 from oremda.clients.base.container import ContainerBase
+from oremda.messengers import MQPMessenger
 
 
 class ImageInfo(BaseModel):
@@ -21,8 +21,8 @@ class ImageInfo(BaseModel):
 
 
 class Registry:
-    def __init__(self, memory_client: PlasmaClient, container_client: ContainerClient):
-        self.memory_client = memory_client
+    def __init__(self, plasma_client: PlasmaClient, container_client: ContainerClient):
+        self.plasma_client = plasma_client
         self.container_client = container_client
         self.images: Dict[str, ImageInfo] = {}
         self.run_kwargs: Any = {}
@@ -98,10 +98,9 @@ class Registry:
         if not self.running(image_name):
             return
 
-        queue_name = self.name(image_name)
-        message = json.dumps(TerminateTaskMessage().dict())
-        with self.memory_client.open_queue(f"/{queue_name}") as queue:
-            queue.send(message)
+        queue_name = f"/{self.name(image_name)}"
+        messenger = MQPMessenger(self.plasma_client)
+        messenger.send(TerminateTaskMessage().dict(), queue_name)
 
     def release(self):
         for image_name in self.images:
