@@ -335,11 +335,7 @@ def deserialize_pipeline(obj: JSONType, client: PlasmaClient, registry: Registry
         input_ports = registry.ports(_image_name, IOType.In)
         output_ports = registry.ports(_image_name, IOType.Out)
         _queue_name = registry.name(_image_name)
-        _params = _node.params
-
-        params = {}
-        for name, value in _params.items():
-            params[name] = value
+        params = _node.params
 
         operator = OperatorHandle(_image_name, _queue_name, client)
         operator.parameters = params
@@ -377,12 +373,12 @@ def serialize_pipeline(pipeline: Pipeline) -> PipelineJSON:
         if operator is None:
             continue
 
-        _params = {}
-        for name, value in operator.parameters.items():
-            _params[name] = value
-
         _node = NodeJSON(
-            **{"id": node.id, "image": operator.image_name, "params": _params}
+            **{
+                "id": node.id,
+                "image": operator.image_name,
+                "params": operator.parameters,
+            }
         )
 
         _nodes.append(_node)
