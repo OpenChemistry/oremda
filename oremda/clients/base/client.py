@@ -21,13 +21,5 @@ class ClientBase(ABC):
         pass
 
     @abstractmethod
-    def container(self, id) -> ContainerBase:
-        pass
-
-    @abstractmethod
-    def self_container(self) -> ContainerBase:
-        pass
-
-    @abstractmethod
     def run(self, *args, **kwargs) -> ContainerBase:
         pass
