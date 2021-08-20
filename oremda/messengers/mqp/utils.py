@@ -32,6 +32,10 @@ def open_queue(name: str, create=False, consume=False, reuse=False):
 
     queue = None
 
+    if not name.startswith("/"):
+        # Message queues requires that the name starts with "/"
+        name = f"/{name}"
+
     try:
         queue = MessageQueue(name, flags=flags)
         yield queue
