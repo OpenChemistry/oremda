@@ -35,18 +35,29 @@ with start_plasma_store(**plasma_kwargs):
     registry = Registry(plasma_client, container_client)
 
     run_kwargs = {
-        "volumes": {
-            DEFAULT_OREMDA_VAR_DIR: {"bind": DEFAULT_OREMDA_VAR_DIR},
-            DEFAULT_DATA_DIR: {"bind": DEFAULT_DATA_DIR},
-            "/oremda": {"bind": "/oremda"},
-        },
         "detach": True,
         "working_dir": DEFAULT_DATA_DIR,
     }
 
+    if container_type == ContainerType.Singularity:
+        # The mounts in singularity child containers refer to the
+        # parent container's directories.
+        volumes = {
+            DEFAULT_OREMDA_VAR_DIR: {"bind": DEFAULT_OREMDA_VAR_DIR},
+            DEFAULT_DATA_DIR: {"bind": DEFAULT_DATA_DIR},
+            "/oremda": {"bind": "/oremda"},
+        }
+        run_kwargs["volumes"] = volumes
     if container_type == ContainerType.Docker:
-        # Get the child containers to share IPC with the parent
+        # The mounts in docker "sibling" containers refer to the
+        # host directories.
         self_container = container_client.self_container()
+        volumes = {
+            mount.source: {"bind": mount.destination} for mount in self_container.mounts
+        }
+        run_kwargs["volumes"] = volumes
+
+        # Get the child containers to share IPC with the parent
         run_kwargs["ipc_mode"] = f"container:{self_container.id}"
 
     registry.run_kwargs = run_kwargs
