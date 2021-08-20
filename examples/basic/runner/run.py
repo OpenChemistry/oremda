@@ -19,10 +19,10 @@ plasma_kwargs = {
 }
 
 with start_plasma_store(**plasma_kwargs):
-    memory_client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
+    plasma_client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
     container_client = ContainerClient(ContainerType.Docker)
 
-    registry = Registry(memory_client, container_client)
+    registry = Registry(plasma_client, container_client)
 
     self_container = container_client.self_container()
 
@@ -44,7 +44,7 @@ with start_plasma_store(**plasma_kwargs):
         pipeline_obj = json.load(f)
 
     pipeline = oremda.pipeline.deserialize_pipeline(
-        pipeline_obj, memory_client, registry
+        pipeline_obj, plasma_client, registry
     )
     pipeline.run()
 
