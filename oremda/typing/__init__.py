@@ -46,6 +46,11 @@ class ContainerType(str, Enum):
     Singularity = "singularity"
 
 
+class LocationType(str, Enum):
+    Local = "local"
+    Remote = "remote"
+
+
 class PortInfo(BaseModel):
     type: PortType = Field(...)
     name: PortKey = Field(...)
@@ -101,6 +106,7 @@ class NodeJSON(BaseModel):
     id: IdType
     image: str
     params: JSONType
+    location: str = LocationType.Local
 
 
 class EdgeJSON(BaseModel):

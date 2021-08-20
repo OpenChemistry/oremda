@@ -4,17 +4,19 @@ from typing import Callable, Dict, Optional, Tuple
 
 from oremda import PlasmaClient
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
-from oremda.messengers import MQPMessenger
+from oremda.messengers import Messenger, MQPMessenger
 from oremda.typing import (
     JSONType,
     OperateTaskMessage,
     PortKey,
     DataType,
+    LocationType,
     MetaType,
     ResultTaskMessage,
     TaskMessage,
     TaskType,
 )
+from oremda.utils.mpi import mpi_rank
 
 
 class Operator(ABC):
@@ -24,12 +26,19 @@ class Operator(ABC):
         self.messenger = MQPMessenger(client)
 
     @property
-    def input_queue_name(self) -> str:
+    def location(self):
+        if mpi_rank == 0:
+            return LocationType.Local
+
+        return LocationType.Remote
+
+    @property
+    def input_queue(self) -> str:
         return f"/{self.name}"
 
     def start(self):
         while True:
-            message = self.messenger.recv(self.input_queue_name)
+            message = self.messenger.recv(self.input_queue)
             task_message = TaskMessage(**message)
 
             if task_message.task == TaskType.Operate:
@@ -44,14 +53,14 @@ class Operator(ABC):
         data_inputs = task_message.data_inputs
         meta_inputs = task_message.meta_inputs
         params = task_message.params
-        output_queue_name = task_message.output_queue
+        output_queue = task_message.output_queue
 
         meta_outputs, data_outputs = self.kernel(meta_inputs, data_inputs, params)
 
         result = ResultTaskMessage(
             **{"meta_outputs": meta_outputs, "data_outputs": data_outputs}
         )
-        self.messenger.send(result.dict(), output_queue_name)
+        self.messenger.send(result.dict(), output_queue)
 
     @abstractmethod
     def kernel(
@@ -75,7 +84,6 @@ def operator(
     start: bool = True,
     plasma_socket_path: str = DEFAULT_PLASMA_SOCKET_PATH,
 ):
-
     # A decorator to automatically make an Operator where the function
     # that is decorated will be the kernel function.
 
@@ -108,12 +116,21 @@ def operator(
 
 
 class OperatorHandle:
-    def __init__(self, image_name: str, name: str, client: PlasmaClient):
+    def __init__(
+        self,
+        image_name: str,
+        name: str,
+        input_queue: str,
+        client: PlasmaClient,
+        location: LocationType,
+    ):
         self.image_name = image_name
         self.name = name
+        self.input_queue = input_queue
         self.client = client
-        self.messenger = MQPMessenger(client)
         self.parameters: JSONType = {}
+        self.location = location
+        self.messenger = Messenger(location, client)
 
     def execute(
         self,
@@ -130,13 +147,8 @@ class OperatorHandle:
             }
         )
 
-        self.messenger.send(task.dict(), self.input_queue_name)
-
+        self.messenger.send(task.dict(), self.input_queue)
         message = self.messenger.recv(output_queue)
 
         result = ResultTaskMessage(**message)
         return result.meta_outputs, result.data_outputs
-
-    @property
-    def input_queue_name(self):
-        return f"/{self.name}"

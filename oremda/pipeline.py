@@ -1,7 +1,9 @@
 from oremda.typing import (
     EdgeJSON,
-    JSONType,
+    DataType,
     IdType,
+    JSONType,
+    LocationType,
     NodeJSON,
     PipelineJSON,
     PortKey,
@@ -12,7 +14,7 @@ from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
 from oremda.registry import Registry
-from oremda.plasma_client import PlasmaArray, PlasmaClient
+from oremda.plasma_client import PlasmaClient
 
 
 class PipelineEdge:
@@ -128,7 +130,7 @@ class Pipeline:
         self.nodes: Dict[IdType, OperatorNode] = {}
         self.edges: Dict[IdType, PipelineEdge] = {}
         self.node_to_edges: Dict[IdType, Set[IdType]] = {}
-        self.data: Dict[str, PlasmaArray] = {}
+        self.data: Dict[str, DataType] = {}
         self.meta: Dict[str, JSONType] = {}
         self.observer: PipelineObserver = PipelineObserver()
 
@@ -257,7 +259,11 @@ class Pipeline:
                         self.observer.on_error(self, err)
                         raise err
 
-                    output_queue = f"/{self.id}_{operator_node.id}"
+                    if operator.location == LocationType.Local:
+                        output_queue = f"/{self.id}_{operator_node.id}"
+                    else:
+                        output_queue = operator.input_queue
+
                     try:
                         output_meta, output_data = operator.execute(
                             input_meta, input_data, output_queue
@@ -332,12 +338,16 @@ def deserialize_pipeline(obj: JSONType, client: PlasmaClient, registry: Registry
         node = OperatorNode(_node.id)
 
         _image_name = _node.image
+        registry.register(_image_name, _node.location)
         input_ports = registry.ports(_image_name, IOType.In)
         output_ports = registry.ports(_image_name, IOType.Out)
-        _queue_name = registry.name(_image_name)
+        name = registry.name(_image_name)
         params = _node.params
+        input_queue = registry.input_queue(_image_name)
 
-        operator = OperatorHandle(_image_name, _queue_name, client)
+        operator = OperatorHandle(
+            _image_name, name, input_queue, client, _node.location
+        )
         operator.parameters = params
 
         node.inputs = input_ports
