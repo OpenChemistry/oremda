@@ -23,6 +23,7 @@ class ImageInfo(BaseModel):
     outputs: Dict[PortKey, PortInfo] = {}
     params: Dict[str, JSONType] = {}
     container: Optional[ContainerBase] = None
+    running: bool = False
     location: LocationType = LocationType.Local
     node: int = 0
 
@@ -65,8 +66,10 @@ class Registry:
         if location == LocationType.Remote:
             self.num_remote += 1
             node = self.num_remote
+            running = True
         else:
             node = 0
+            running = False
 
         info = ImageInfo(
             **{
@@ -82,6 +85,7 @@ class Registry:
                 "params": {k: v.dict() for k, v in labels.params.items()},
                 "location": location,
                 "node": node,
+                "running": running,
             }
         )
         self.images[image_name] = info
@@ -110,7 +114,7 @@ class Registry:
 
     def running(self, image_name):
         info = self._info(image_name)
-        return info.container is not None
+        return info.running
 
     def location(self, image_name):
         info = self._info(image_name)
@@ -147,6 +151,7 @@ class Registry:
             try:
                 container = self.container_client.run(image_name, **self.run_kwargs)
                 info.container = container
+                info.running = True
             except Exception as e:
                 print(f"An exception was caught: {e}")
                 if container is not None:
@@ -166,6 +171,8 @@ class Registry:
         messenger = Messenger(location, self.plasma_client)
         input_queue = self.input_queue(image_name)
         messenger.send(TerminateTaskMessage().dict(), input_queue)
+
+        self._info(image_name).running = False
 
     def release(self):
         for image_name in self.images:

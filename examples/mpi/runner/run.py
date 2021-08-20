@@ -96,7 +96,7 @@ with start_plasma_store(**plasma_kwargs):
             # If it was a terminate task, finish this node as well
             task_message = TaskMessage(**msg)
             if task_message.task == TaskType.Terminate:
-                print("Terminating...")
+                print(f"{mpi_rank=} Terminating...")
                 break
 
             # It must have been an OperateTaskMessage. Receive the output.
