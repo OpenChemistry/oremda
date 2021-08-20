@@ -2,7 +2,7 @@ ARG BASE_IMAGE=oremda/oremda
 
 FROM ${BASE_IMAGE}
 
-COPY run.py /
-COPY pipeline.json /
+RUN mkdir /runner
+COPY run.py pipeline.json /runner/
 
-ENTRYPOINT ["python", "/run.py"]
+ENTRYPOINT ["python", "/runner/run.py"]

@@ -4,7 +4,11 @@ import json
 from oremda.clients import Client as ContainerClient
 from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
-from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH, DEFAULT_DATA_DIR
+from oremda.constants import (
+    DEFAULT_PLASMA_SOCKET_PATH,
+    DEFAULT_DATA_DIR,
+    DEFAULT_OREMDA_VAR_DIR,
+)
 from oremda.utils.plasma import start_plasma_store
 from oremda.typing import ContainerType
 import oremda.pipeline
@@ -31,9 +35,12 @@ with start_plasma_store(**plasma_kwargs):
         "working_dir": DEFAULT_DATA_DIR,
     }
 
+    # Add the oremda var dir mount
+    run_kwargs["volumes"][DEFAULT_OREMDA_VAR_DIR] = {"bind": DEFAULT_OREMDA_VAR_DIR}
+
     registry.run_kwargs = run_kwargs
 
-    with open("/pipeline.json") as f:
+    with open("/runner/pipeline.json") as f:
         pipeline_obj = json.load(f)
 
     pipeline = oremda.pipeline.deserialize_pipeline(
