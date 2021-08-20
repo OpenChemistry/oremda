@@ -2,7 +2,7 @@ FROM python:3.9
 
 COPY . /oremda
 
-RUN pip install /oremda && rm -r /oremda
+RUN pip install -e /oremda
 
 # Ensure messages get flushed immediately for debugging.
 # This is especially important in containers, where the messages
