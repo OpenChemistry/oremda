@@ -7,6 +7,9 @@ function join_by { local IFS="$1"; shift; echo "$*"; }
 build_singularity=false
 
 # Whether or not to build with mpi
+# This is not needed if we only allow the parent containers
+# to build with MPI and they forward messages to the operator
+# via plasma and message queues.
 with_mpi=false
 
 # Whether or not to build visualization containers
@@ -52,7 +55,13 @@ if [ "$build_singularity" != true ]; then
   exit 0
 fi
 
-singularity_dir=$script_dir/.singularity
+singularity_dir=$script_dir/images
+
+mkdir -p $singularity_dir
+rm -rf $singularity_dir/*
+
+cd $singularity_dir
 for name in "${directories[@]}"
 do
-  singularity build --force $singularity_dir/$prefix$name.simg docker-daemon://oremda/$prefix$name:latest
+  $root_dir/scripts/singularity/docker_to_singularity.py oremda/$prefix$name
+done
