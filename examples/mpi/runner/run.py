@@ -12,11 +12,13 @@ from oremda.messengers import MPIMessenger, MQPMessenger
 from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
 from oremda.typing import ContainerType, OperateTaskMessage, TaskMessage, TaskType
-from oremda.utils.mpi import mpi_rank
+from oremda.utils.mpi import mpi_rank, mpi_world_size
 from oremda.utils.plasma import start_plasma_store
 import oremda.pipeline
 
 print(f"{mpi_rank=}")
+if mpi_rank == 0:
+    print(f"{mpi_world_size=}")
 
 if "SINGULARITY_BIND" in os.environ:
     # This means we are running singularity
@@ -72,6 +74,14 @@ with start_plasma_store(**plasma_kwargs):
     pipeline = oremda.pipeline.deserialize_pipeline(
         pipeline_obj, plasma_client, registry
     )
+
+    if registry.num_remote != mpi_world_size - 1:
+        msg = (
+            f'The number of remote operators ("{registry.num_remote}") '
+            f'must be equal to mpi_world_size - 1 ("{mpi_world_size - 1}")'
+        )
+        raise Exception(msg)
+
     if mpi_rank == 0:
         pipeline.run()
         registry.release()
