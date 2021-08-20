@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-OREMDA_VAR_DIR=/run/oremda
+OREMDA_VAR_DIR=/tmp
 DATA_DIR=/home/patrick/virtualenvs/oremda/data
 DOCKER_SOCKET=/var/run/docker.sock
 
