@@ -5,11 +5,13 @@ import numpy as np
 from pydantic import BaseModel, Field
 from enum import Enum
 
+from oremda.plasma_client import PlasmaArray
+
 IdType = Union[str, UUID]
 PortKey = str
 ParamKey = str
 JSONType = Dict[str, Any]
-DataType = np.ndarray
+DataType = Union[np.ndarray, PlasmaArray]
 MetaType = JSONType
 
 
@@ -44,6 +46,11 @@ class ContainerType(str, Enum):
     Singularity = "singularity"
 
 
+class LocationType(str, Enum):
+    Local = "local"
+    Remote = "remote"
+
+
 class PortInfo(BaseModel):
     type: PortType = Field(...)
     name: PortKey = Field(...)
@@ -68,15 +75,21 @@ class TaskMessage(BaseModel):
 
 
 class OperateTaskMessage(TaskMessage):
+    class Config:
+        arbitrary_types_allowed = True
+
     task = TaskType.Operate
-    data_inputs: Dict[PortKey, str] = {}
+    data_inputs: Dict[PortKey, DataType] = {}
     meta_inputs: Dict[PortKey, MetaType] = {}
     params: JSONType = {}
     output_queue: str
 
 
 class ResultTaskMessage(BaseModel):
-    data_outputs: Dict[PortKey, str] = {}
+    class Config:
+        arbitrary_types_allowed = True
+
+    data_outputs: Dict[PortKey, DataType] = {}
     meta_outputs: Dict[PortKey, MetaType] = {}
 
 
@@ -93,6 +106,7 @@ class NodeJSON(BaseModel):
     id: IdType
     image: str
     params: JSONType
+    location: str = LocationType.Local
 
 
 class EdgeJSON(BaseModel):

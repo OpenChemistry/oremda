@@ -3,16 +3,22 @@ import json
 import os
 
 from oremda.clients import Client as ContainerClient
-from oremda.plasma_client import PlasmaClient
-from oremda.registry import Registry
 from oremda.constants import (
     DEFAULT_PLASMA_SOCKET_PATH,
     DEFAULT_DATA_DIR,
     DEFAULT_OREMDA_VAR_DIR,
 )
+from oremda.messengers import MPIMessenger, MQPMessenger
+from oremda.plasma_client import PlasmaClient
+from oremda.registry import Registry
+from oremda.typing import ContainerType, OperateTaskMessage, TaskMessage, TaskType
+from oremda.utils.mpi import mpi_rank, mpi_world_size
 from oremda.utils.plasma import start_plasma_store
-from oremda.typing import ContainerType
 import oremda.pipeline
+
+print(f"{mpi_rank=}")
+if mpi_rank == 0:
+    print(f"{mpi_world_size=}")
 
 if "SINGULARITY_BIND" in os.environ:
     # This means we are running singularity
@@ -68,5 +74,46 @@ with start_plasma_store(**plasma_kwargs):
     pipeline = oremda.pipeline.deserialize_pipeline(
         pipeline_obj, plasma_client, registry
     )
-    pipeline.run()
-    registry.release()
+
+    if registry.num_remote != mpi_world_size - 1:
+        msg = (
+            f'The number of remote operators ("{registry.num_remote}") '
+            f'must be equal to mpi_world_size - 1 ("{mpi_world_size - 1}")'
+        )
+        raise Exception(msg)
+
+    if mpi_rank == 0:
+        pipeline.run()
+        registry.release()
+    else:
+        container = registry.run_image_for_rank()
+
+        # Listen for MPI messages and forward them to the image
+        image_name = registry.image_for_rank
+        operator_name = registry.images[image_name].name
+        operator_queue = f"/{operator_name}"
+        mpi_messenger = MPIMessenger()
+        mqp_messenger = MQPMessenger(plasma_client)
+        while True:
+            msg = mpi_messenger.recv(0)
+            print(f"MPI message received on {mpi_rank=}, {msg=}")
+
+            # Forward to the operator
+            mqp_messenger.send(msg, operator_queue)
+
+            print(f"MQP message sent to: {operator_queue=}")
+
+            # If it was a terminate task, finish this node as well
+            task_message = TaskMessage(**msg)
+            if task_message.task == TaskType.Terminate:
+                print(f"{mpi_rank=} Terminating...")
+                break
+
+            # It must have been an OperateTaskMessage. Receive the output.
+            operate_message = OperateTaskMessage(**msg)
+            result = mqp_messenger.recv(operate_message.output_queue)
+            print(f"MQP output received: {result=}")
+
+            # Forward the result back to the main node
+            mpi_messenger.send(result, 0)
+            print("MPI message sent back to the main node")

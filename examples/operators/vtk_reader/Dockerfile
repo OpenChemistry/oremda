@@ -1,4 +1,6 @@
-FROM oremda/oremda
+ARG BASE_IMAGE=oremda/oremda
+
+FROM ${BASE_IMAGE}
 
 # libgl1-mesa-glx is required for VTK
 RUN apt-get update && \

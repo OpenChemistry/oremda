@@ -45,5 +45,8 @@ class SingularityClient(ClientBase):
                 bind = val["bind"]
                 options += ["--bind", f"{key}:{bind}"]
 
+        if "working_dir" in kwargs:
+            options += ["--pwd", kwargs["working_dir"]]
+
         ret["options"] = options
         return ret

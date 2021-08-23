@@ -4,30 +4,16 @@ set -e
 function join_by { local IFS="$1"; shift; echo "$*"; }
 
 # Whether or not to build singularity as well
-build_singularity=false
+build_singularity=true
 
 # Whether or not to build with mpi
-# This is not needed if we only allow the parent containers
-# to build with MPI and they forward messages to the operator
-# via plasma and message queues.
-with_mpi=false
-
-# Whether or not to build visualization containers
-with_vis=false
+with_mpi=true
 
 prefix=""
 
 directories=(
-  background_fit
-  ncem_reader
-  plot
-  subtract
+  runner
 )
-
-if [ "$with_vis" == true ]; then
-  directories+='stateful_volume_renderer'
-  directories+='vtk_reader'
-fi
 
 build_args=()
 
@@ -45,10 +31,11 @@ if [ "$with_mpi" == true ]; then
   build_args+='--build-arg BASE_IMAGE=oremda/oremda_mpi'
 fi
 
+
 # Next, build all the example directories
 for name in "${directories[@]}"
 do
-  bash $script_dir/$name/build.sh $(join_by ' ' $build_args)
+  docker build -t oremda/$prefix$name -f $script_dir/$name/Dockerfile $script_dir/$name $(join_by ' ' $build_args)
 done
 
 if [ "$build_singularity" != true ]; then

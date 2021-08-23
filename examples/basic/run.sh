@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-OREMDA_VAR_DIR=/run/oremda
-DATA_DIR=/home/alessandro/oremda_data
+DATA_DIR=/data/oremda
 DOCKER_SOCKET=/var/run/docker.sock
+OREMDA_DIR=$(git rev-parse --show-toplevel)
+PLASMA_DIR=/tmp
+RUNNER_DIR=$PWD/runner
 
 docker run \
-  -v $OREMDA_VAR_DIR:$OREMDA_VAR_DIR \
   -v $DATA_DIR:/data \
   -v $DOCKER_SOCKET:$DOCKER_SOCKET \
+  -v $OREMDA_DIR:/oremda \
+  -v $RUNNER_DIR:/runner \
+  -v $PLASMA_DIR:$PLASMA_DIR \
   --ipc=shareable \
   oremda/runner

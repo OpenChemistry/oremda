@@ -1,12 +1,7 @@
-from contextlib import contextmanager
-from pydantic import BaseModel, validator
 from typing import Optional
 
-from oremda.typing import DataType
-
-import posix_ipc
-from posix_ipc import MessageQueue
-
+import numpy as np
+from pydantic import BaseModel, validator
 import pyarrow.plasma as plasma
 
 
@@ -14,48 +9,11 @@ class PlasmaClient:
     def __init__(self, plasma_socket: str):
         self.plasma_client = plasma.connect(plasma_socket)
 
-    def create_object(self, obj: DataType) -> plasma.ObjectID:
+    def create_object(self, obj: np.ndarray) -> plasma.ObjectID:
         return self.plasma_client.put(obj)
 
-    def get_object(self, object_id: plasma.ObjectID) -> DataType:
+    def get_object(self, object_id: plasma.ObjectID) -> np.ndarray:
         return self.plasma_client.get(object_id)
-
-    @contextmanager
-    def open_queue(self, name: str, create=False, consume=False, reuse=False):
-        """Open a message queue via a context manager
-
-        The message queue will automatically be closed when the
-        context ends. The message queue may also optionally be
-        created and/or consumed. If the "consume" flag is True,
-        the message queue will be unlinked as well when the context
-        ends.
-
-        Args:
-            name (str): the name of the message queue
-            create (bool): whether to create the message queue or try
-                        to open a pre-existing one.
-            reuse (bool):  whether to reuse an existing message queue
-                           on creation
-            consume (bool): whether or not to unlink the message queue
-                            when the context ends.
-
-        Yields:
-            posix_ipc.MessageQueue: the message queue
-        """
-        flags = 0
-        if create:
-            flags = posix_ipc.O_CREAT if reuse else posix_ipc.O_CREX
-
-        queue = None
-
-        try:
-            queue = MessageQueue(name, flags=flags)
-            yield queue
-        finally:
-            if queue is not None:
-                queue.close()
-                if consume:
-                    queue.unlink()
 
 
 class PlasmaArray(BaseModel):
@@ -75,7 +33,7 @@ class PlasmaArray(BaseModel):
         conversions = {
             plasma.ObjectID: lambda x: x,
             str: lambda x: plasma.ObjectID(bytes.fromhex(x)),
-            DataType: lambda x: client.create_object(x),
+            np.ndarray: lambda x: client.create_object(x),
         }
 
         id_type = type(id)
@@ -89,9 +47,9 @@ class PlasmaArray(BaseModel):
         return self.object_id.binary().hex()
 
     @property
-    def data(self) -> Optional[DataType]:
-        self.client.get_object(self.object_id)
+    def data(self) -> Optional[np.ndarray]:
+        return self.client.get_object(self.object_id)
 
     @data.setter
-    def data(self, array: DataType):
+    def data(self, array: np.ndarray):
         self.object_id = self.client.create_object(array)

@@ -1,92 +1,66 @@
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Callable, Dict, Optional, Tuple
-import json
 
-import pyarrow.plasma as plasma
-
-from oremda import PlasmaArray, PlasmaClient
+from oremda import PlasmaClient
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
+from oremda.messengers import Messenger, MQPMessenger
 from oremda.typing import (
     JSONType,
     OperateTaskMessage,
     PortKey,
     DataType,
+    LocationType,
     MetaType,
     ResultTaskMessage,
     TaskMessage,
     TaskType,
-    ObjectId,
 )
+from oremda.utils.mpi import mpi_rank
 
 
 class Operator(ABC):
     def __init__(self, name: str, client: PlasmaClient):
         self.name = name
         self.client = client
+        self.messenger = MQPMessenger(client)
 
     @property
-    def input_queue_name(self) -> str:
+    def location(self):
+        if mpi_rank == 0:
+            return LocationType.Local
+
+        return LocationType.Remote
+
+    @property
+    def input_queue(self) -> str:
         return f"/{self.name}"
 
     def start(self):
-        with self.client.open_queue(
-            self.input_queue_name, create=True, reuse=True, consume=True
-        ) as input_queue:
-            while True:
-                message, priority = input_queue.receive()
-                message = json.loads(message)
+        while True:
+            message = self.messenger.recv(self.input_queue)
+            task_message = TaskMessage(**message)
 
-                task_message = TaskMessage(**message)
-
-                if task_message.task == TaskType.Operate:
-                    task_message = OperateTaskMessage(**message)
-                    self.operate(task_message)
-                elif task_message.task == TaskType.Terminate:
-                    return
-                else:
-                    raise Exception(f"Unknown task: {task_message.task}")
+            if task_message.task == TaskType.Operate:
+                task_message = OperateTaskMessage(**message)
+                self.operate(task_message)
+            elif task_message.task == TaskType.Terminate:
+                return
+            else:
+                raise Exception(f"Unknown task: {task_message.task}")
 
     def operate(self, task_message: OperateTaskMessage):
-        _data_inputs = task_message.data_inputs
+        data_inputs = task_message.data_inputs
         meta_inputs = task_message.meta_inputs
         params = task_message.params
-        output_queue_name = task_message.output_queue
-
-        data_inputs: Dict[PortKey, ObjectId] = {}
-        for key, object_id in _data_inputs.items():
-            data_inputs[key] = plasma.ObjectID(bytes.fromhex(object_id))
-
-        meta_outputs, data_outputs = self.execute(meta_inputs, data_inputs, params)
-
-        _data_outputs = {}
-        for key, object_id in data_outputs.items():
-            _data_outputs[key] = object_id.binary().hex()
-
-        with self.client.open_queue(output_queue_name) as output_queue:
-            result = ResultTaskMessage(
-                **{"meta_outputs": meta_outputs, "data_outputs": _data_outputs}
-            )
-
-            output_queue.send(json.dumps(result.dict()))
-
-    def execute(
-        self,
-        meta_inputs: Dict[PortKey, MetaType],
-        data_inputs_id: Dict[PortKey, ObjectId],
-        params: JSONType,
-    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, plasma.ObjectID]]:
-        data_inputs: Dict[PortKey, DataType] = {}
-        for key, object_id in data_inputs_id.items():
-            data_inputs[key] = self.client.get_object(object_id)
+        output_queue = task_message.output_queue
 
         meta_outputs, data_outputs = self.kernel(meta_inputs, data_inputs, params)
 
-        data_outputs_id: Dict[PortKey, ObjectId] = {}
-        for key, array in data_outputs.items():
-            data_outputs_id[key] = self.client.create_object(array)
-
-        return meta_outputs, data_outputs_id
+        result = ResultTaskMessage(
+            **{"meta_outputs": meta_outputs, "data_outputs": data_outputs}
+        )
+        self.messenger.send(result.dict(), output_queue)
 
     @abstractmethod
     def kernel(
@@ -110,7 +84,6 @@ def operator(
     start: bool = True,
     plasma_socket_path: str = DEFAULT_PLASMA_SOCKET_PATH,
 ):
-
     # A decorator to automatically make an Operator where the function
     # that is decorated will be the kernel function.
 
@@ -143,61 +116,39 @@ def operator(
 
 
 class OperatorHandle:
-    def __init__(self, image_name: str, name: str, client: PlasmaClient):
+    def __init__(
+        self,
+        image_name: str,
+        name: str,
+        input_queue: str,
+        client: PlasmaClient,
+        location: LocationType,
+    ):
         self.image_name = image_name
         self.name = name
+        self.input_queue = input_queue
         self.client = client
-        self._parameters: JSONType = {}
-
-    @property
-    def parameters(self):
-        return self._parameters
-
-    @parameters.setter
-    def parameters(self, params: JSONType):
-        self._parameters = params
+        self.parameters: JSONType = {}
+        self.location = location
+        self.messenger = Messenger(location, client)
 
     def execute(
         self,
         meta_inputs: Dict[PortKey, MetaType],
-        data_inputs: Dict[PortKey, PlasmaArray],
+        data_inputs: Dict[PortKey, DataType],
         output_queue: str,
-    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, PlasmaArray]]:
-        data_inputs_id = {key: arr.hex_id for key, arr in data_inputs.items()}
+    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
         task = OperateTaskMessage(
             **{
-                "data_inputs": data_inputs_id,
+                "data_inputs": data_inputs,
                 "meta_inputs": meta_inputs,
                 "params": self.parameters,
                 "output_queue": output_queue,
             }
         )
 
-        with self.client.open_queue(
-            self.input_queue_name, create=True, reuse=True
-        ) as op_queue:
-            op_queue.send(json.dumps(task.dict()))
+        self.messenger.send(task.dict(), self.input_queue)
+        message = self.messenger.recv(output_queue)
 
-        with self.client.open_queue(
-            output_queue,
-            create=True,
-            reuse=True,
-            consume=True,
-        ) as done_queue:
-            message, priority = done_queue.receive()
-            message = json.loads(message)
-
-            result = ResultTaskMessage(**message)
-
-            meta_outputs = result.meta_outputs
-            data_outputs_id = result.data_outputs
-
-            data_outputs: Dict[PortKey, PlasmaArray] = {}
-            for key, object_id in data_outputs_id.items():
-                data_outputs[key] = PlasmaArray(self.client, object_id)
-
-            return meta_outputs, data_outputs
-
-    @property
-    def input_queue_name(self):
-        return f"/{self.name}"
+        result = ResultTaskMessage(**message)
+        return result.meta_outputs, result.data_outputs
