@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from oremda.typing import Message
 
 class BaseMessenger(ABC):
     @property
@@ -8,9 +9,9 @@ class BaseMessenger(ABC):
         pass
 
     @abstractmethod
-    def send(self, msg: dict, dest: str):
+    def send(self, msg: Message, dest: str):
         pass
 
     @abstractmethod
-    def recv(self, source: str) -> dict:
+    def recv(self, source: str) -> Message:
         pass

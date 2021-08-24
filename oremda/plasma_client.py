@@ -1,7 +1,7 @@
-from typing import Optional
+from oremda.typing import DataType, ObjectId, DataArray
+from typing import Any, Union
 
 import numpy as np
-from pydantic import BaseModel, validator
 import pyarrow.plasma as plasma
 
 
@@ -16,40 +16,28 @@ class PlasmaClient:
         return self.plasma_client.get(object_id)
 
 
-class PlasmaArray(BaseModel):
-
-    client: PlasmaClient
-    object_id: plasma.ObjectID
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    def __init__(self, client, object_id, **data):
-        super().__init__(client=client, object_id=object_id, **data)
-
-    @validator("object_id", pre=True)
-    def validate_object_id(cls, id, values):
-        client = values["client"]
-        conversions = {
-            plasma.ObjectID: lambda x: x,
-            str: lambda x: plasma.ObjectID(bytes.fromhex(x)),
-            np.ndarray: lambda x: client.create_object(x),
-        }
-
-        id_type = type(id)
-        if id_type not in conversions:
-            raise TypeError(f"Cannot convert type {id_type} to ObjectID")
-
-        return conversions[id_type](id)
+class PlasmaArray(DataArray):
+    def __init__(self, client: PlasmaClient, id_or_data: Union[str, plasma.ObjectID, DataType]):
+        self.client = client
+        self.object_id: ObjectId
+        if isinstance(id_or_data, plasma.ObjectID):
+            object_id: Any = id_or_data
+            self.object_id = object_id
+        elif isinstance(id_or_data, str):
+            self.object_id = plasma.ObjectID(bytes.fromhex(id_or_data))
+        elif (isinstance(id_or_data, DataType)):
+            self.object_id = self.client.create_object(id_or_data)
+        else:
+            raise TypeError(f"Cannot initialize data array.")
 
     @property
-    def hex_id(self):
+    def hex_id(self) -> str:
         return self.object_id.binary().hex()
 
     @property
-    def data(self) -> Optional[np.ndarray]:
+    def data(self) -> DataType:
         return self.client.get_object(self.object_id)
 
     @data.setter
-    def data(self, array: np.ndarray):
-        self.object_id = self.client.create_object(array)
+    def data(self, data: DataType):
+        self.object_id = self.client.create_object(data)

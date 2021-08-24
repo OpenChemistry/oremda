@@ -1,23 +1,22 @@
-from typing import Dict, Tuple
+from typing import Dict
 
 import matplotlib.pyplot as plt
 
 from oremda import operator
-from oremda.typing import JSONType, PortKey, MetaType, DataType
+from oremda.typing import JSONType, PortKey, RawPort
 
 
 @operator
-def plot(
-    meta: Dict[PortKey, MetaType], data: Dict[PortKey, DataType], parameters: JSONType
-) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
+def plot(inputs: Dict[PortKey, RawPort], parameters: JSONType) -> Dict[PortKey, RawPort]:
     filename = parameters.get("filename")
     x_label = parameters.get("xLabel", "x")
     y_label = parameters.get("yLabel", "y")
 
-    x0 = data.get("x0")
-    y0 = data.get("y0")
-    x1 = data.get("x1")
-    y1 = data.get("y1")
+    empty_port = RawPort()
+    x0 = inputs.get("x0", empty_port).data
+    y0 = inputs.get("y0", empty_port).data
+    x1 = inputs.get("x1", empty_port).data
+    y1 = inputs.get("y1", empty_port).data
 
     fg, ax = plt.subplots(1, 1)
 
@@ -31,4 +30,4 @@ def plot(
 
     fg.savefig(f"/data/{filename}", dpi=fg.dpi)
 
-    return {}, {}
+    return {}

@@ -1,9 +1,9 @@
-from typing import Dict, Tuple
+from typing import Dict
 
 import numpy as np
 
 from oremda import operator
-from oremda.typing import JSONType, PortKey, MetaType, DataType
+from oremda.typing import JSONType, PortKey, RawPort
 
 
 def eloss_to_pixel(eloss, energy):
@@ -12,16 +12,19 @@ def eloss_to_pixel(eloss, energy):
 
 
 @operator
-def subtract(
-    meta: Dict[PortKey, MetaType], data: Dict[PortKey, DataType], parameters: JSONType
-) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
+def subtract(inputs: Dict[PortKey, RawPort], parameters: JSONType) -> Dict[PortKey, RawPort]:
     start = parameters.get("start", 0)
     stop = parameters.get("stop", 0)
 
-    eloss = data["eloss"]
-    spec = data["spec"]
-    eloss_bg = data["eloss_bg"]
-    background = data["background"]
+    eloss = inputs["eloss"].data
+    spec = inputs["spec"].data
+    eloss_bg = inputs["eloss_bg"].data
+    background = inputs["background"].data
+
+    assert eloss is not None
+    assert spec is not None
+    assert eloss_bg is not None
+    assert background is not None
 
     start_spec = eloss_to_pixel(eloss, start)
     stop_spec = eloss_to_pixel(eloss, stop)
@@ -30,9 +33,10 @@ def subtract(
 
     assert stop_spec - start_spec == stop_bg - start_bg
 
-    output_data = {
-        "eloss": eloss[start_spec:stop_spec],
-        "spec": spec[start_spec:stop_spec] - background[start_bg:stop_bg],
+    outputs: Dict[PortKey, RawPort] = {
+        "eloss": RawPort(data=eloss[start_spec:stop_spec]),
+        "spec": RawPort(data=spec[start_spec:stop_spec] - background[start_bg:stop_bg]),
     }
 
-    return {}, output_data
+    return outputs
+
