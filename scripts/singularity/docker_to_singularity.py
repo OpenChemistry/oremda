@@ -38,7 +38,7 @@ From: {image.id}
 {labels_string}
 """
 
-output_name = re.sub("[:/]", "_", f"{image_name}.simg")
+output_name = re.sub("[:/]", "_", f"{image_name}.sif")
 
 tf = tempfile.NamedTemporaryFile("w", delete=False)
 try:

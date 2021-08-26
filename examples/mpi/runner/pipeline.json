@@ -2,7 +2,7 @@
   "nodes": [
     {
       "id": "10",
-      "image": "/images/oremda_ncem_reader.simg",
+      "image": "/images/oremda_ncem_reader.sif",
       "params": {
           "filename": "08_carbon.dm3"
       },
@@ -10,7 +10,7 @@
     },
     {
       "id": "11",
-      "image": "/images/oremda_background_fit.simg",
+      "image": "/images/oremda_background_fit.sif",
       "params": {
           "start": 268,
           "stop": 277
@@ -19,7 +19,7 @@
     },
     {
       "id": "12",
-      "image": "/images/oremda_subtract.simg",
+      "image": "/images/oremda_subtract.sif",
       "params": {
           "start": 268,
           "stop": 430
@@ -28,7 +28,7 @@
     },
     {
       "id": "20",
-      "image": "/images/oremda_plot.simg",
+      "image": "/images/oremda_plot.sif",
       "params": {
         "filename": "spectrum.png",
         "xLabel": "eLoss (eV)",
@@ -38,7 +38,7 @@
     },
     {
       "id": "21",
-      "image": "/images/oremda_plot.simg",
+      "image": "/images/oremda_plot.sif",
       "params": {
         "filename": "background.png",
         "xLabel": "eLoss (eV)",
@@ -48,7 +48,7 @@
     },
     {
       "id": "22",
-      "image": "/images/oremda_plot.simg",
+      "image": "/images/oremda_plot.sif",
       "params": {
         "filename": "subtracted.png",
         "xLabel": "eLoss (eV)",
