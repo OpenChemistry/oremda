@@ -32,6 +32,9 @@ with start_plasma_store(**plasma_kwargs):
     plasma_client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
     container_client = ContainerClient(container_type)
 
+    if container_type == ContainerType.Singularity:
+        container_client.images_dir = "/images"
+
     registry = Registry(plasma_client, container_client)
 
     run_kwargs = {
