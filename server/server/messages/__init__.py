@@ -26,8 +26,10 @@ class NotificationMessage(BaseModel):
     action: ActionType = Field(...)
     payload: JSONType
 
+
 def generic_message(action: ActionType, payload: JSONType):
     return NotificationMessage(action=action, payload=payload)
+
 
 def pipeline_created(pipeline: PipelineModel):
     return NotificationMessage(

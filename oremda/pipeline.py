@@ -23,6 +23,7 @@ from oremda.registry import Registry
 from oremda.plasma_client import PlasmaClient
 from oremda.display import DisplayFactory, DisplayHandle, NoopDisplayHandle
 
+
 class PipelineEdge:
     def __init__(
         self,
@@ -97,14 +98,13 @@ class OperatorNode(PipelineNode):
     def operator(self, operator: OperatorHandle):
         self._operator = operator
 
+
 class DisplayNode(PipelineNode):
     def __init__(self, id=None, display_type: DisplayType = DisplayType.OneD):
         super().__init__(NodeType.Display, id)
         self._display_type = display_type
         self._display: Optional[DisplayHandle] = None
-        self._inputs = {
-            "in": PortInfo(type=PortType.Display, name="in")
-        }
+        self._inputs = {"in": PortInfo(type=PortType.Display, name="in")}
 
     @property
     def display(self):
@@ -136,8 +136,13 @@ def validate_edge(
             "does not exist on the input node."
         )
 
-T = TypeVar('T')
-def node_iter(nodes: Dict[IdType, PipelineNode], cls: Type[T]) ->  Generator[Tuple[IdType, T], None, None]:
+
+T = TypeVar("T")
+
+
+def node_iter(
+    nodes: Dict[IdType, PipelineNode], cls: Type[T]
+) -> Generator[Tuple[IdType, T], None, None]:
     for node_id, node in nodes.items():
         if isinstance(node, cls):
             yield node_id, node
@@ -163,7 +168,9 @@ class Pipeline:
     @property
     def image_names(self):
         return set(
-            node.operator.image_name for _, node in node_iter(self.nodes, OperatorNode) if node.operator is not None
+            node.operator.image_name
+            for _, node in node_iter(self.nodes, OperatorNode)
+            if node.operator is not None
         )
 
     def start_containers(self):
@@ -283,7 +290,9 @@ class Pipeline:
                         output_queue = operator.input_queue
 
                     try:
-                        output_ports: Dict[PortKey, Port] = operator.execute(input_ports, output_queue)
+                        output_ports: Dict[PortKey, Port] = operator.execute(
+                            input_ports, output_queue
+                        )
                     except Exception as err:
                         self.observer.on_operator_error(self, operator_node, err)
                         self.observer.on_error(self, err)
@@ -294,9 +303,10 @@ class Pipeline:
                         if edge.output_port.type == PortType.Display:
                             port = output_ports[edge.output_port.name]
                             display_node: Any = self.nodes.get(edge.input_node_id)
-                            if (display_node is not None and
-                                display_node.type == NodeType.Display and
-                                display_node.display is not None
+                            if (
+                                display_node is not None
+                                and display_node.type == NodeType.Display
+                                and display_node.display is not None
                             ):
                                 display: DisplayHandle = display_node.display
                                 display.add(edge.output_node_id, port)
@@ -305,8 +315,9 @@ class Pipeline:
                             sink_port_id = port_id(
                                 edge.output_node_id, edge.output_port.name
                             )
-                            self.ports[sink_port_id] = output_ports[edge.output_port.name]
-
+                            self.ports[sink_port_id] = output_ports[
+                                edge.output_port.name
+                            ]
 
                     run_operators.add(operator_id)
                     count = count + 1
@@ -351,9 +362,15 @@ def validate_port_type(type):
     return type
 
 
-noop_display_factory: DisplayFactory = lambda id, type : NoopDisplayHandle(id, type)
+noop_display_factory: DisplayFactory = lambda id, type: NoopDisplayHandle(id, type)
 
-def deserialize_pipeline(obj: JSONType, client: PlasmaClient, registry: Registry, display_factory: DisplayFactory=None):
+
+def deserialize_pipeline(
+    obj: JSONType,
+    client: PlasmaClient,
+    registry: Registry,
+    display_factory: DisplayFactory = None,
+):
     pipeline_json = PipelineJSON(**obj)
     _id = pipeline_json.id
     _nodes = pipeline_json.nodes
@@ -453,7 +470,7 @@ def serialize_pipeline(pipeline: Pipeline) -> PipelineJSON:
                 "id": node_id,
                 "type": NodeType.Display,
                 "params": display.parameters,
-                "display": display.type
+                "display": display.type,
             }
         )
 

@@ -47,9 +47,9 @@ class MQPMessenger(BaseMessenger):
                     encoded = encode_port_key(key)
                     serialized_port = {}
                     if val.meta is not None:
-                        serialized_port['meta'] = val.meta
+                        serialized_port["meta"] = val.meta
                     if isinstance(val.data, PlasmaArray):
-                        serialized_port['data'] = val.data.hex_id
+                        serialized_port["data"] = val.data.hex_id
                     cur[encoded] = serialized_port
                 elif isinstance(val, dict):
                     cur[key] = {}
@@ -67,8 +67,8 @@ class MQPMessenger(BaseMessenger):
                 if is_port_key(key):
                     port = Port()
                     decoded = decode_port_key(key)
-                    port.meta = val.get('meta')
-                    data = val.get('data')
+                    port.meta = val.get("meta")
+                    data = val.get("data")
                     if data is not None:
                         port.data = PlasmaArray(self.plasma_client, data)
 
@@ -83,7 +83,9 @@ class MQPMessenger(BaseMessenger):
         recurse(msg, original_msg)
         return msg
 
+
 PORT_PREFIX = "port://"
+
 
 def encode_port_key(key: str) -> str:
     return f"{PORT_PREFIX}{key}"

@@ -180,7 +180,10 @@ async def create_pipeline(
             return NoopDisplayHandle(id, display_type)
 
     pipeline = deserialize_pipeline(
-        graph.dict(by_alias=True), context.plasma_client, context.registry, display_factory
+        graph.dict(by_alias=True),
+        context.plasma_client,
+        context.registry,
+        display_factory,
     )
 
     pipeline.observer = ServerPipelineObserver(notify)

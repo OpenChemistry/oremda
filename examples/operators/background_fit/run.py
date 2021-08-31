@@ -55,7 +55,9 @@ def eloss_to_pixel(eloss, energy):
 
 
 @operator
-def background_fit(inputs: Dict[PortKey, RawPort], parameters: JSONType) -> Dict[PortKey, RawPort]:
+def background_fit(
+    inputs: Dict[PortKey, RawPort], parameters: JSONType
+) -> Dict[PortKey, RawPort]:
     start_eloss = parameters.get("start", 0)
     stop_eloss = parameters.get("stop", 0)
 

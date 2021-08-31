@@ -9,6 +9,7 @@ from ..messages import (
     generic_message,
 )
 
+
 class OneDDisplayHandle(DisplayHandle):
     def __init__(self, id: IdType, notify: Callable[[NotificationMessage], None]):
         super().__init__(id, DisplayType.OneD)
@@ -25,7 +26,7 @@ class OneDDisplayHandle(DisplayHandle):
 
         label = None
         if input.meta is not None:
-            label = input.meta.get('label')
+            label = input.meta.get("label")
 
         payload = {
             "displayId": self.id,
@@ -52,9 +53,7 @@ class OneDDisplayHandle(DisplayHandle):
         self.render()
 
     def clear(self):
-        payload = {
-            "displayId": self.id
-        }
+        payload = {"displayId": self.id}
 
         message = generic_message(ActionType.DisplayClearInputs, payload)
         self.notify(message)
@@ -62,9 +61,7 @@ class OneDDisplayHandle(DisplayHandle):
         self.render()
 
     def render(self):
-        payload = {
-            "displayId": self.id
-        }
+        payload = {"displayId": self.id}
 
         message = generic_message(ActionType.DisplayRender, payload)
         self.notify(message)

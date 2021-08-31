@@ -45,6 +45,7 @@ class DisplayType(str, Enum):
     TwoD = "2D"
     ThreeD = "3D"
 
+
 class ContainerType(str, Enum):
     Docker = "docker"
     Singularity = "singularity"
@@ -133,6 +134,7 @@ class Message(BaseModel):
     class Config:
         extra = Extra.allow
 
+
 class OperateTaskMessage(Message):
     class Config:
         arbitrary_types_allowed = True
@@ -141,6 +143,7 @@ class OperateTaskMessage(Message):
     inputs: Dict[PortKey, Port] = {}
     params: JSONType = {}
     output_queue: str
+
 
 class ResultTaskMessage(Message):
     class Config:

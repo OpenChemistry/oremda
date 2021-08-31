@@ -37,7 +37,9 @@ class DisplayHandle(ABC):
     def parameters(self, parameters: JSONType):
         self._parameters = parameters
 
+
 DisplayFactory = Callable[[IdType, DisplayType], DisplayHandle]
+
 
 class NoopDisplayHandle(DisplayHandle):
     def add(self, sourceId: IdType, input: Port):

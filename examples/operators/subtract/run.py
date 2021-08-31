@@ -12,7 +12,9 @@ def eloss_to_pixel(eloss, energy):
 
 
 @operator
-def subtract(inputs: Dict[PortKey, RawPort], parameters: JSONType) -> Dict[PortKey, RawPort]:
+def subtract(
+    inputs: Dict[PortKey, RawPort], parameters: JSONType
+) -> Dict[PortKey, RawPort]:
     start = parameters.get("start", 0)
     stop = parameters.get("stop", 0)
 
@@ -39,4 +41,3 @@ def subtract(inputs: Dict[PortKey, RawPort], parameters: JSONType) -> Dict[PortK
     }
 
     return outputs
-

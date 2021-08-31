@@ -52,7 +52,7 @@ class MatplotlibDisplayHandle(DisplayHandle):
 
             label = None
             if port.meta is not None:
-                label = port.meta.get('label')
+                label = port.meta.get("label")
 
             ax.plot(x, y, label=label)
 
