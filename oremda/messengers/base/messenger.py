@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from oremda.typing import Message
 
+
 class BaseMessenger(ABC):
     @property
     @abstractmethod

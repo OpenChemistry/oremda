@@ -17,7 +17,9 @@ class PlasmaClient:
 
 
 class PlasmaArray(DataArray):
-    def __init__(self, client: PlasmaClient, id_or_data: Union[str, plasma.ObjectID, DataType]):
+    def __init__(
+        self, client: PlasmaClient, id_or_data: Union[str, plasma.ObjectID, DataType]
+    ):
         self.client = client
         self.object_id: ObjectId
         if isinstance(id_or_data, plasma.ObjectID):
@@ -25,7 +27,7 @@ class PlasmaArray(DataArray):
             self.object_id = object_id
         elif isinstance(id_or_data, str):
             self.object_id = plasma.ObjectID(bytes.fromhex(id_or_data))
-        elif (isinstance(id_or_data, DataType)):
+        elif isinstance(id_or_data, DataType):
             self.object_id = self.client.create_object(id_or_data)
         else:
             raise TypeError(f"Cannot initialize data array.")

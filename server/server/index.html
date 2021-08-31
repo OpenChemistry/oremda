@@ -1,5 +1,6 @@
 <html>
   <head>
+    <script src="https://cdn.plot.ly/plotly-2.4.1.min.js"></script>
   </head>
   <body>
     <h1>Oremda client</h1>
@@ -13,8 +14,18 @@
     <h3>Websocket</h3>
     <span id="websocket-span">Disconnected</span>
 
+    <div id="plot-div" class="plot"></div>
+
     <h3>Messages</h3>
     <ul id="message-list"></ul>
+
+    <style>
+      .plot {
+        width: 50rem;
+        max-width: 100%;
+        height: 30rem;
+      }
+    </style>
   </body>
   <script>
     async function main() {
@@ -23,7 +34,14 @@
       const sessionSpan = document.getElementById('session-span')
       sessionSpan.innerText = session.id
 
+      const plotData = {}
+
       console.log("Session", session)
+
+      const renderPlot = () => {
+        const div = document.getElementById('plot-div');
+        Plotly.newPlot(div, Object.values(plotData));
+      }
 
       const ws = new WebSocket(`ws://${location.host}/ws?${queryParams.toString()}`)
       ws.onopen = () => {
@@ -35,10 +53,27 @@
         wsSpan.innerText = 'Disconnected'
       }
       ws.onmessage = (ev) => {
-        const messageList = document.getElementById('message-list')
-        const element = document.createElement('li')
-        element.innerText = ev.data
-        messageList.appendChild(element)
+        data = JSON.parse(ev.data);
+
+        if (data.type !== '@@OREMDA') {
+          return;
+        }
+
+        if (data.action === 'DISPLAY_ADD_INPUT') {
+          const { sourceId, x, y, label } = data.payload;
+          plotData[sourceId] = {x, y, name: label, mode: 'lines'}
+        }  else if (data.action === 'DISPLAY_REMOVE_INPUT') {
+          delete plotData[sourceId];
+        } else if (data.action === 'DISPLAY_CLEAR_INPUTS') {
+          plotData = {};
+        } else if (data.action === 'DISPLAY_RENDER') {
+          renderPlot();
+        } else {
+          const messageList = document.getElementById('message-list')
+          const element = document.createElement('li')
+          element.innerText = ev.data
+          messageList.appendChild(element)
+        }
       }
 
       const pipelineBtn = document.getElementById('pipeline-btn');

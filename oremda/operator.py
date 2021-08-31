@@ -22,7 +22,12 @@ from oremda.utils.mpi import mpi_rank
 
 
 class Operator(ABC):
-    def __init__(self, name: str, messenger: BaseMessenger, array_constructor: Callable[[DataType], DataArray]):
+    def __init__(
+        self,
+        name: str,
+        messenger: BaseMessenger,
+        array_constructor: Callable[[DataType], DataArray],
+    ):
         self.name = name
         self.messenger = messenger
         self.array_constructor = array_constructor
@@ -59,10 +64,14 @@ class Operator(ABC):
         _raw_outputs = self.kernel(raw_inputs, params)
 
         raw_outputs: Dict[PortKey, RawPort] = {
-            key: port if isinstance(port, RawPort) else RawPort(**port) for key, port in _raw_outputs.items()
+            key: port if isinstance(port, RawPort) else RawPort(**port)
+            for key, port in _raw_outputs.items()
         }
 
-        outputs = {key: port.to_port(self.array_constructor) for key, port in raw_outputs.items()}
+        outputs = {
+            key: port.to_port(self.array_constructor)
+            for key, port in raw_outputs.items()
+        }
 
         result = ResultTaskMessage(outputs=outputs)
         self.messenger.send(result, output_queue)
@@ -78,7 +87,7 @@ class Operator(ABC):
 
 KernelFn = Callable[
     [Dict[PortKey, RawPort], JSONType],
-    Union[Dict[PortKey, RawPort], Dict[PortKey, Dict]]
+    Union[Dict[PortKey, RawPort], Dict[PortKey, Dict]],
 ]
 
 
@@ -87,7 +96,7 @@ def operator(
     _name: Optional[str] = None,
     start: bool = True,
     messenger: Optional[BaseMessenger] = None,
-    array_constructor: Optional[Callable[[DataType], DataArray]] = None
+    array_constructor: Optional[Callable[[DataType], DataArray]] = None,
 ):
     # A decorator to automatically make an Operator where the function
     # that is decorated will be the kernel function.

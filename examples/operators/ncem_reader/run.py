@@ -9,7 +9,9 @@ from oremda.typing import JSONType, PortKey, RawPort
 
 
 @operator
-def ncem_reader(_inputs: Dict[PortKey, RawPort], parameters: JSONType) -> Dict[PortKey, RawPort]:
+def ncem_reader(
+    _inputs: Dict[PortKey, RawPort], parameters: JSONType
+) -> Dict[PortKey, RawPort]:
     filename = parameters.get("filename", "")
 
     dPath = Path("/data")

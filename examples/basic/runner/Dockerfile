@@ -2,6 +2,8 @@ ARG BASE_IMAGE=oremda/oremda
 
 FROM ${BASE_IMAGE}
 
+RUN pip install matplotlib
+
 ### SINGULARITY SECTION ###
 RUN apt-get update && \
     apt-get install -y \

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import json
 import os
+from typing import Dict
+
+import matplotlib.pyplot as plt
 
 from oremda.clients import Client as ContainerClient
 from oremda.plasma_client import PlasmaClient
@@ -11,8 +14,60 @@ from oremda.constants import (
     DEFAULT_OREMDA_VAR_DIR,
 )
 from oremda.utils.plasma import start_plasma_store
-from oremda.typing import ContainerType
+from oremda.typing import ContainerType, DisplayType, IdType, Port
+from oremda.display import DisplayFactory, DisplayHandle, NoopDisplayHandle
 import oremda.pipeline
+
+
+class MatplotlibDisplayHandle(DisplayHandle):
+    def __init__(self, id: IdType):
+        super().__init__(id, DisplayType.OneD)
+        self.inputs: Dict[IdType, Port] = {}
+
+    def add(self, sourceId: IdType, input: Port):
+        self.inputs[sourceId] = input
+        self.render()
+
+    def remove(self, sourceId: IdType):
+        if id in self.inputs:
+            del self.inputs[sourceId]
+        self.render()
+
+    def clear(self):
+        self.inputs = {}
+        self.render()
+
+    def render(self):
+        x_label = self.parameters.get("xLabel", "x")
+        y_label = self.parameters.get("yLabel", "y")
+
+        fg, ax = plt.subplots(1, 1)
+
+        for port in self.inputs.values():
+            if port.data is None:
+                continue
+
+            x = port.data.data[0]
+            y = port.data.data[1]
+
+            label = None
+            if port.meta is not None:
+                label = port.meta.get("label")
+
+            ax.plot(x, y, label=label)
+
+        ax.legend()
+        ax.set(xlabel=x_label, ylabel=y_label)
+
+        fg.savefig(f"/data/{self.id}.png", dpi=fg.dpi)
+
+
+def display_factory(id: IdType, display_type: DisplayType) -> DisplayHandle:
+    if display_type == DisplayType.OneD:
+        return MatplotlibDisplayHandle(id)
+    else:
+        return NoopDisplayHandle(id, display_type)
+
 
 if "SINGULARITY_BIND" in os.environ:
     # This means we are running singularity
@@ -69,7 +124,10 @@ with start_plasma_store(**plasma_kwargs):
         pipeline_obj = json.load(f)
 
     pipeline = oremda.pipeline.deserialize_pipeline(
-        pipeline_obj, plasma_client, registry
+        pipeline_obj, plasma_client, registry, display_factory
     )
-    pipeline.run()
-    registry.release()
+
+    try:
+        pipeline.run()
+    finally:
+        registry.release()
