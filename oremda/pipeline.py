@@ -1,5 +1,4 @@
-from oremda.messengers.mqp.messenger import MQPMessenger
-from oremda.messengers.base.messenger import BaseMessenger
+from oremda.messengers import Messenger
 from oremda.typing import (
     DataType,
     DisplayType,
@@ -341,12 +340,12 @@ def deserialize_pipeline(obj: JSONType, client: PlasmaClient, registry: Registry
 
     nodes: Sequence[OperatorNode] = []
 
-    messenger: BaseMessenger = MQPMessenger(client)
-
     for _node in _nodes:
         node = OperatorNode(_node.id)
 
         location = LocationType(_node.location)
+
+        messenger = Messenger(location, client)
 
         _image_name = _node.image
         registry.register(_image_name, location)

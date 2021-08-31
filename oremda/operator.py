@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
 from functools import wraps
-from oremda.messengers.base.messenger import BaseMessenger
 from oremda.plasma_client import PlasmaArray
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Union
 
 from oremda import PlasmaClient
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
-from oremda.messengers import MQPMessenger
+from oremda.messengers import BaseMessenger, MQPMessenger
 from oremda.typing import (
     JSONType,
     OperateTaskMessage,
@@ -57,7 +56,11 @@ class Operator(ABC):
         output_queue = task_message.output_queue
 
         raw_inputs = {key: RawPort.from_port(port) for key, port in inputs.items()}
-        raw_outputs = self.kernel(raw_inputs, params)
+        _raw_outputs = self.kernel(raw_inputs, params)
+
+        raw_outputs: Dict[PortKey, RawPort] = {
+            key: port if isinstance(port, RawPort) else RawPort(**port) for key, port in _raw_outputs.items()
+        }
 
         outputs = {key: port.to_port(self.array_constructor) for key, port in raw_outputs.items()}
 
@@ -69,13 +72,13 @@ class Operator(ABC):
         self,
         inputs: Dict[PortKey, RawPort],
         parameters: JSONType,
-    ) -> Dict[PortKey, RawPort]:
+    ) -> Union[Dict[PortKey, RawPort], Dict[PortKey, Dict]]:
         pass
 
 
 KernelFn = Callable[
     [Dict[PortKey, RawPort], JSONType],
-    Dict[PortKey, RawPort]
+    Union[Dict[PortKey, RawPort], Dict[PortKey, Dict]]
 ]
 
 

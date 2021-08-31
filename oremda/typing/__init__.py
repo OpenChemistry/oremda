@@ -82,9 +82,9 @@ class RawPort(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    @staticmethod
-    def from_port(port: Port):
-        raw_port = RawPort()
+    @classmethod
+    def from_port(cls, port: Port):
+        raw_port = cls()
 
         if port.meta is not None:
             raw_port.meta = port.meta

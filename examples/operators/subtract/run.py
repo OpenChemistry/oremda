@@ -33,7 +33,7 @@ def subtract(inputs: Dict[PortKey, RawPort], parameters: JSONType) -> Dict[PortK
 
     assert stop_spec - start_spec == stop_bg - start_bg
 
-    outputs: Dict[PortKey, RawPort] = {
+    outputs = {
         "eloss": RawPort(data=eloss[start_spec:stop_spec]),
         "spec": RawPort(data=spec[start_spec:stop_spec] - background[start_bg:stop_bg]),
     }

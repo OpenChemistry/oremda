@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DATA_DIR=$HOME/oremda_data
+DATA_DIR=$HOME/data/oremda
 DOCKER_SOCKET=/var/run/docker.sock
 OREMDA_DIR=$(git rev-parse --show-toplevel)
 PLASMA_DIR=/tmp

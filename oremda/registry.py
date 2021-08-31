@@ -95,8 +95,7 @@ class Registry:
         return image.labels
 
     def _info(self, image_name: str) -> ImageInfo:
-        info: Any = self.images.get(image_name)
-        return info
+        return self.images[image_name]
 
     def name(self, image_name: str):
         info = self._info(image_name)
