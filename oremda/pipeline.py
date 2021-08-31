@@ -1,6 +1,7 @@
 from oremda.messengers import Messenger
 from oremda.typing import (
     DataType,
+    DisplayNodeJSON,
     DisplayType,
     EdgeJSON,
     DataType,
@@ -8,18 +9,19 @@ from oremda.typing import (
     JSONType,
     LocationType,
     NodeJSON,
+    OperatorNodeJSON,
     PipelineJSON,
     Port,
     PortKey,
     PortInfo,
 )
-from typing import Any, Optional, Dict, Sequence, Set
+from typing import Any, Optional, Dict, Sequence, Set, Type, TypeVar, Generator, Tuple
 from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
 from oremda.registry import Registry
 from oremda.plasma_client import PlasmaClient
-from oremda.display import DisplayHandle
+from oremda.display import DisplayFactory, DisplayHandle, NoopDisplayHandle
 
 class PipelineEdge:
     def __init__(
@@ -101,7 +103,7 @@ class DisplayNode(PipelineNode):
         self._display_type = display_type
         self._display: Optional[DisplayHandle] = None
         self._inputs = {
-            "input": PortInfo(type=PortType.Display, name="input")
+            "in": PortInfo(type=PortType.Display, name="in")
         }
 
     @property
@@ -134,10 +136,10 @@ def validate_edge(
             "does not exist on the input node."
         )
 
-
-def node_iter(nodes: Dict[IdType, PipelineNode], type: NodeType):
+T = TypeVar('T')
+def node_iter(nodes: Dict[IdType, PipelineNode], cls: Type[T]) ->  Generator[Tuple[IdType, T], None, None]:
     for node_id, node in nodes.items():
-        if node.type == type:
+        if isinstance(node, cls):
             yield node_id, node
 
 
@@ -148,7 +150,7 @@ class Pipeline:
         self._id = unique_id(id)
         self.client = client
         self.registry = registry
-        self.nodes: Dict[IdType, OperatorNode] = {}
+        self.nodes: Dict[IdType, PipelineNode] = {}
         self.edges: Dict[IdType, PipelineEdge] = {}
         self.node_to_edges: Dict[IdType, Set[IdType]] = {}
         self.ports: Dict[str, Port] = {}
@@ -160,13 +162,15 @@ class Pipeline:
 
     @property
     def image_names(self):
-        return set(node.operator.image_name for node in self.nodes.values() if node.operator is not None)
+        return set(
+            node.operator.image_name for _, node in node_iter(self.nodes, OperatorNode) if node.operator is not None
+        )
 
     def start_containers(self):
         self.registry.start_containers(self.image_names)
 
-    def set_graph(self, nodes: Sequence[OperatorNode], edges: Sequence[PipelineEdge]):
-        self_nodes: Dict[IdType, OperatorNode] = {}
+    def set_graph(self, nodes: Sequence[PipelineNode], edges: Sequence[PipelineEdge]):
+        self_nodes: Dict[IdType, PipelineNode] = {}
         self_edges: Dict[IdType, PipelineEdge] = {}
         self_node_to_edges: Dict[IdType, Set[IdType]] = {}
 
@@ -223,19 +227,23 @@ class Pipeline:
     def run(self):
         self.start_containers()
 
-        all_operators = set(map(lambda t: t[0], self.nodes.items()))
+        for _, node in node_iter(self.nodes, DisplayNode):
+            if node.display is not None:
+                node.display.clear()
+
+        all_operators = set(map(lambda t: t[0], node_iter(self.nodes, OperatorNode)))
         run_operators = set()
 
         self.observer.on_start(self)
 
         while all_operators.difference(run_operators):
             count = 0
-            for operator_id, operator_node in self.nodes.items():
+            for operator_id, operator_node in node_iter(self.nodes, OperatorNode):
                 if operator_id in run_operators:
                     continue
 
-                input_edges = []
-                output_edges = []
+                input_edges: Sequence[PipelineEdge] = []
+                output_edges: Sequence[PipelineEdge] = []
                 for edge_id in self.node_to_edges[operator_id]:
                     edge = self.edges[edge_id]
                     if edge.input_node_id == operator_id:
@@ -282,12 +290,23 @@ class Pipeline:
                         raise
 
                     for edge in output_edges:
-                        sink_port_id = port_id(
-                            edge.output_node_id, edge.output_port.name
-                        )
+                        # If there is a display output from this operator, render it immediately
+                        if edge.output_port.type == PortType.Display:
+                            port = output_ports[edge.output_port.name]
+                            display_node: Any = self.nodes.get(edge.input_node_id)
+                            if (display_node is not None and
+                                display_node.type == NodeType.Display and
+                                display_node.display is not None
+                            ):
+                                display: DisplayHandle = display_node.display
+                                display.add(edge.output_node_id, port)
+                        # Otherwise save the port for use in a future iteration of the pipeline runner
+                        else:
+                            sink_port_id = port_id(
+                                edge.output_node_id, edge.output_port.name
+                            )
+                            self.ports[sink_port_id] = output_ports[edge.output_port.name]
 
-
-                        self.ports[sink_port_id] = output_ports[edge.output_port.name]
 
                     run_operators.add(operator_id)
                     count = count + 1
@@ -332,39 +351,59 @@ def validate_port_type(type):
     return type
 
 
-def deserialize_pipeline(obj: JSONType, client: PlasmaClient, registry: Registry):
+noop_display_factory: DisplayFactory = lambda id, type : NoopDisplayHandle(id, type)
+
+def deserialize_pipeline(obj: JSONType, client: PlasmaClient, registry: Registry, display_factory: DisplayFactory=None):
     pipeline_json = PipelineJSON(**obj)
     _id = pipeline_json.id
     _nodes = pipeline_json.nodes
     _edges = pipeline_json.edges
 
-    nodes: Sequence[OperatorNode] = []
+    if display_factory is None:
+        display_factory = noop_display_factory
+
+    nodes: Sequence[PipelineNode] = []
 
     for _node in _nodes:
-        node = OperatorNode(_node.id)
+        node_type = _node.type
 
-        location = LocationType(_node.location)
+        if node_type == NodeType.Operator:
+            _node = OperatorNodeJSON(**_node.dict())
+            node = OperatorNode(_node.id)
 
-        messenger = Messenger(location, client)
+            location = LocationType(_node.location)
 
-        _image_name = _node.image
-        registry.register(_image_name, location)
-        input_ports = registry.ports(_image_name, IOType.In)
-        output_ports = registry.ports(_image_name, IOType.Out)
-        name = registry.name(_image_name)
-        params = _node.params
-        input_queue = registry.input_queue(_image_name)
+            messenger = Messenger(location, client)
 
-        operator = OperatorHandle(
-            _image_name, name, input_queue, messenger, location
-        )
-        operator.parameters = params
+            _image_name = _node.image
+            registry.register(_image_name, location)
+            input_ports = registry.ports(_image_name, IOType.In)
+            output_ports = registry.ports(_image_name, IOType.Out)
+            name = registry.name(_image_name)
+            params = _node.params
+            input_queue = registry.input_queue(_image_name)
 
-        node.inputs = input_ports
-        node.outputs = output_ports
-        node.operator = operator
+            operator = OperatorHandle(
+                _image_name, name, input_queue, messenger, location
+            )
+            operator.parameters = params
 
-        nodes.append(node)
+            node.inputs = input_ports
+            node.outputs = output_ports
+            node.operator = operator
+
+            nodes.append(node)
+
+        elif node_type == NodeType.Display:
+            _node = DisplayNodeJSON(**_node.dict())
+            node = DisplayNode(_node.id, _node.display)
+
+            display = display_factory(_node.id, _node.display)
+            display._parameters = _node.params
+
+            node.display = display
+
+            nodes.append(node)
 
     edges: Sequence[PipelineEdge] = []
 
@@ -388,16 +427,33 @@ def deserialize_pipeline(obj: JSONType, client: PlasmaClient, registry: Registry
 def serialize_pipeline(pipeline: Pipeline) -> PipelineJSON:
     _nodes: Sequence[NodeJSON] = []
 
-    for node in pipeline.nodes.values():
+    for node_id, node in node_iter(pipeline.nodes, OperatorNode):
         operator = node.operator
         if operator is None:
             continue
 
-        _node = NodeJSON(
+        _node = OperatorNodeJSON(
             **{
-                "id": node.id,
-                "image": operator.image_name,
+                "id": node_id,
+                "type": NodeType.Operator,
                 "params": operator.parameters,
+                "image": operator.image_name,
+            }
+        )
+
+        _nodes.append(_node)
+
+    for node_id, node in node_iter(pipeline.nodes, DisplayNode):
+        display = node.display
+        if display is None:
+            continue
+
+        _node = DisplayNodeJSON(
+            **{
+                "id": node_id,
+                "type": NodeType.Display,
+                "params": display.parameters,
+                "display": display.type
             }
         )
 

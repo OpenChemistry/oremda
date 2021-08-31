@@ -15,6 +15,10 @@ class ActionType(str, Enum):
     PipelineCompleted = "PIPELINE_COMPLETED"
     OperatorStarted = "OPERATOR_STARTED"
     OperatorCompleted = "OPERATOR_COMPLETED"
+    DisplayAddInput = "DISPLAY_ADD_INPUT"
+    DisplayRemoveInput = "DISPLAY_REMOVE_INPUT"
+    DisplayClearInputs = "DISPLAY_CLEAR_INPUTS"
+    DisplayRender = "DISPLAY_RENDER"
 
 
 class NotificationMessage(BaseModel):
@@ -22,6 +26,8 @@ class NotificationMessage(BaseModel):
     action: ActionType = Field(...)
     payload: JSONType
 
+def generic_message(action: ActionType, payload: JSONType):
+    return NotificationMessage(action=action, payload=payload)
 
 def pipeline_created(pipeline: PipelineModel):
     return NotificationMessage(

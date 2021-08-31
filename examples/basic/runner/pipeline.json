@@ -27,25 +27,46 @@
       "id": "20",
       "image": "oremda/plot",
       "params": {
-        "filename": "spectrum.png",
-        "xLabel": "eLoss (eV)",
-        "yLabel": ""
+        "label": "Spectrum"
       }
     },
     {
       "id": "21",
       "image": "oremda/plot",
       "params": {
-        "filename": "background.png",
-        "xLabel": "eLoss (eV)",
-        "yLabel": ""
+        "label": "Background"
       }
     },
     {
       "id": "22",
       "image": "oremda/plot",
       "params": {
-        "filename": "subtracted.png",
+        "label": "Subtracted"
+      }
+    },
+    {
+      "id": "30",
+      "type": "display",
+      "display": "1D",
+      "params": {
+        "xLabel": "eLoss (eV)",
+        "yLabel": ""
+      }
+    },
+    {
+      "id": "31",
+      "type": "display",
+      "display": "1D",
+      "params": {
+        "xLabel": "eLoss (eV)",
+        "yLabel": ""
+      }
+    },
+    {
+      "id": "32",
+      "type": "display",
+      "display": "1D",
+      "params": {
         "xLabel": "eLoss (eV)",
         "yLabel": ""
       }
@@ -55,12 +76,12 @@
     {
       "type": "data",
       "from": { "id": "10", "port": "eloss" },
-      "to": { "id": "20", "port": "x0" }
+      "to": { "id": "20", "port": "x" }
     },
     {
       "type": "data",
       "from": { "id": "10", "port": "spec" },
-      "to": { "id": "20", "port": "y0" }
+      "to": { "id": "20", "port": "y" }
     },
     {
       "type": "data",
@@ -74,23 +95,13 @@
     },
     {
       "type": "data",
-      "from": { "id": "10", "port": "eloss" },
-      "to": { "id": "21", "port": "x0" }
-    },
-    {
-      "type": "data",
-      "from": { "id": "10", "port": "spec" },
-      "to": { "id": "21", "port": "y0" }
-    },
-    {
-      "type": "data",
       "from": { "id": "11", "port": "eloss" },
-      "to": { "id": "21", "port": "x1" }
+      "to": { "id": "21", "port": "x" }
     },
     {
       "type": "data",
       "from": { "id": "11", "port": "background" },
-      "to": { "id": "21", "port": "y1" }
+      "to": { "id": "21", "port": "y" }
     },
     {
       "type": "data",
@@ -115,12 +126,27 @@
     {
       "type": "data",
       "from": { "id": "12", "port": "eloss" },
-      "to": { "id": "22", "port": "x0" }
+      "to": { "id": "22", "port": "x" }
     },
     {
       "type": "data",
       "from": { "id": "12", "port": "spec" },
-      "to": { "id": "22", "port": "y0" }
+      "to": { "id": "22", "port": "y" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "20", "port": "out" },
+      "to": { "id": "30", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "21", "port": "out" },
+      "to": { "id": "30", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "22", "port": "out" },
+      "to": { "id": "30", "port": "in" }
     }
   ]
 }

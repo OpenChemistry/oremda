@@ -161,9 +161,20 @@ class PortJSON(BaseModel):
 
 class NodeJSON(BaseModel):
     id: IdType
+    type: NodeType = NodeType.Operator
+    params: JSONType = {}
+
+    class Config:
+        extra = Extra.allow
+
+
+class OperatorNodeJSON(NodeJSON):
     image: str
-    params: JSONType
     location: str = LocationType.Local
+
+
+class DisplayNodeJSON(NodeJSON):
+    display: DisplayType
 
 
 class EdgeJSON(BaseModel):

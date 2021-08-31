@@ -1,3 +1,4 @@
+from oremda.display import NoopDisplayHandle
 import uuid
 import os
 import json
@@ -15,7 +16,7 @@ from fastapi import (
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
-from oremda.typing import IdType, JSONType, PipelineJSON
+from oremda.typing import DisplayType, IdType, JSONType, PipelineJSON
 from oremda.clients import Client as ContainerClientFactory
 from oremda.clients.base import ClientBase as ContainerClient
 from oremda.plasma_client import PlasmaClient
@@ -33,6 +34,7 @@ from .models import (
 )
 from .messages import NotificationMessage, pipeline_created
 from .observer import ServerPipelineObserver
+from .displays import OneDDisplayHandle
 
 app = FastAPI()
 
@@ -167,12 +169,19 @@ async def create_pipeline(
 
     pipeline_id = unique_id()
     graph.id = pipeline_id
-    pipeline = deserialize_pipeline(
-        graph.dict(by_alias=True), context.plasma_client, context.registry
-    )
 
     def notify(message: NotificationMessage):
         asyncio.run(notify_clients(message.dict(), session_id, context))
+
+    def display_factory(id: IdType, display_type: DisplayType):
+        if display_type == DisplayType.OneD:
+            return OneDDisplayHandle(id, notify)
+        else:
+            return NoopDisplayHandle(id, display_type)
+
+    pipeline = deserialize_pipeline(
+        graph.dict(by_alias=True), context.plasma_client, context.registry, display_factory
+    )
 
     pipeline.observer = ServerPipelineObserver(notify)
 
