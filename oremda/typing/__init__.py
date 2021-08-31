@@ -1,17 +1,15 @@
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Callable, Dict, Optional, Sequence, Union
 from abc import ABC, abstractmethod
 from uuid import UUID
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, Extra
 from enum import Enum
-
-from oremda.plasma_client import PlasmaArray
 
 IdType = Union[str, UUID]
 PortKey = str
 ParamKey = str
 JSONType = Dict[str, Any]
-DataType = Union[np.ndarray, PlasmaArray]
+DataType = np.ndarray
 MetaType = JSONType
 
 
@@ -29,17 +27,23 @@ class ObjectId(ABC):
 
 class NodeType(str, Enum):
     Operator = "operator"
+    Display = "display"
 
 
 class PortType(str, Enum):
     Data = "data"
-    Meta = "meta"
+    Display = "display"
 
 
 class IOType(str, Enum):
     In = "in"
     Out = "out"
 
+
+class DisplayType(str, Enum):
+    OneD = "1D"
+    TwoD = "2D"
+    ThreeD = "3D"
 
 class ContainerType(str, Enum):
     Docker = "docker"
@@ -49,6 +53,58 @@ class ContainerType(str, Enum):
 class LocationType(str, Enum):
     Local = "local"
     Remote = "remote"
+
+
+class DataArray(ABC):
+    @property
+    @abstractmethod
+    def data(self) -> DataType:
+        pass
+
+    @data.setter
+    @abstractmethod
+    def data(self, data: DataType):
+        pass
+
+
+class Port(BaseModel):
+    meta: Optional[MetaType] = None
+    data: Optional[DataArray] = None
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class RawPort(BaseModel):
+    meta: Optional[MetaType] = None
+    data: Optional[DataType] = None
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    @classmethod
+    def from_port(cls, port: Port):
+        raw_port = cls()
+
+        if port.meta is not None:
+            raw_port.meta = port.meta
+
+        if port.data is not None:
+            raw_port.data = port.data.data
+
+        return raw_port
+
+    def to_port(self, array_factory: Callable[[DataType], DataArray]):
+        port = Port()
+
+        if self.meta is not None:
+            port.meta = self.meta
+
+        if self.data is not None:
+            array = array_factory(self.data)
+            port.data = array
+
+        return port
 
 
 class PortInfo(BaseModel):
@@ -65,36 +121,37 @@ class MountInfo(BaseModel):
     destination: str = Field(...)
 
 
-class TaskType(str, Enum):
+class MessageType(str, Enum):
     Operate = "operate"
     Terminate = "terminate"
+    Complete = "complete"
 
 
-class TaskMessage(BaseModel):
-    task: TaskType
+class Message(BaseModel):
+    type: MessageType
 
+    class Config:
+        extra = Extra.allow
 
-class OperateTaskMessage(TaskMessage):
+class OperateTaskMessage(Message):
     class Config:
         arbitrary_types_allowed = True
 
-    task = TaskType.Operate
-    data_inputs: Dict[PortKey, DataType] = {}
-    meta_inputs: Dict[PortKey, MetaType] = {}
+    type = MessageType.Operate
+    inputs: Dict[PortKey, Port] = {}
     params: JSONType = {}
     output_queue: str
 
-
-class ResultTaskMessage(BaseModel):
+class ResultTaskMessage(Message):
     class Config:
         arbitrary_types_allowed = True
 
-    data_outputs: Dict[PortKey, DataType] = {}
-    meta_outputs: Dict[PortKey, MetaType] = {}
+    type = MessageType.Complete
+    outputs: Dict[PortKey, Port] = {}
 
 
-class TerminateTaskMessage(TaskMessage):
-    task = TaskType.Terminate
+class TerminateTaskMessage(Message):
+    type = MessageType.Terminate
 
 
 class PortJSON(BaseModel):

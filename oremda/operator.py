@@ -1,29 +1,31 @@
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import Callable, Dict, Optional, Tuple
+from oremda.plasma_client import PlasmaArray
+from typing import Callable, Dict, Optional, Union
 
 from oremda import PlasmaClient
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
-from oremda.messengers import Messenger, MQPMessenger
+from oremda.messengers import BaseMessenger, MQPMessenger
 from oremda.typing import (
     JSONType,
     OperateTaskMessage,
     PortKey,
     DataType,
     LocationType,
-    MetaType,
+    Port,
+    RawPort,
     ResultTaskMessage,
-    TaskMessage,
-    TaskType,
+    MessageType,
+    DataArray,
 )
 from oremda.utils.mpi import mpi_rank
 
 
 class Operator(ABC):
-    def __init__(self, name: str, client: PlasmaClient):
+    def __init__(self, name: str, messenger: BaseMessenger, array_constructor: Callable[[DataType], DataArray]):
         self.name = name
-        self.client = client
-        self.messenger = MQPMessenger(client)
+        self.messenger = messenger
+        self.array_constructor = array_constructor
 
     @property
     def location(self):
@@ -39,42 +41,44 @@ class Operator(ABC):
     def start(self):
         while True:
             message = self.messenger.recv(self.input_queue)
-            task_message = TaskMessage(**message)
 
-            if task_message.task == TaskType.Operate:
-                task_message = OperateTaskMessage(**message)
+            if message.type == MessageType.Operate:
+                task_message = OperateTaskMessage(**message.dict())
                 self.operate(task_message)
-            elif task_message.task == TaskType.Terminate:
+            elif message.type == MessageType.Terminate:
                 return
             else:
-                raise Exception(f"Unknown task: {task_message.task}")
+                raise Exception(f"Unknown message type: {message.type}")
 
     def operate(self, task_message: OperateTaskMessage):
-        data_inputs = task_message.data_inputs
-        meta_inputs = task_message.meta_inputs
+        inputs = task_message.inputs
         params = task_message.params
         output_queue = task_message.output_queue
 
-        meta_outputs, data_outputs = self.kernel(meta_inputs, data_inputs, params)
+        raw_inputs = {key: RawPort.from_port(port) for key, port in inputs.items()}
+        _raw_outputs = self.kernel(raw_inputs, params)
 
-        result = ResultTaskMessage(
-            **{"meta_outputs": meta_outputs, "data_outputs": data_outputs}
-        )
-        self.messenger.send(result.dict(), output_queue)
+        raw_outputs: Dict[PortKey, RawPort] = {
+            key: port if isinstance(port, RawPort) else RawPort(**port) for key, port in _raw_outputs.items()
+        }
+
+        outputs = {key: port.to_port(self.array_constructor) for key, port in raw_outputs.items()}
+
+        result = ResultTaskMessage(outputs=outputs)
+        self.messenger.send(result, output_queue)
 
     @abstractmethod
     def kernel(
         self,
-        meta: Dict[PortKey, MetaType],
-        data: Dict[PortKey, DataType],
+        inputs: Dict[PortKey, RawPort],
         parameters: JSONType,
-    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
+    ) -> Union[Dict[PortKey, RawPort], Dict[PortKey, Dict]]:
         pass
 
 
 KernelFn = Callable[
-    [Dict[PortKey, MetaType], Dict[PortKey, DataType], JSONType],
-    Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]],
+    [Dict[PortKey, RawPort], JSONType],
+    Union[Dict[PortKey, RawPort], Dict[PortKey, Dict]]
 ]
 
 
@@ -82,18 +86,29 @@ def operator(
     func: Optional[KernelFn] = None,
     _name: Optional[str] = None,
     start: bool = True,
-    plasma_socket_path: str = DEFAULT_PLASMA_SOCKET_PATH,
+    messenger: Optional[BaseMessenger] = None,
+    array_constructor: Optional[Callable[[DataType], DataArray]] = None
 ):
     # A decorator to automatically make an Operator where the function
     # that is decorated will be the kernel function.
 
     def decorator(func: KernelFn) -> Operator:
         nonlocal _name
+        nonlocal messenger
+        nonlocal array_constructor
 
         if _name is None:
             name = func.__name__
         else:
             name = _name
+
+        if messenger is None:
+            client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
+            messenger = MQPMessenger(client)
+
+        if array_constructor is None:
+            client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
+            array_constructor = lambda data: PlasmaArray(client, data)
 
         @wraps(func)
         def kernel(_, *args, **kwargs):
@@ -102,7 +117,8 @@ def operator(
 
         class_name = f"{name.capitalize()}Operator"
         OpClass = type(class_name, (Operator,), {"kernel": kernel})
-        obj = OpClass(name, PlasmaClient(plasma_socket_path))
+
+        obj = OpClass(name, messenger, array_constructor)
 
         if start:
             obj.start()
@@ -121,34 +137,34 @@ class OperatorHandle:
         image_name: str,
         name: str,
         input_queue: str,
-        client: PlasmaClient,
+        messenger: BaseMessenger,
         location: LocationType,
     ):
         self.image_name = image_name
         self.name = name
         self.input_queue = input_queue
-        self.client = client
         self.parameters: JSONType = {}
+        self.messenger = messenger
         self.location = location
-        self.messenger = Messenger(location, client)
 
     def execute(
         self,
-        meta_inputs: Dict[PortKey, MetaType],
-        data_inputs: Dict[PortKey, DataType],
+        inputs: Dict[PortKey, Port],
         output_queue: str,
-    ) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
+    ) -> Dict[PortKey, Port]:
         task = OperateTaskMessage(
             **{
-                "data_inputs": data_inputs,
-                "meta_inputs": meta_inputs,
+                "inputs": inputs,
                 "params": self.parameters,
                 "output_queue": output_queue,
             }
         )
 
-        self.messenger.send(task.dict(), self.input_queue)
+        self.messenger.send(task, self.input_queue)
         message = self.messenger.recv(output_queue)
 
-        result = ResultTaskMessage(**message)
-        return result.meta_outputs, result.data_outputs
+        if message.type == MessageType.Complete:
+            result = ResultTaskMessage(**message.dict())
+            return result.outputs
+        else:
+            raise Exception(f"Unknown message type: {message.type}")

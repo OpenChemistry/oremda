@@ -1,17 +1,15 @@
-from typing import Dict, Tuple
+from typing import Dict
 
 from pathlib import Path
 
 import ncempy.io as nio
 
 from oremda import operator
-from oremda.typing import JSONType, PortKey, MetaType, DataType
+from oremda.typing import JSONType, PortKey, RawPort
 
 
 @operator
-def ncem_reader(
-    meta: Dict[PortKey, MetaType], data: Dict[PortKey, DataType], parameters: JSONType
-) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
+def ncem_reader(_inputs: Dict[PortKey, RawPort], parameters: JSONType) -> Dict[PortKey, RawPort]:
     filename = parameters.get("filename", "")
 
     dPath = Path("/data")
@@ -21,11 +19,9 @@ def ncem_reader(
     eloss = spectrum["coords"][1]
     spec = spectrum["data"][0, :]
 
-    output_meta: Dict[PortKey, MetaType] = {}
-
-    output_data: Dict[PortKey, DataType] = {
-        "eloss": eloss,
-        "spec": spec,
+    outputs = {
+        "eloss": RawPort(data=eloss),
+        "spec": RawPort(data=spec),
     }
 
-    return output_meta, output_data
+    return outputs

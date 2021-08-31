@@ -94,8 +94,8 @@ class Registry:
         image: Any = self.container_client.image(image_name)
         return image.labels
 
-    def _info(self, image_name: str):
-        return self.images.get(image_name)
+    def _info(self, image_name: str) -> ImageInfo:
+        return self.images[image_name]
 
     def name(self, image_name: str):
         info = self._info(image_name)
@@ -170,7 +170,7 @@ class Registry:
         location = self.location(image_name)
         messenger = Messenger(location, self.plasma_client)
         input_queue = self.input_queue(image_name)
-        messenger.send(TerminateTaskMessage().dict(), input_queue)
+        messenger.send(TerminateTaskMessage(), input_queue)
 
         self._info(image_name).running = False
 

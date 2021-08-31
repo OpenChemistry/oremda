@@ -1,4 +1,7 @@
+from oremda.messengers import Messenger
 from oremda.typing import (
+    DataType,
+    DisplayType,
     EdgeJSON,
     DataType,
     IdType,
@@ -6,6 +9,7 @@ from oremda.typing import (
     LocationType,
     NodeJSON,
     PipelineJSON,
+    Port,
     PortKey,
     PortInfo,
 )
@@ -15,7 +19,7 @@ from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
 from oremda.registry import Registry
 from oremda.plasma_client import PlasmaClient
-
+from oremda.display import DisplayHandle
 
 class PipelineEdge:
     def __init__(
@@ -91,6 +95,23 @@ class OperatorNode(PipelineNode):
     def operator(self, operator: OperatorHandle):
         self._operator = operator
 
+class DisplayNode(PipelineNode):
+    def __init__(self, id=None, display_type: DisplayType = DisplayType.OneD):
+        super().__init__(NodeType.Display, id)
+        self._display_type = display_type
+        self._display: Optional[DisplayHandle] = None
+        self._inputs = {
+            "input": PortInfo(type=PortType.Display, name="input")
+        }
+
+    @property
+    def display(self):
+        return self._display
+
+    @display.setter
+    def display(self, display: DisplayHandle):
+        self._display = display
+
 
 def validate_edge(
     output_node: PipelineNode,
@@ -130,8 +151,7 @@ class Pipeline:
         self.nodes: Dict[IdType, OperatorNode] = {}
         self.edges: Dict[IdType, PipelineEdge] = {}
         self.node_to_edges: Dict[IdType, Set[IdType]] = {}
-        self.data: Dict[str, DataType] = {}
-        self.meta: Dict[str, JSONType] = {}
+        self.ports: Dict[str, Port] = {}
         self.observer: PipelineObserver = PipelineObserver()
 
     @property
@@ -140,7 +160,7 @@ class Pipeline:
 
     @property
     def image_names(self):
-        return set(node.operator.image_name for node in self.nodes.values())
+        return set(node.operator.image_name for node in self.nodes.values() if node.operator is not None)
 
     def start_containers(self):
         self.registry.start_containers(self.image_names)
@@ -198,8 +218,7 @@ class Pipeline:
         self.nodes = self_nodes
         self.edges = self_edges
         self.node_to_edges = self_node_to_edges
-        self.data = {}
-        self.meta = {}
+        self.ports = {}
 
     def run(self):
         self.start_containers()
@@ -225,25 +244,16 @@ class Pipeline:
                         output_edges.append(edge)
 
                 do_run = True
-                input_data = {}
-                input_meta = {}
+                input_ports: Dict[PortKey, Port] = {}
 
                 for edge in input_edges:
                     source_port_id = port_id(edge.output_node_id, edge.output_port.name)
-
-                    if edge.output_port.type == PortType.Data:
-                        data_dict = self.data
-                        input_dict = input_data
-                    else:
-                        data_dict = self.meta
-                        input_dict = input_meta
-
-                    d = data_dict.get(source_port_id)
-                    if d is None:
+                    port = self.ports.get(source_port_id)
+                    if port is None:
                         do_run = False
                         break
 
-                    input_dict[edge.input_port.name] = d
+                    input_ports[edge.input_port.name] = port
 
                 if do_run:
                     self.observer.on_operator_start(self, operator_node)
@@ -265,9 +275,7 @@ class Pipeline:
                         output_queue = operator.input_queue
 
                     try:
-                        output_meta, output_data = operator.execute(
-                            input_meta, input_data, output_queue
-                        )
+                        output_ports: Dict[PortKey, Port] = operator.execute(input_ports, output_queue)
                     except Exception as err:
                         self.observer.on_operator_error(self, operator_node, err)
                         self.observer.on_error(self, err)
@@ -278,10 +286,8 @@ class Pipeline:
                             edge.output_node_id, edge.output_port.name
                         )
 
-                        if edge.output_port.type == PortType.Data:
-                            self.data[sink_port_id] = output_data[edge.output_port.name]
-                        else:
-                            self.meta[sink_port_id] = output_meta[edge.output_port.name]
+
+                        self.ports[sink_port_id] = output_ports[edge.output_port.name]
 
                     run_operators.add(operator_id)
                     count = count + 1
@@ -317,7 +323,7 @@ class PipelineObserver:
 def validate_port_type(type):
     valid_types = [
         PortType.Data,
-        PortType.Meta,
+        PortType.Display,
     ]
 
     if type not in valid_types:
@@ -337,8 +343,12 @@ def deserialize_pipeline(obj: JSONType, client: PlasmaClient, registry: Registry
     for _node in _nodes:
         node = OperatorNode(_node.id)
 
+        location = LocationType(_node.location)
+
+        messenger = Messenger(location, client)
+
         _image_name = _node.image
-        registry.register(_image_name, _node.location)
+        registry.register(_image_name, location)
         input_ports = registry.ports(_image_name, IOType.In)
         output_ports = registry.ports(_image_name, IOType.Out)
         name = registry.name(_image_name)
@@ -346,7 +356,7 @@ def deserialize_pipeline(obj: JSONType, client: PlasmaClient, registry: Registry
         input_queue = registry.input_queue(_image_name)
 
         operator = OperatorHandle(
-            _image_name, name, input_queue, client, _node.location
+            _image_name, name, input_queue, messenger, location
         )
         operator.parameters = params
 

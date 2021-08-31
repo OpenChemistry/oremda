@@ -10,6 +10,7 @@ def start_plasma_store(memory, socket_path):
 
     stdout_file = None
     stderr_file = None
+    proc = None
     try:
         proc = subprocess.Popen(command, stdout=stdout_file, stderr=stderr_file)
         # Wait a second to let it finish starting...
@@ -21,5 +22,5 @@ def start_plasma_store(memory, socket_path):
 
         yield proc
     finally:
-        if proc.poll() is None:
+        if proc is not None and proc.poll() is None:
             proc.kill()

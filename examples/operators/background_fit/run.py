@@ -1,9 +1,9 @@
-from typing import Dict, Tuple
+from typing import Dict
 
 import numpy as np
 
 from oremda import operator
-from oremda.typing import JSONType, PortKey, MetaType, DataType
+from oremda.typing import JSONType, PortKey, RawPort
 
 
 def power_fit(sig, box):
@@ -55,24 +55,24 @@ def eloss_to_pixel(eloss, energy):
 
 
 @operator
-def background_fit(
-    meta: Dict[PortKey, MetaType], data: Dict[PortKey, DataType], parameters: JSONType
-) -> Tuple[Dict[PortKey, MetaType], Dict[PortKey, DataType]]:
+def background_fit(inputs: Dict[PortKey, RawPort], parameters: JSONType) -> Dict[PortKey, RawPort]:
     start_eloss = parameters.get("start", 0)
     stop_eloss = parameters.get("stop", 0)
 
-    eloss = data["eloss"]
-    spec = data["spec"]
+    eloss = inputs["eloss"].data
+    spec = inputs["spec"].data
+
+    assert eloss is not None
+    assert spec is not None
 
     start = eloss_to_pixel(eloss, start_eloss)
     end = eloss_to_pixel(eloss, stop_eloss)
 
     background, _ = power_fit(spec, (start, end))
 
-    output_meta: Dict[PortKey, MetaType] = {}
-    output_data: Dict[PortKey, DataType] = {
-        "eloss": eloss[start:],
-        "background": background,
+    outputs: Dict[PortKey, RawPort] = {
+        "eloss": RawPort(data=eloss[start:]),
+        "background": RawPort(data=background),
     }
 
-    return output_meta, output_data
+    return outputs

@@ -1,9 +1,8 @@
 import json
 
-import numpy as np
-
 from oremda.messengers.base import BaseMessenger
 from oremda.plasma_client import PlasmaArray
+from oremda.typing import Message, Port
 
 from .utils import open_queue
 
@@ -27,29 +26,31 @@ class MQPMessenger(BaseMessenger):
     def type(self) -> str:
         return "mqp"
 
-    def send(self, msg: dict, dest: str):
-        msg = self.detach_data(msg)
+    def send(self, msg: Message, dest: str):
+        serialized_msg = self.detach_data(dict(msg))
 
         with open_queue(dest, create=True, reuse=True) as queue:
-            queue.send(json.dumps(msg))
+            queue.send(json.dumps(serialized_msg))
 
-    def recv(self, source) -> dict:
+    def recv(self, source) -> Message:
         with open_queue(source, create=True, reuse=True, consume=True) as queue:
-            msg, priority = queue.receive()
+            serialized_msg, priority = queue.receive()
 
-        msg = json.loads(msg)
-        return self.join_data(msg)
+        serialized_msg = json.loads(serialized_msg)
+        msg = self.join_data(serialized_msg)
+        return Message(**msg)
 
     def detach_data(self, original_msg: dict):
         def recurse(cur, original_cur):
             for key, val in original_cur.items():
-                if isinstance(val, PlasmaArray):
-                    encoded = encode_data_key(key)
-                    cur[encoded] = val.hex_id
-                elif isinstance(val, np.ndarray):
-                    encoded = encode_data_key(key)
-                    array = PlasmaArray(self.plasma_client, val)
-                    cur[encoded] = array.hex_id
+                if isinstance(val, Port):
+                    encoded = encode_port_key(key)
+                    serialized_port = {}
+                    if val.meta is not None:
+                        serialized_port['meta'] = val.meta
+                    if isinstance(val.data, PlasmaArray):
+                        serialized_port['data'] = val.data.hex_id
+                    cur[encoded] = serialized_port
                 elif isinstance(val, dict):
                     cur[key] = {}
                     recurse(cur[key], val)
@@ -63,10 +64,15 @@ class MQPMessenger(BaseMessenger):
     def join_data(self, original_msg: dict):
         def recurse(cur, original_cur):
             for key, val in original_cur.items():
-                if is_encoded_key(key):
-                    decoded = decode_data_key(key)
-                    array = PlasmaArray(self.plasma_client, val)
-                    cur[decoded] = array.data
+                if is_port_key(key):
+                    port = Port()
+                    decoded = decode_port_key(key)
+                    port.meta = val.get('meta')
+                    data = val.get('data')
+                    if data is not None:
+                        port.data = PlasmaArray(self.plasma_client, data)
+
+                    cur[decoded] = port
                 elif isinstance(val, dict):
                     cur[key] = {}
                     recurse(cur[key], val)
@@ -77,16 +83,16 @@ class MQPMessenger(BaseMessenger):
         recurse(msg, original_msg)
         return msg
 
+PORT_PREFIX = "port://"
 
-def encode_data_key(key: str) -> str:
-    return f"data://{key}"
-
-
-def is_encoded_key(key: str) -> bool:
-    return key.startswith("data://")
+def encode_port_key(key: str) -> str:
+    return f"{PORT_PREFIX}{key}"
 
 
-def decode_data_key(key: str) -> str:
-    prefix = "data://"
-    start = len(prefix) if key.startswith(prefix) else 0
+def is_port_key(key: str) -> bool:
+    return key.startswith(PORT_PREFIX)
+
+
+def decode_port_key(key: str) -> str:
+    start = len(PORT_PREFIX) if key.startswith(PORT_PREFIX) else 0
     return key[start:]
