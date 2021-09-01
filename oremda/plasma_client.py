@@ -30,7 +30,7 @@ class PlasmaArray(DataArray):
         elif isinstance(id_or_data, DataType):
             self.object_id = self.client.create_object(id_or_data)
         else:
-            raise TypeError(f"Cannot initialize data array.")
+            raise TypeError("Cannot initialize data array.")
 
     @property
     def hex_id(self) -> str:
