@@ -3,7 +3,6 @@ from oremda.typing import (
     DisplayNodeJSON,
     DisplayType,
     EdgeJSON,
-    DataType,
     IdType,
     JSONType,
     LocationType,
