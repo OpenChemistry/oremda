@@ -15,7 +15,7 @@ from oremda.constants import (
 )
 from oremda.utils.plasma import start_plasma_store
 from oremda.typing import ContainerType, DisplayType, IdType, Port
-from oremda.display import DisplayFactory, DisplayHandle, NoopDisplayHandle
+from oremda.display import DisplayHandle, NoopDisplayHandle
 import oremda.pipeline
 
 
