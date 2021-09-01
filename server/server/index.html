@@ -8,39 +8,166 @@
     <span id="session-span"></span>
 
     <h3>Pipeline</h3>
-    <button id="pipeline-btn">Create pipeline</button>
+    <button id="pipeline-1d-btn">Create 1D pipeline</button>
+    <button id="pipeline-2d-btn">Create 2D pipeline</button>
     <ul id="pipeline-list"></ul>
 
     <h3>Websocket</h3>
     <span id="websocket-span">Disconnected</span>
 
-    <div id="plot-div" class="plot"></div>
+    <div class="plot-container">
+      <div id="display-0" class="plot"></div>
+      <div class="plot">
+        <img id="display-1" class="img"/>
+      </div>
+      <div class="plot">
+        <img id="display-2" class="img"/>
+      </div>
+    </div>
 
     <h3>Messages</h3>
     <ul id="message-list"></ul>
 
     <style>
-      .plot {
-        width: 50rem;
-        max-width: 100%;
+      .plot-container {
+        width: 100%;
         height: 30rem;
+        display: flex;
+        flex-direction: row;
+      }
+
+      .plot {
+        width: 30%;
+        border-style: solid;
+        border-width: 2;
+        border-color:red;
+      }
+
+      .img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
     </style>
   </body>
   <script>
+    class DisplayHandle1D {
+      constructor(container) {
+        this.container = container;
+        this.data = {};
+      }
+
+      addInput(sourceId, payload) {
+        const { x, y, label } = payload;
+        this.data[sourceId] = {x, y, name: label, mode: 'lines'}
+      }
+
+      removeInput(sourceId) {
+        delete this.data[sourceId];
+      }
+
+      clearInputs() {
+        this.data = {}
+      }
+
+      render() {
+        Plotly.newPlot(this.container, Object.values(this.data));
+      }
+    }
+
+    class DisplayHandle2D {
+      constructor(container) {
+        this.container = container;
+        this.sourceId = undefined;
+        this.scalars = undefined;
+        this.shape = undefined;
+      }
+
+      addInput(sourceId, payload) {
+        const { scalars, shape } = payload;
+        this.sourceId = sourceId;
+        this.scalars = scalars;
+        this.shape = shape;
+      }
+
+      removeInput(sourceId) {
+        if (this.sourceId === sourceId) {
+          this.sourceId = undefined;
+          this.scalars = undefined;
+          this.shape = undefined;
+        }
+      }
+
+      clearInputs() {
+        this.sourceId = undefined;
+        this.scalars = undefined;
+        this.shape = undefined;
+      }
+
+      render() {
+        if (this.scalars) {
+          const scalars = this.scalars;
+          const shape = this.shape;
+          const img = this.container;
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          const [height, width] = shape;
+          canvas.width = width;
+          canvas.height = height;
+          const imageData = new ImageData(width, height);
+          const min = Math.min(array)
+          const max = Math.max(array)
+          const delta = max - min;
+
+          array.forEach((val, idx) => {
+            // const c = 255 * (val - min) / delta
+            const c = val;
+            imageData.data[idx * 4] = c;
+            imageData.data[idx * 4 + 1] = c;
+            imageData.data[idx * 4 + 2] = c;
+            imageData.data[idx * 4 + 3] = 255;
+          });
+
+          context.putImageData(imageData, 0, 0);
+          img.src = canvas.toDataURL();
+        }
+      }
+    }
+
     async function main() {
       const session = await fetch('/sessions', {method: 'POST'}).then(res => res.json())
       const queryParams = new URLSearchParams({sessionId: session.id});
       const sessionSpan = document.getElementById('session-span')
       sessionSpan.innerText = session.id
 
-      const plotData = {}
+      const displays = {
+        30: new DisplayHandle1D(document.getElementById('display-0')),
+        40: new DisplayHandle2D(document.getElementById('display-1')),
+        41: new DisplayHandle2D(document.getElementById('display-2')),
+      }
 
       console.log("Session", session)
 
-      const renderPlot = () => {
-        const div = document.getElementById('plot-div');
-        Plotly.newPlot(div, Object.values(plotData));
+      const runPipeline = async (filename) => {
+        pipeline_json = await fetch(`/pips?filename=${filename}`).then(res => res.json())
+
+        const pipeline = await fetch(
+          `/pipelines?${queryParams.toString()}`,
+          {
+            method: 'POST',
+            body: JSON.stringify(pipeline_json),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        ).then(res => res.json())
+
+        console.log("Pipeline", pipeline)
+
+        const pipelineList = document.getElementById('pipeline-list')
+        const element = document.createElement('li')
+        element.innerText = pipeline.id
+        pipelineList.appendChild(element)
       }
 
       const ws = new WebSocket(`ws://${location.host}/ws?${queryParams.toString()}`)
@@ -60,14 +187,25 @@
         }
 
         if (data.action === 'DISPLAY_ADD_INPUT') {
-          const { sourceId, x, y, label } = data.payload;
-          plotData[sourceId] = {x, y, name: label, mode: 'lines'}
+          const { displayId, sourceId, ...rest } = data.payload;
+          if (displays[displayId]) {
+            displays[displayId].addInput(sourceId, rest);
+          }
         }  else if (data.action === 'DISPLAY_REMOVE_INPUT') {
-          delete plotData[sourceId];
+          const { displayId, sourceId } = data.payload;
+          if (displays[displayId]) {
+            displays[displayId].removeInput(sourceId);
+          }
         } else if (data.action === 'DISPLAY_CLEAR_INPUTS') {
-          plotData = {};
+          const { displayId } = data.payload;
+          if (displays[displayId]) {
+            displays[displayId].clearInputs();
+          }
         } else if (data.action === 'DISPLAY_RENDER') {
-          renderPlot();
+          const { displayId } = data.payload;
+          if (displays[displayId]) {
+            displays[displayId].render();
+          }
         } else {
           const messageList = document.getElementById('message-list')
           const element = document.createElement('li')
@@ -76,27 +214,14 @@
         }
       }
 
-      const pipelineBtn = document.getElementById('pipeline-btn');
-      pipelineBtn.onclick = async function() {
-        pipeline_json = await fetch('/pipeline.json').then(res => res.json())
+      const pipeline1DBtn = document.getElementById('pipeline-1d-btn');
+      pipeline1DBtn.onclick = function() {
+        runPipeline('pipeline_1d.json');
+      }
 
-        const pipeline = await fetch(
-          `/pipelines?${queryParams.toString()}`,
-          {
-            method: 'POST',
-            body: JSON.stringify(pipeline_json),
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
-        ).then(res => res.json())
-
-        console.log("Pipeline", pipeline)
-
-        const pipelineList = document.getElementById('pipeline-list')
-        const element = document.createElement('li')
-        element.innerText = pipeline.id
-        pipelineList.appendChild(element)
+      const pipeline2DBtn = document.getElementById('pipeline-2d-btn');
+      pipeline2DBtn.onclick = function() {
+        runPipeline('pipeline_2d.json');
       }
     }
 

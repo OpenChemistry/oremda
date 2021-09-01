@@ -123,13 +123,13 @@ def validate_edge(
     if not output_node.has(output_port, IOType.Out):
         raise Exception(
             f'The port "{output_port.name}" with type "{output_port.type}" '
-            "does not exist on the output node."
+            f'does not exist on the output node "{output_node.id}".'
         )
 
     if not input_node.has(input_port, IOType.In):
         raise Exception(
             f'The port "{input_port.name}" with type "{input_port.type}" '
-            "does not exist on the input node."
+            f'does not exist on the input node "{input_node.id}".'
         )
 
 

@@ -1,7 +1,8 @@
 import json
 import os
-from typing import Dict, cast
+from typing import Dict, cast, Optional
 
+from matplotlib import cm
 import matplotlib.pyplot as plt
 
 from oremda.clients import Client as ContainerClient
@@ -20,7 +21,7 @@ from oremda.display import DisplayHandle, NoopDisplayHandle
 import oremda.pipeline
 
 
-class MatplotlibDisplayHandle(DisplayHandle):
+class MatplotlibDisplayHandle1D(DisplayHandle):
     def __init__(self, id: IdType):
         super().__init__(id, DisplayType.OneD)
         self.inputs: Dict[IdType, Port] = {}
@@ -63,9 +64,51 @@ class MatplotlibDisplayHandle(DisplayHandle):
         fg.savefig(f"/data/{self.id}.png", dpi=fg.dpi)
 
 
+class MatplotlibDisplayHandle2D(DisplayHandle):
+    def __init__(self, id: IdType):
+        super().__init__(id, DisplayType.TwoD)
+        self.sourceId: Optional[IdType] = None
+        self.input: Optional[Port] = None
+
+    def add(self, sourceId: IdType, input: Port):
+        self.sourceId = sourceId
+        self.input = input
+        self.render()
+
+    def remove(self, sourceId: IdType):
+        if self.sourceId == sourceId:
+            self.sourceId = None
+            self.input = None
+
+        self.render()
+
+    def clear(self):
+        self.sourceId = None
+        self.input = None
+        self.render()
+
+    def render(self):
+        if self.input is None:
+            return
+
+        array = self.input.data
+
+        if array is None:
+            return
+
+        data = array.data
+
+        cmap = plt.cm.get_cmap("viridis", 16)
+        norm = plt.Normalize(vmin=data.min(), vmax=data.max())
+
+        plt.imsave(f"/data/{self.id}.png", cmap(norm(data)))
+
+
 def display_factory(id: IdType, display_type: DisplayType) -> DisplayHandle:
     if display_type == DisplayType.OneD:
-        return MatplotlibDisplayHandle(id)
+        return MatplotlibDisplayHandle1D(id)
+    elif display_type == DisplayType.TwoD:
+        return MatplotlibDisplayHandle2D(id)
     else:
         return NoopDisplayHandle(id, display_type)
 
@@ -121,7 +164,7 @@ with start_plasma_store(**plasma_kwargs):
 
     registry.run_kwargs = run_kwargs
 
-    with open("/runner/pipeline.json") as f:
+    with open("/runner/pipeline_1d.json") as f:
         pipeline_obj = json.load(f)
 
     pipeline = oremda.pipeline.deserialize_pipeline(
