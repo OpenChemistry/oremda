@@ -117,7 +117,7 @@ def operator(
 
         if array_constructor is None:
             client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
-            array_constructor = lambda data: PlasmaArray(client, data)
+            array_constructor = lambda data: PlasmaArray(client, data)  # noqa
 
         @wraps(func)
         def kernel(_, *args, **kwargs):
