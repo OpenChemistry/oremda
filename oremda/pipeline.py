@@ -1,10 +1,8 @@
 from oremda.messengers import Messenger
 from oremda.typing import (
-    DataType,
     DisplayNodeJSON,
     DisplayType,
     EdgeJSON,
-    DataType,
     IdType,
     JSONType,
     LocationType,
@@ -299,7 +297,8 @@ class Pipeline:
                         raise
 
                     for edge in output_edges:
-                        # If there is a display output from this operator, render it immediately
+                        # If there is a display output from this operator, render it
+                        # immediately
                         if edge.output_port.type == PortType.Display:
                             port = output_ports[edge.output_port.name]
                             display_node: Any = self.nodes.get(edge.input_node_id)
@@ -310,7 +309,8 @@ class Pipeline:
                             ):
                                 display: DisplayHandle = display_node.display
                                 display.add(edge.output_node_id, port)
-                        # Otherwise save the port for use in a future iteration of the pipeline runner
+                        # Otherwise save the port for use in a future iteration of the
+                        # pipeline runner
                         else:
                             sink_port_id = port_id(
                                 edge.output_node_id, edge.output_port.name
