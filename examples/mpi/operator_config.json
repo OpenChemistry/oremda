@@ -1,0 +1,14 @@
+{
+  "oremda/ncem_reader": {
+    "run_locations": [1, 7]
+  },
+  "oremda/background_fit": {
+    "run_locations": [2, 6]
+  },
+  "oremda/subtract": {
+    "run_locations": [3, 4, 5]
+  },
+  "oremda/plot": {
+    "run_locations": [0]
+  }
+}
