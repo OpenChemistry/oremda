@@ -1,11 +1,9 @@
-from oremda.messengers import Messenger
 from oremda.typing import (
     DisplayNodeJSON,
     DisplayType,
     EdgeJSON,
     IdType,
     JSONType,
-    LocationType,
     NodeJSON,
     OperatorNodeJSON,
     PipelineJSON,
@@ -172,7 +170,8 @@ class Pipeline:
         )
 
     def start_containers(self):
-        self.registry.start_containers(self.image_names)
+        # They should all be already registered
+        self.registry.start_containers()
 
     def set_graph(self, nodes: Sequence[PipelineNode], edges: Sequence[PipelineEdge]):
         self_nodes: Dict[IdType, PipelineNode] = {}
@@ -282,11 +281,7 @@ class Pipeline:
                         self.observer.on_error(self, err)
                         raise err
 
-                    if operator.location == LocationType.Local:
-                        output_queue = f"/{self.id}_{operator_node.id}"
-                    else:
-                        output_queue = operator.input_queue
-
+                    output_queue = f"/{self.id}_{operator_node.id}"
                     try:
                         output_ports: Dict[PortKey, Port] = operator.execute(
                             input_ports, output_queue
@@ -388,20 +383,17 @@ def deserialize_pipeline(
             _node = OperatorNodeJSON(**_node.dict())
             node = OperatorNode(_node.id)
 
-            location = LocationType(_node.location)
-
-            messenger = Messenger(location, client)
-
             _image_name = _node.image
-            registry.register(_image_name, location)
+            registry.register(_image_name)
             input_ports = registry.ports(_image_name, IOType.In)
             output_ports = registry.ports(_image_name, IOType.Out)
             name = registry.name(_image_name)
             params = _node.params
             input_queue = registry.input_queue(_image_name)
+            operator_config = registry.operator_config(_image_name)
 
             operator = OperatorHandle(
-                _image_name, name, input_queue, messenger, location
+                _image_name, name, input_queue, client, operator_config
             )
             operator.parameters = params
 
