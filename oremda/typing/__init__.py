@@ -126,6 +126,7 @@ class MessageType(str, Enum):
     Operate = "operate"
     Terminate = "terminate"
     Complete = "complete"
+    MPINodeReady = "mpi_node_ready"
 
 
 class Message(BaseModel):
@@ -155,6 +156,11 @@ class ResultTaskMessage(Message):
 
 class TerminateTaskMessage(Message):
     type = MessageType.Terminate
+
+
+class MPINodeReadyMessage(Message):
+    type = MessageType.MPINodeReady
+    queue: Optional[str] = None
 
 
 class PortJSON(BaseModel):
