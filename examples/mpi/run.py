@@ -35,6 +35,8 @@ if mpi_rank == 0:
 
 print(f"{mpi_host_name=}, {mpi_rank=}")
 
+home_dir = os.getenv("HOME")
+
 
 class MatplotlibDisplayHandle(DisplayHandle):
     def __init__(self, id: IdType):
@@ -76,7 +78,7 @@ class MatplotlibDisplayHandle(DisplayHandle):
         ax.legend()
         ax.set(xlabel=x_label, ylabel=y_label)
 
-        fg.savefig(f"/global/u1/p/psavery/data/oremda/{self.id}.png", dpi=fg.dpi)
+        fg.savefig(f"{home_dir}/data/oremda/{self.id}.png", dpi=fg.dpi)
 
 
 def display_factory(id: IdType, display_type: DisplayType) -> DisplayHandle:
@@ -113,8 +115,8 @@ with start_plasma_store(**plasma_kwargs):
     # parent container's directories.
     volumes = {
         DEFAULT_OREMDA_VAR_DIR: {"bind": DEFAULT_OREMDA_VAR_DIR},
-        "/global/u1/p/psavery/data/oremda": {"bind": DEFAULT_DATA_DIR},
-        "/global/u1/p/psavery/virtualenvs/oremda/src/oremda": {"bind": "/oremda"},
+        f"{home_dir}/data/oremda": {"bind": DEFAULT_DATA_DIR},
+        f"{home_dir}/virtualenvs/oremda/src/oremda": {"bind": "/oremda"},
     }
     run_kwargs["volumes"] = volumes
 
