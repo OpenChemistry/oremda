@@ -4,7 +4,6 @@ import os
 from typing import Dict
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 from oremda.clients import Client as ContainerClient
 from oremda.constants import (
@@ -66,12 +65,7 @@ class MatplotlibDisplayHandle(DisplayHandle):
                 continue
 
             x = port.data.data[0]
-
-            # FIXME: why aren't these the same shape?
-            y_data = port.data.data[1]
-            print(f"{x.shape=}, {y_data.shape=}")
-            y = np.zeros(x.shape)
-            y[: y_data.shape[0]] = y_data
+            y = port.data.data[1]
 
             label = None
             if port.meta is not None:

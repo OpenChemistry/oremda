@@ -95,16 +95,6 @@
     },
     {
       "type": "data",
-      "from": { "id": "10", "port": "eloss" },
-      "to": { "id": "21", "port": "x" }
-    },
-    {
-      "type": "data",
-      "from": { "id": "10", "port": "spec" },
-      "to": { "id": "21", "port": "y" }
-    },
-    {
-      "type": "data",
       "from": { "id": "11", "port": "eloss" },
       "to": { "id": "21", "port": "x" }
     },
