@@ -13,7 +13,7 @@ DataType = np.ndarray
 MetaType = JSONType
 
 
-# Plasma's ObjectID doesn't have propert typings (cython?),
+# Plasma's ObjectID doesn't have proper typings (cython?),
 # manually create a partial interface for it
 class ObjectId(ABC):
     @abstractmethod
