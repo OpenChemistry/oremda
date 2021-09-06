@@ -5,6 +5,11 @@ repos:
     - id: black
       entry: black --check
 
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.1.0
+    hooks:
+      - id: codespell
+
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.9.2
     hooks:
