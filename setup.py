@@ -8,6 +8,8 @@ install_requires = [
     "six",  # because of docker
     "spython",
     "pydantic",
+    "click",
+    "click_plugins"
 ]
 
 setup(
@@ -26,4 +28,8 @@ setup(
     keywords="",
     packages=find_packages(),
     install_requires=install_requires,
+    entry_points={
+        'console_scripts': [
+            'oremda = oremda.cli:main',
+        ],
 )
