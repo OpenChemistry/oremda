@@ -32,4 +32,8 @@ setup(
         'console_scripts': [
             'oremda = oremda.cli:main',
         ],
+        'oremda.cli.plugins': [
+        'run = oremda.cli.run:main'
+    ]
+    },
 )

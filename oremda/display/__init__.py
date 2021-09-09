@@ -1,3 +1,5 @@
+from oremda.typing import DisplayType, IdType
+
 from abc import ABC, abstractmethod
 from typing import Callable
 from oremda.typing import DisplayType, IdType, JSONType, Port
@@ -53,3 +55,11 @@ class NoopDisplayHandle(DisplayHandle):
 
     def clear(self):
         pass
+
+def display_factory(id: IdType, display_type: DisplayType) -> DisplayHandle:
+    if display_type == DisplayType.OneD:
+        # Import here to delay import and break circular dep
+        from oremda.display.matplotlib import MatplotlibDisplayHandle
+        return MatplotlibDisplayHandle(id)
+    else:
+        return NoopDisplayHandle(id, display_type)
