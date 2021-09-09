@@ -12,14 +12,17 @@ from oremda.constants import (
     DEFAULT_OREMDA_VAR_DIR,
 )
 from oremda.utils.plasma import start_plasma_store
-from oremda.typing import ContainerType, DisplayType, IdType, Port
+from oremda.typing import ContainerType
 from oremda.display import display_factory
 import oremda.pipeline
 
 
-
-@click.command('run', short_help='oremda cli runner', help='Run an oremda pipeline on the command line.')
-@click.argument('pipeline', type=click.Path(exists=True, dir_okay=False))
+@click.command(
+    "run",
+    short_help="oremda cli runner",
+    help="Run an oremda pipeline on the command line.",
+)
+@click.argument("pipeline", type=click.Path(exists=True, dir_okay=False))
 def main(pipeline):
     if "SINGULARITY_BIND" in os.environ:
         # This means we are running singularity
@@ -63,7 +66,8 @@ def main(pipeline):
             # host directories.
             self_container = container_client.self_container()
             volumes = {
-                mount.source: {"bind": mount.destination} for mount in self_container.mounts
+                mount.source: {"bind": mount.destination}
+                for mount in self_container.mounts
             }
             run_kwargs["volumes"] = volumes
 

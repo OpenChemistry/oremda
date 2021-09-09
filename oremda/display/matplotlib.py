@@ -5,6 +5,7 @@ from oremda.typing import DisplayType, IdType, Port
 
 import matplotlib.pyplot as plt
 
+
 class MatplotlibDisplayHandle(DisplayHandle):
     def __init__(self, id: IdType):
         super().__init__(id, DisplayType.OneD)

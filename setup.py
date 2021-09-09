@@ -9,7 +9,7 @@ install_requires = [
     "spython",
     "pydantic",
     "click",
-    "click_plugins"
+    "click_plugins",
 ]
 
 setup(
@@ -29,11 +29,9 @@ setup(
     packages=find_packages(),
     install_requires=install_requires,
     entry_points={
-        'console_scripts': [
-            'oremda = oremda.cli:main',
+        "console_scripts": [
+            "oremda = oremda.cli:main",
         ],
-        'oremda.cli.plugins': [
-        'run = oremda.cli.run:main'
-    ]
+        "oremda.cli.plugins": ["run = oremda.cli.run:main"],
     },
 )
