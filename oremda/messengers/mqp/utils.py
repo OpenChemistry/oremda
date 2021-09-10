@@ -3,6 +3,15 @@ from contextlib import contextmanager
 import posix_ipc
 from posix_ipc import MessageQueue
 
+# Most linux systems default to a maximum memory that mqueues can use
+# to 819200 bytes (0.8192 megabytes).
+# This limit is reached if MAX_MESSAGES * MAX_MESAGE_SIZE is reached,
+# and MAX_MESAGE_SIZE defaults to 8192.
+# Reduce the number of messages to 1 so that we can have ~100 queues
+# rather than just 10.
+# If the queue is full, then send() just blocks until it frees up.
+MAX_MESSAGES = 1
+
 
 @contextmanager
 def open_queue(name: str, create=False, consume=False, reuse=False):
@@ -37,7 +46,7 @@ def open_queue(name: str, create=False, consume=False, reuse=False):
         name = f"/{name}"
 
     try:
-        queue = MessageQueue(name, flags=flags)
+        queue = MessageQueue(name, flags=flags, max_messages=MAX_MESSAGES)
         yield queue
     finally:
         if queue is not None:

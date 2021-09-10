@@ -46,7 +46,7 @@ try:
     with open(tf.name, "w") as wf:
         wf.write(definition)
 
-    sclient.build(tf.name, image=output_name, sudo=True)
+    sclient.build(tf.name, image=output_name)
 finally:
     os.unlink(tf.name)
     del tf

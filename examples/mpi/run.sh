@@ -1,14 +1,13 @@
-#!/usr/bin/env bash
+#!/bin/bash
+#SBATCH --account=ncemhub
+#SBATCH --qos=debug
+#SBATCH -C haswell
+#SBATCH --time=00:02:00
+#SBATCH -N 8
 
-DATA_DIR=/data/oremda
-IMAGES_DIR=$PWD/images
-OREMDA_DIR=$(git rev-parse --show-toplevel)
-RUNNER_DIR=$PWD/runner
+home=/global/homes/p/psavery/
+venv_path=$home/virtualenvs
+oremda_path=$venv_path/oremda
 
-sudo mpiexec -np 5 singularity run \
-  --bind $DATA_DIR:/data \
-  --bind $IMAGES_DIR:/images \
-  --bind $OREMDA_DIR:/oremda \
-  --bind $RUNNER_DIR:/runner \
-  --ipc \
-  $IMAGES_DIR/oremda_runner.sif
+source $oremda_path/bin/activate
+srun -n 8 python -u run.py
