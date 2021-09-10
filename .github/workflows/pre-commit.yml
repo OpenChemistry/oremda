@@ -8,6 +8,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
+
+      # Install oremda
+      - run: pip install .
+
+      # Install optional dependencies
+      - run: sudo apt-get -y install libmpich-dev
+      - run: pip install mpi4py
+
+      # Install server dependencies
+      - run: pip install fastapi uvicorn[standard]
+
+      # FIXME: is there a better way for us to do these?
+      # Install operator dependencies
+      - run: pip install vtk ncempy matplotlib
+
+      # Install and run pre-commit
       - run: pip install pre-commit
       - run: pre-commit --version
       - run: pre-commit install

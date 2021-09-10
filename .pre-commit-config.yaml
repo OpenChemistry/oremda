@@ -14,3 +14,13 @@ repos:
     rev: 3.9.2
     hooks:
     - id: flake8
+
+  - repo: local
+    hooks:
+    - id: pyright
+      name: pyright
+      entry: pyright
+      language: node
+      pass_filenames: false
+      types: [python]
+      additional_dependencies: ['pyright@1.1.99']
