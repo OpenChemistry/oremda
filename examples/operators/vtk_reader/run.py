@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 
 import vtk
-from vtk.numpy_interface import dataset_adapter as dsa
+from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore
 
 from oremda import operator
 

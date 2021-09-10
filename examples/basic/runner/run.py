@@ -1,11 +1,11 @@
-#!/usr/bin/env python
 import json
 import os
-from typing import Dict
+from typing import Dict, cast
 
 import matplotlib.pyplot as plt
 
 from oremda.clients import Client as ContainerClient
+from oremda.clients.singularity.client import SingularityClient
 from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
 from oremda.constants import (
@@ -88,7 +88,7 @@ with start_plasma_store(**plasma_kwargs):
     container_client = ContainerClient(container_type)
 
     if container_type == ContainerType.Singularity:
-        container_client.images_dir = "/images"
+        cast(SingularityClient, container_client).images_dir = "/images"
 
     registry = Registry(plasma_client, container_client)
 
