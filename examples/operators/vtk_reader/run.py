@@ -1,3 +1,4 @@
+from typing import Dict
 from pathlib import Path
 
 import numpy as np
@@ -6,7 +7,7 @@ import vtk
 from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore
 
 from oremda import operator
-
+from oremda.typing import JSONType, PortKey, RawPort
 
 READERS = {
     "vtk": vtk.vtkStructuredPointsReader,
@@ -38,12 +39,14 @@ def to_numpy_array(data_object, key=None):
 
 
 @operator
-def vtk_reader(meta, data, parameters):
+def vtk_reader(
+    _inputs: Dict[PortKey, RawPort], parameters: JSONType
+) -> Dict[PortKey, RawPort]:
     filename = parameters.get("filename", "")
     filepath = Path("/data") / filename
 
     data = read_file(filepath)
 
-    output = {"data": to_numpy_array(data)}
+    outputs = {"data": RawPort(data=to_numpy_array(data))}
 
-    return meta, output
+    return outputs

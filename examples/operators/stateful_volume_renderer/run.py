@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 import subprocess
 
+from typing import Dict
+
 import numpy as np
 
 import vtk
@@ -9,6 +11,7 @@ import vtk
 from vtk.util.numpy_support import numpy_to_vtk  # type: ignore
 
 from oremda import operator
+from oremda.typing import JSONType, PortKey, RawPort
 
 ren_win = vtk.vtkRenderWindow()
 ren_win.OffScreenRenderingOn()
@@ -143,7 +146,9 @@ def write_window(ren_win, filename):
 
 
 @operator
-def stateful_volume_renderer(meta, data, parameters):
+def stateful_volume_renderer(
+    inputs: Dict[PortKey, RawPort], parameters: JSONType
+) -> Dict[PortKey, RawPort]:
     filename = parameters.get("filename", "")
     clear = parameters.get("clear", False)
 
@@ -152,11 +157,11 @@ def stateful_volume_renderer(meta, data, parameters):
     if clear:
         ren.RemoveAllViewProps()
 
-    add_volume(data["data"])
+    add_volume(inputs["data"].data)
 
     ren.ResetCamera()
     ren_win.Render()
 
     write_window(ren_win, filepath)
 
-    return meta, {}
+    return {}

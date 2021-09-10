@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import copy
 from functools import wraps
-from typing import Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union, List
 
 import numpy as np
 
@@ -90,23 +90,21 @@ KernelFn = Callable[
 
 def operator(
     func: Optional[KernelFn] = None,
-    _name: Optional[str] = None,
+    name: Optional[str] = None,
     start: bool = True,
     messenger: Optional[BaseMessenger] = None,
     array_constructor: Optional[Callable[[DataType], DataArray]] = None,
-):
+) -> Any:
     # A decorator to automatically make an Operator where the function
     # that is decorated will be the kernel function.
 
     def decorator(func: KernelFn) -> Operator:
-        nonlocal _name
+        nonlocal name
         nonlocal messenger
         nonlocal array_constructor
 
-        if _name is None:
+        if name is None:
             name = func.__name__
-        else:
-            name = _name
 
         if messenger is None:
             client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
@@ -186,6 +184,11 @@ class OperatorHandle:
 
     def execute_parallel(self, inputs: Dict[PortKey, Port], output_queue: str):
         settings = self.operator_config
+
+        if settings.parallel_param is None:
+            msg = f"{settings.parallel_param} is not defined, can't run in parallel!"
+            raise Exception(msg)
+
         if settings.parallel_param not in self.parameters:
             msg = f"{settings.parallel_param} is not in {self.parameters}!"
             raise Exception(msg)
@@ -211,7 +214,7 @@ class OperatorHandle:
             self.messenger.send(msg, self.input_queue)
 
         # Now receive the outputs
-        outputs = [None] * len(task_list)
+        outputs: List[Dict[PortKey, Port]] = [{}] * len(task_list)
         for _ in outputs:
             message = self.messenger.recv(output_queue)
 
@@ -225,21 +228,24 @@ class OperatorHandle:
         if any(x is None for x in outputs):
             raise Exception(f"Failed to receive some outputs: {outputs=}")
 
+        output = outputs[0]
+
         # Now grab the output parameter to stack
         output_to_stack = settings.parallel_output_to_stack
-        if any(output_to_stack not in x for x in outputs):
-            raise Exception(f"{output_to_stack} is not in all outputs: {outputs=}")
 
-        # Stack it.
-        output = outputs[0]
-        output[output_to_stack] = Port(
-            **{
-                "data": PlasmaArray(
-                    self.client,
-                    np.hstack([x[output_to_stack].data.data for x in outputs]),
-                ),
-                "meta": outputs[0][output_to_stack].meta,
-            }
-        )
+        if output_to_stack is not None:
+            if any(output_to_stack not in x for x in outputs):
+                raise Exception(f"{output_to_stack} is not in all outputs: {outputs=}")
+
+            # Stack it.
+            output[output_to_stack] = Port(
+                **{
+                    "data": PlasmaArray(
+                        self.client,
+                        np.hstack([x[output_to_stack].data.data for x in outputs]),
+                    ),
+                    "meta": outputs[0][output_to_stack].meta,
+                }
+            )
 
         return output

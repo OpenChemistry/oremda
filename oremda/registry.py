@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
 
@@ -23,7 +23,7 @@ class ImageInfo(BaseModel):
     inputs: Dict[PortKey, PortInfo] = {}
     outputs: Dict[PortKey, PortInfo] = {}
     params: Dict[str, JSONType] = {}
-    containers: Sequence[ContainerBase] = []
+    containers: List[ContainerBase] = []
     running: bool = False
     operator_config: OperatorConfig = OperatorConfig()
 
@@ -123,16 +123,11 @@ class Registry:
         num_to_run = operator_config.num_containers_on_this_rank
 
         while len(info.containers) < num_to_run:
-            info.containers += [None]
-
-        for i, container in enumerate(info.containers):
-            if container is not None:
-                continue
-
+            container = None
             try:
                 print(f"On {mpi_rank=}, starting {image_name=}")
                 container = self.container_client.run(image_name, **self.run_kwargs)
-                info.containers[i] = container
+                info.containers.append(container)
             except Exception as e:
                 print(f"An exception was caught: {e}")
                 if container is not None:
