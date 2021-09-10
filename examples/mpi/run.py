@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 import json
 import os
-from typing import Dict
+from typing import Dict, cast
 
 import matplotlib.pyplot as plt
 
 from oremda.clients import Client as ContainerClient
+from oremda.clients.singularity import SingularityClient
 from oremda.constants import (
     DEFAULT_PLASMA_SOCKET_PATH,
     DEFAULT_DATA_DIR,
@@ -100,7 +101,7 @@ plasma_kwargs = {
 
 with start_plasma_store(**plasma_kwargs):
     plasma_client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
-    container_client = ContainerClient(container_type)
+    container_client = cast(SingularityClient, ContainerClient(container_type))
     container_client.images_dir = "images"
 
     operator_config_file = "operator_config.json"
