@@ -4,7 +4,7 @@ set -e
 function join_by { local IFS="$1"; shift; echo "$*"; }
 
 # Whether or not to build singularity as well
-build_singularity=false
+build_singularity=true
 
 # Whether or not to build with mpi
 # This is not needed if we only allow the parent containers
@@ -21,6 +21,7 @@ directories=(
   background_fit
   ncem_reader
   plot
+  print
   subtract
 )
 
