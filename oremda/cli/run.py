@@ -23,7 +23,7 @@ import oremda.pipeline
     help="Run an oremda pipeline on the command line.",
 )
 @click.argument("pipeline", type=click.Path(exists=True, dir_okay=False))
-def main(pipeline):
+def main(pipeline: click.Path):
     if "SINGULARITY_BIND" in os.environ:
         # This means we are running singularity
         container_type = ContainerType.Singularity
