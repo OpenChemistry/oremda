@@ -5,6 +5,7 @@ from typing import Dict, cast
 import matplotlib.pyplot as plt
 
 from oremda.clients import Client as ContainerClient
+from oremda.clients.docker import DockerClient
 from oremda.clients.singularity.client import SingularityClient
 from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
@@ -109,7 +110,7 @@ with start_plasma_store(**plasma_kwargs):
     if container_type == ContainerType.Docker:
         # The mounts in docker "sibling" containers refer to the
         # host directories.
-        self_container = container_client.self_container()
+        self_container = cast(DockerClient, container_client).self_container()
         volumes = {
             mount.source: {"bind": mount.destination} for mount in self_container.mounts
         }

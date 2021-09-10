@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import json
 import os
+from typing import cast
 
 from oremda.clients import Client as ContainerClient
+from oremda.clients.docker import DockerClient
 from oremda.constants import (
     DEFAULT_PLASMA_SOCKET_PATH,
     DEFAULT_DATA_DIR,
@@ -57,7 +59,7 @@ with start_plasma_store(**plasma_kwargs):
     if container_type == ContainerType.Docker:
         # The mounts in docker "sibling" containers refer to the
         # host directories.
-        self_container = container_client.self_container()
+        self_container = cast(DockerClient, container_client).self_container()
         volumes = {
             mount.source: {"bind": mount.destination} for mount in self_container.mounts
         }
