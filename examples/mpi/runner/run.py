@@ -13,7 +13,7 @@ from oremda.constants import (
 from oremda.messengers import MPIMessenger, MQPMessenger
 from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
-from oremda.typing import ContainerType, OperateTaskMessage, TaskMessage, TaskType
+from oremda.typing import ContainerType, OperateTaskMessage, Message, MessageType
 from oremda.utils.mpi import mpi_rank, mpi_world_size
 from oremda.utils.plasma import start_plasma_store
 import oremda.pipeline
@@ -106,8 +106,8 @@ with start_plasma_store(**plasma_kwargs):
             print(f"MQP message sent to: {operator_queue=}")
 
             # If it was a terminate task, finish this node as well
-            task_message = TaskMessage(**msg)
-            if task_message.task == TaskType.Terminate:
+            task_message = Message(**msg)
+            if task_message.type == MessageType.Terminate:
                 print(f"{mpi_rank=} Terminating...")
                 break
 
