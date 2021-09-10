@@ -1,10 +1,9 @@
 from typing import Dict
 
-import numpy as np
 from scipy.ndimage import gaussian_filter
 
 from oremda import operator
-from oremda.typing import JSONType, PortKey, RawPort, DisplayType
+from oremda.typing import JSONType, PortKey, RawPort
 
 
 @operator

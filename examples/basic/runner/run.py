@@ -2,7 +2,6 @@ import json
 import os
 from typing import Dict, cast, Optional
 
-from matplotlib import cm
 import matplotlib.pyplot as plt
 
 from oremda.clients import Client as ContainerClient
