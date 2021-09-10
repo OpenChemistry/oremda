@@ -8,6 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
+      - run: pip install .
       - run: pip install pre-commit
       - run: pre-commit --version
       - run: pre-commit install
