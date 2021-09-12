@@ -1,13 +1,13 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
 from oremda.messengers import MPIMessenger, MQPMessenger
 from oremda.plasma_client import PlasmaClient
 from oremda.utils.asyncio import run_in_executor
-from oremda.utils.singleton import SingletonMetaclass
+from oremda.utils.singleton import SingletonABC
 
 
-class MPIEventLoop(ABC, metaclass=SingletonMetaclass):
+class MPIEventLoop(SingletonABC):
     """Forward messages between the messages queue and MPI nodes"""
 
     def __init__(self):
