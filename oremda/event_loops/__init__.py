@@ -1,5 +1,6 @@
-from .mpi_event_loop import MPIEventLoop
+from .mpi import MPINonRootEventLoop, MPIRootEventLoop
 
 __all__ = [
-    "MPIEventLoop",
+    "MPINonRootEventLoop",
+    "MPIRootEventLoop",
 ]

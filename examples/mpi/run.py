@@ -12,18 +12,13 @@ from oremda.constants import (
     DEFAULT_OREMDA_VAR_DIR,
 )
 from oremda.display import DisplayHandle, NoopDisplayHandle
-from oremda.event_loops import MPIEventLoop
-from oremda.messengers import MPIMessenger, MQPMessenger
+from oremda.event_loops import MPINonRootEventLoop, MPIRootEventLoop
 from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
 from oremda.typing import (
     ContainerType,
     DisplayType,
     IdType,
-    MPINodeReadyMessage,
-    OperateTaskMessage,
-    Message,
-    MessageType,
     Port,
 )
 from oremda.utils.mpi import mpi_host_name, mpi_rank, mpi_world_size
@@ -132,7 +127,7 @@ with start_plasma_store(**plasma_kwargs):
     if mpi_rank == 0:
         print("Starting event loop...")
         # Start the MPI event loop
-        future = MPIEventLoop().start_event_loop()
+        future = MPIRootEventLoop().start_event_loop()
 
         # Run the pipeline
         print("Running pipeline...")
@@ -140,72 +135,12 @@ with start_plasma_store(**plasma_kwargs):
         print("Releasing registry...")
         registry.release()
 
-        # Wait for the MPIEventLoop to finish
+        # Wait for the event loop to finish
         future.result()
     else:
         registry.start_containers()
 
-        # We currently only support one container per node for rank != 0.
-        # Find that image, listen for MPI messages, and forward them.
-        image_name = None
-        images = registry.images
-        for name, image in images.items():
-            if image.operator_config.num_containers_on_this_rank > 0:
-                image_name = name
-                break
+        future = MPINonRootEventLoop().start_event_loop(registry)
 
-        if image_name is None:
-            names = list(images.keys())
-            msg = f"Could not find image for {mpi_rank=} out of {names}"
-            raise Exception(msg)
-
-        operator_name = registry.images[image_name].name
-        operator_queue = f"/{operator_name}"
-        mpi_messenger = MPIMessenger()
-        mqp_messenger = MQPMessenger(plasma_client)
-        while True:
-            # First, send a message indicating we are ready for input
-            ready_msg = MPINodeReadyMessage(
-                **{
-                    "queue": operator_queue,
-                }
-            )
-            mpi_messenger.send(ready_msg, 0)
-
-            # Now receive a task
-            print(f"Waiting to receive MPI task on {mpi_rank=}")
-            msg = mpi_messenger.recv(0)
-            print(f"MPI message received on {mpi_rank=}, {msg=}")
-
-            local_output_queue = f"/mpi_rank_{mpi_rank}"
-            if msg.type == MessageType.Operate:
-                operate_message = OperateTaskMessage(**msg.dict())
-                # Override the output queue
-                output_queue = operate_message.output_queue
-                operate_message.output_queue = local_output_queue
-                msg = operate_message
-
-                # Tell the operator which mpi rank it is running on
-                operate_message.mpi_rank = mpi_rank
-
-            # Forward to the operator
-            print(f"Sending {msg} to {operator_queue}")
-            mqp_messenger.send(msg, operator_queue)
-
-            print(f"MQP message sent to: {operator_queue=}")
-
-            # If it was a terminate task, finish this node as well
-            task_message = Message(**msg.dict())
-            if task_message.type == MessageType.Terminate:
-                print(f"{mpi_rank=} Terminating...")
-                break
-
-            # It must have been an OperateTaskMessage. Receive the output.
-            operate_message = OperateTaskMessage(**msg.dict())
-            print(f"Receiving output from {local_output_queue}")
-            result = mqp_messenger.recv(local_output_queue)
-            print(f"MQP output received: {result=}")
-
-            # Forward the result back to the main node
-            mpi_messenger.send(result, 0)
-            print("MPI message sent back to the main node")
+        # Wait for the event loop to finish
+        future.result()

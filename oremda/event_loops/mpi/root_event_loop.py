@@ -1,40 +1,14 @@
 import asyncio
 
-from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
-from oremda.messengers import MPIMessenger, MQPMessenger
-from oremda.plasma_client import PlasmaClient
 from oremda.typing import MPINodeReadyMessage, OperateTaskMessage, Message, MessageType
-from oremda.utils.asyncio import run_in_executor
 from oremda.utils.concurrency import ThreadPoolSingleton
 from oremda.utils.mpi import mpi_world_size
-from oremda.utils.singleton import Singleton
+
+from .event_loop import MPIEventLoop
 
 
-class MPIEventLoop(Singleton):
+class MPIRootEventLoop(MPIEventLoop):
     """Forward messages between the messages queue and MPI nodes"""
-
-    def __init__(self):
-        self.client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
-        self.mpi_messenger = MPIMessenger()
-        self.mqp_messenger = MQPMessenger(self.client)
-        self.tasks = []
-        self.started = False
-
-    @run_in_executor
-    def mpi_send(self, msg, dest):
-        return self.mpi_messenger.send(msg, dest)
-
-    @run_in_executor
-    def mpi_recv(self, source):
-        return self.mpi_messenger.recv(source)
-
-    @run_in_executor
-    def mqp_send(self, msg, dest):
-        return self.mqp_messenger.send(msg, dest)
-
-    @run_in_executor
-    def mqp_recv(self, source):
-        return self.mqp_messenger.recv(source)
 
     async def loop(self, rank):
         while True:
