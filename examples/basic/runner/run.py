@@ -1,11 +1,12 @@
-#!/usr/bin/env python
 import json
 import os
-from typing import Dict
+from typing import Dict, cast, Optional
 
 import matplotlib.pyplot as plt
 
 from oremda.clients import Client as ContainerClient
+from oremda.clients.docker import DockerClient
+from oremda.clients.singularity.client import SingularityClient
 from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
 from oremda.constants import (
@@ -19,7 +20,7 @@ from oremda.display import DisplayHandle, NoopDisplayHandle
 import oremda.pipeline
 
 
-class MatplotlibDisplayHandle(DisplayHandle):
+class MatplotlibDisplayHandle1D(DisplayHandle):
     def __init__(self, id: IdType):
         super().__init__(id, DisplayType.OneD)
         self.inputs: Dict[IdType, Port] = {}
@@ -62,9 +63,51 @@ class MatplotlibDisplayHandle(DisplayHandle):
         fg.savefig(f"/data/{self.id}.png", dpi=fg.dpi)
 
 
+class MatplotlibDisplayHandle2D(DisplayHandle):
+    def __init__(self, id: IdType):
+        super().__init__(id, DisplayType.TwoD)
+        self.sourceId: Optional[IdType] = None
+        self.input: Optional[Port] = None
+
+    def add(self, sourceId: IdType, input: Port):
+        self.sourceId = sourceId
+        self.input = input
+        self.render()
+
+    def remove(self, sourceId: IdType):
+        if self.sourceId == sourceId:
+            self.sourceId = None
+            self.input = None
+
+        self.render()
+
+    def clear(self):
+        self.sourceId = None
+        self.input = None
+        self.render()
+
+    def render(self):
+        if self.input is None:
+            return
+
+        array = self.input.data
+
+        if array is None:
+            return
+
+        data = array.data
+
+        cmap = plt.cm.get_cmap("viridis", 16)
+        norm = plt.Normalize(vmin=data.min(), vmax=data.max())
+
+        plt.imsave(f"/data/{self.id}.png", cmap(norm(data)))
+
+
 def display_factory(id: IdType, display_type: DisplayType) -> DisplayHandle:
     if display_type == DisplayType.OneD:
-        return MatplotlibDisplayHandle(id)
+        return MatplotlibDisplayHandle1D(id)
+    elif display_type == DisplayType.TwoD:
+        return MatplotlibDisplayHandle2D(id)
     else:
         return NoopDisplayHandle(id, display_type)
 
@@ -88,7 +131,7 @@ with start_plasma_store(**plasma_kwargs):
     container_client = ContainerClient(container_type)
 
     if container_type == ContainerType.Singularity:
-        container_client.images_dir = "/images"
+        cast(SingularityClient, container_client).images_dir = "/images"
 
     registry = Registry(plasma_client, container_client)
 
@@ -109,7 +152,7 @@ with start_plasma_store(**plasma_kwargs):
     if container_type == ContainerType.Docker:
         # The mounts in docker "sibling" containers refer to the
         # host directories.
-        self_container = container_client.self_container()
+        self_container = cast(DockerClient, container_client).self_container()
         volumes = {
             mount.source: {"bind": mount.destination} for mount in self_container.mounts
         }
@@ -120,7 +163,7 @@ with start_plasma_store(**plasma_kwargs):
 
     registry.run_kwargs = run_kwargs
 
-    with open("/runner/pipeline.json") as f:
+    with open("/runner/pipeline_1d.json") as f:
         pipeline_obj = json.load(f)
 
     pipeline = oremda.pipeline.deserialize_pipeline(

@@ -1,3 +1,4 @@
+from typing import Any
 from mpi4py import MPI
 from pydantic import validate_arguments
 from threading import Lock
@@ -30,9 +31,9 @@ class MPIMessenger(BaseMessenger):
 
     @validate_arguments
     def send(self, msg: Message, dest: int):
-        msg = self.detach_data(dict(msg))
+        serialized_msg = self.detach_data(dict(msg))
         with comm_lock:
-            req = comm.isend(msg, dest=dest)
+            req = comm.isend(serialized_msg, dest=dest)
 
         while True:
             time.sleep(1)
@@ -60,10 +61,10 @@ class MPIMessenger(BaseMessenger):
                     print(f"{comm.probe(source=source)=}")
                     raise
                 if output[0]:
-                    msg = output[1]
+                    serialized_msg: Any = output[1]
                     break
 
-        msg = self.join_data(msg)
+        msg = self.join_data(serialized_msg)
         return Message(**msg)
 
     def detach_data(self, original_msg: dict):

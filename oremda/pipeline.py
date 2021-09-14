@@ -11,7 +11,18 @@ from oremda.typing import (
     PortKey,
     PortInfo,
 )
-from typing import Any, Optional, Dict, Sequence, Set, Type, TypeVar, Generator, Tuple
+from typing import (
+    Any,
+    Iterator,
+    Optional,
+    Dict,
+    Sequence,
+    Set,
+    Type,
+    TypeVar,
+    cast,
+    Tuple,
+)
 from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
@@ -123,13 +134,13 @@ def validate_edge(
     if not output_node.has(output_port, IOType.Out):
         raise Exception(
             f'The port "{output_port.name}" with type "{output_port.type}" '
-            "does not exist on the output node."
+            f'does not exist on the output node "{output_node.id}".'
         )
 
     if not input_node.has(input_port, IOType.In):
         raise Exception(
             f'The port "{input_port.name}" with type "{input_port.type}" '
-            "does not exist on the input node."
+            f'does not exist on the input node "{input_node.id}".'
         )
 
 
@@ -138,10 +149,10 @@ T = TypeVar("T")
 
 def node_iter(
     nodes: Dict[IdType, PipelineNode], cls: Type[T]
-) -> Generator[Tuple[IdType, T], None, None]:
+) -> Iterator[Tuple[IdType, T]]:
     for node_id, node in nodes.items():
         if isinstance(node, cls):
-            yield node_id, node
+            yield node_id, cast(cls, node)
 
 
 class Pipeline:
