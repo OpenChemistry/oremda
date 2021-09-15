@@ -20,7 +20,7 @@ from spython.main import Client as sclient
 if len(sys.argv) < 2:
     sys.exit("Usage: <script> <docker_image>")
 
-dclient = docker.from_env()
+dclient = docker.from_env()  # type: ignore
 image_name = sys.argv[1]
 
 image = dclient.images.get(image_name)

@@ -5,7 +5,6 @@ from typing import Dict
 
 import matplotlib.pyplot as plt
 
-from oremda.clients import Client as ContainerClient
 from oremda.constants import (
     DEFAULT_PLASMA_SOCKET_PATH,
     DEFAULT_DATA_DIR,
@@ -16,13 +15,13 @@ from oremda.event_loops import MPINonRootEventLoop, MPIRootEventLoop
 from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
 from oremda.typing import (
-    ContainerType,
     DisplayType,
     IdType,
     Port,
 )
 from oremda.utils.mpi import mpi_host_name, mpi_rank, mpi_world_size
 from oremda.utils.plasma import start_plasma_store
+from oremda.clients.singularity.client import SingularityClient
 import oremda.pipeline
 
 if mpi_rank == 0:
@@ -83,7 +82,6 @@ def display_factory(id: IdType, display_type: DisplayType) -> DisplayHandle:
         return NoopDisplayHandle(id, display_type)
 
 
-container_type = ContainerType.Singularity
 if "SINGULARITY_BIND" in os.environ:
     # Remove this so we don't repeat the parent container's bind mounting
     del os.environ["SINGULARITY_BIND"]
@@ -95,7 +93,7 @@ plasma_kwargs = {
 
 with start_plasma_store(**plasma_kwargs):
     plasma_client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
-    container_client = ContainerClient(container_type)
+    container_client = SingularityClient()
     container_client.images_dir = "images"
 
     operator_config_file = "operator_config.json"

@@ -9,7 +9,7 @@ from oremda.clients.docker.image import DockerImage
 class DockerClient(ClientBase):
     @property
     def client(self):
-        return docker.from_env()
+        return docker.from_env()  # type: ignore
 
     @property
     def type(self):

@@ -34,7 +34,7 @@ from .models import (
 )
 from .messages import NotificationMessage, pipeline_created
 from .observer import ServerPipelineObserver
-from .displays import OneDDisplayHandle
+from .displays import DisplayHandle1D, DisplayHandle2D
 
 app = FastAPI()
 
@@ -175,7 +175,9 @@ async def create_pipeline(
 
     def display_factory(id: IdType, display_type: DisplayType):
         if display_type == DisplayType.OneD:
-            return OneDDisplayHandle(id, notify)
+            return DisplayHandle1D(id, notify)
+        elif display_type == DisplayType.TwoD:
+            return DisplayHandle2D(id, notify)
         else:
             return NoopDisplayHandle(id, display_type)
 
@@ -232,8 +234,8 @@ async def get_index():
         return HTMLResponse(content=f.read(), status_code=200)
 
 
-@app.get("/pipeline.json")
-async def sample_pipeline():
-    pipeline_file = f"{os.path.join(os.path.dirname(__file__), 'pipeline.json')}"
+@app.get("/pips")
+async def sample_pipeline(filename: str):
+    pipeline_file = f"{os.path.join(os.path.dirname(__file__), filename)}"
     with open(pipeline_file) as f:
         return json.load(f)

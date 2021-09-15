@@ -1,0 +1,67 @@
+{
+    "nodes": [
+      {
+        "id": "10",
+        "image": "oremda/tiff_reader",
+        "params": {
+            "filename": "passport.tiff"
+        }
+      },
+      {
+        "id": "11",
+        "image": "oremda/gaussian_blur",
+        "params": {
+            "sigma": [5, 5]
+        }
+      },
+      {
+        "id": "20",
+        "image": "oremda/picture",
+        "params": {}
+      },
+      {
+        "id": "21",
+        "image": "oremda/picture",
+        "params": {}
+      },
+      {
+        "id": "40",
+        "type": "display",
+        "display": "2D",
+        "params": {}
+      },
+      {
+        "id": "41",
+        "type": "display",
+        "display": "2D",
+        "params": {}
+      }
+    ],
+    "edges": [
+      {
+        "type": "data",
+        "from": { "id": "10", "port": "out" },
+        "to": { "id": "11", "port": "in" }
+      },
+      {
+        "type": "data",
+        "from": { "id": "10", "port": "out" },
+        "to": { "id": "20", "port": "in" }
+      },
+      {
+        "type": "data",
+        "from": { "id": "11", "port": "out" },
+        "to": { "id": "21", "port": "in" }
+      },
+      {
+        "type": "display",
+        "from": { "id": "20", "port": "out" },
+        "to": { "id": "40", "port": "in" }
+      },
+      {
+        "type": "display",
+        "from": { "id": "21", "port": "out" },
+        "to": { "id": "41", "port": "in" }
+      }
+    ]
+  }
