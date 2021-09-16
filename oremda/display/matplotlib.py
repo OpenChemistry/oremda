@@ -1,7 +1,9 @@
+import os
 from typing import Dict, Optional
 
 from oremda.display import DisplayHandle
 from oremda.typing import DisplayType, IdType, Port
+from oremda.constants import DEFAULT_DATA_DIR
 
 import matplotlib.pyplot as plt
 
@@ -46,7 +48,10 @@ class MatplotlibDisplayHandle1D(DisplayHandle):
         ax.legend()
         ax.set(xlabel=x_label, ylabel=y_label)
 
-        fg.savefig(f"/data/{self.id}.png", dpi=fg.dpi)
+        data_dir = os.environ.get("OREMDA_DATA_DIR") or DEFAULT_DATA_DIR
+        filename = os.path.join(data_dir, f"{self.id}.png")
+
+        fg.savefig(filename, dpi=fg.dpi)
 
 
 class MatplotlibDisplayHandle2D(DisplayHandle):
@@ -86,4 +91,7 @@ class MatplotlibDisplayHandle2D(DisplayHandle):
         cmap = plt.cm.get_cmap("viridis", 16)
         norm = plt.Normalize(vmin=data.min(), vmax=data.max())
 
-        plt.imsave(f"/data/{self.id}.png", cmap(norm(data)))
+        data_dir = os.environ.get("OREMDA_DATA_DIR") or DEFAULT_DATA_DIR
+        filename = os.path.join(data_dir, f"{self.id}.png")
+
+        plt.imsave(filename, cmap(norm(data)))
