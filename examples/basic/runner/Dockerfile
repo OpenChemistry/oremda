@@ -34,6 +34,7 @@ RUN . /setup_go_env.sh && \
     make -C ./builddir && \
     make -C ./builddir install
 
-COPY pipeline.json /runner/
+RUN mkdir /runner
+COPY pipeline_1d.json pipeline_2d.json /runner/
 
-ENTRYPOINT ["oremda", "run",  "/runner/pipeline.json"]
+ENTRYPOINT ["oremda", "run"]

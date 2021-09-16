@@ -49,7 +49,6 @@
       "type": "display",
       "display": "1D",
       "params": {
-        "filename": "spectrum.png",
         "xLabel": "eLoss (eV)",
         "yLabel": ""
       }
@@ -59,7 +58,6 @@
       "type": "display",
       "display": "1D",
       "params": {
-        "filename": "background.png",
         "xLabel": "eLoss (eV)",
         "yLabel": ""
       }
@@ -69,7 +67,6 @@
       "type": "display",
       "display": "1D",
       "params": {
-        "filename": "subtracted.png",
         "xLabel": "eLoss (eV)",
         "yLabel": ""
       }

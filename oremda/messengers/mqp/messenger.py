@@ -33,7 +33,12 @@ class MQPMessenger(BaseMessenger):
             queue.send(json.dumps(serialized_msg))
 
     def recv(self, source) -> Message:
-        with open_queue(source, create=True, reuse=True, consume=True) as queue:
+        # FIXME: we are currently not cleaning up the queues we create,
+        # so that running multiple instances of an operator on one node
+        # will work (otherwise, the queue will be deleted while an
+        # operator is still trying to recv).
+        # We should clean up the queues somewhere, though. Just not here...
+        with open_queue(source, create=True, reuse=True) as queue:
             serialized_msg, priority = queue.receive()
 
         serialized_msg = json.loads(serialized_msg)

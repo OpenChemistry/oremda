@@ -1,11 +1,12 @@
-from typing import Any, Dict, Optional
+import json
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
 
 from oremda.typing import (
     IOType,
     JSONType,
-    LocationType,
+    OperatorConfig,
     PortKey,
     PortInfo,
     TerminateTaskMessage,
@@ -13,7 +14,7 @@ from oremda.typing import (
 from oremda.plasma_client import PlasmaClient
 from oremda.clients.base.client import ClientBase as ContainerClient
 from oremda.clients.base.container import ContainerBase
-from oremda.messengers import Messenger
+from oremda.messengers import MQPMessenger
 from oremda.utils.mpi import mpi_rank
 
 
@@ -22,54 +23,40 @@ class ImageInfo(BaseModel):
     inputs: Dict[PortKey, PortInfo] = {}
     outputs: Dict[PortKey, PortInfo] = {}
     params: Dict[str, JSONType] = {}
-    container: Optional[ContainerBase] = None
+    containers: List[ContainerBase] = []
     running: bool = False
-    location: LocationType = LocationType.Local
-    node: int = 0
+    operator_config: OperatorConfig = OperatorConfig()
 
     class Config:
         arbitrary_types_allowed = True
 
     @property
     def input_queue(self):
-        funcs = {
-            LocationType.Local: lambda: f"/{self.name}",
-            LocationType.Remote: lambda: self.node,
-        }
-        return funcs[self.location]()
+        return f"/{self.name}"
 
 
 class Registry:
-    def __init__(self, plasma_client: PlasmaClient, container_client: ContainerClient):
+    def __init__(
+        self,
+        plasma_client: PlasmaClient,
+        container_client: ContainerClient,
+        operator_config_file: str = None,
+    ):
         self.plasma_client = plasma_client
         self.container_client = container_client
+        self.operator_config_dict = {}
+        self.operator_config_file = operator_config_file
         self.images: Dict[str, ImageInfo] = {}
-        self.num_remote = 0
         self.run_kwargs: Any = {}
 
-    def register(self, image_name: str, location: LocationType):
+    def register(self, image_name: str):
         if image_name in self.images:
             # Already registered
-            # Make sure the location matches so there are no surprises...
-            if self.images[image_name].location != location:
-                orig_loc = self.images[image_name].location
-                msg = (
-                    f"For '{image_name}', location '{location}' does not "
-                    f"match previous location: '{orig_loc}'"
-                )
-                raise Exception(msg)
-
             return
 
         labels = self._inspect(image_name)
 
-        if location == LocationType.Remote:
-            self.num_remote += 1
-            node = self.num_remote
-            running = True
-        else:
-            node = 0
-            running = False
+        operator_config = self.operator_config_dict.get(image_name, {})
 
         info = ImageInfo(
             **{
@@ -83,9 +70,7 @@ class Registry:
                     for name, value in labels.ports.output.items()
                 },
                 "params": {k: v.dict() for k, v in labels.params.items()},
-                "location": location,
-                "node": node,
-                "running": running,
+                "operator_config": OperatorConfig(**operator_config),
             }
         )
         self.images[image_name] = info
@@ -116,63 +101,71 @@ class Registry:
         info = self._info(image_name)
         return info.running
 
-    def location(self, image_name):
+    def operator_config(self, image_name):
         info = self._info(image_name)
-        return info.location
-
-    def node(self, image_name):
-        info = self._info(image_name)
-        return info.node
+        return info.operator_config
 
     def input_queue(self, image_name):
         info = self._info(image_name)
         return info.input_queue
-
-    @property
-    def image_for_rank(self):
-        for key, info in self.images.items():
-            if info.node == mpi_rank:
-                return key
-
-    def run_image_for_rank(self):
-        return self.run(self.image_for_rank)
 
     def run(
         self,
         image_name,
     ):
         info = self._info(image_name)
-        if info.node != mpi_rank:
-            # This container is not for this node
+        if info.running:
+            # Already running
             return
 
-        container = info.container
-        if container is None:
+        operator_config = info.operator_config
+        operator_config.validate_params()
+        num_to_run = operator_config.num_containers_on_this_rank
+
+        while len(info.containers) < num_to_run:
+            container = None
             try:
+                print(f"On {mpi_rank=}, starting {image_name=}")
                 container = self.container_client.run(image_name, **self.run_kwargs)
-                info.container = container
-                info.running = True
+                info.containers.append(container)
             except Exception as e:
                 print(f"An exception was caught: {e}")
                 if container is not None:
                     print("Logs:", container.logs())
                 raise
 
-        return container
+        info.running = True
+        return info.containers
 
-    def start_containers(self, image_names):
-        return [self.run(name) for name in image_names]
+    @property
+    def operator_config_file(self):
+        return self._operator_config_file
 
-    def stop(self, image_name):
-        if not self.running(image_name):
+    @operator_config_file.setter
+    def operator_config_file(self, v):
+        self._operator_config_file = v
+        if not v:
             return
 
-        location = self.location(image_name)
-        messenger = Messenger(location, self.plasma_client)
-        input_queue = self.input_queue(image_name)
-        messenger.send(TerminateTaskMessage(), input_queue)
+        with open(v, "r") as rf:
+            self.operator_config_dict = json.load(rf)
 
-        self._info(image_name).running = False
+    @property
+    def image_names(self):
+        return list(self.images.keys())
+
+    def start_containers(self):
+        return [self.run(name) for name in self.image_names]
+
+    def stop(self, image_name):
+        messenger = MQPMessenger(self.plasma_client)
+        input_queue = self.input_queue(image_name)
+        info = self._info(image_name)
+
+        for _ in range(info.operator_config.num_containers):
+            messenger.send(TerminateTaskMessage(), input_queue)
+
+        info.running = False
 
     def release(self):
         for image_name in self.images:

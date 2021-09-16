@@ -5,6 +5,8 @@ import numpy as np
 from pydantic import BaseModel, Field, Extra
 from enum import Enum
 
+from oremda.utils.mpi import mpi_rank, mpi_world_size
+
 IdType = Union[str, UUID]
 PortKey = str
 ParamKey = str
@@ -126,6 +128,7 @@ class MessageType(str, Enum):
     Operate = "operate"
     Terminate = "terminate"
     Complete = "complete"
+    MPINodeReady = "mpi_node_ready"
 
 
 class Message(BaseModel):
@@ -143,6 +146,7 @@ class OperateTaskMessage(Message):
     inputs: Dict[PortKey, Port] = {}
     params: JSONType = {}
     output_queue: str
+    parallel_index: int = 0
 
 
 class ResultTaskMessage(Message):
@@ -151,10 +155,16 @@ class ResultTaskMessage(Message):
 
     type = MessageType.Complete
     outputs: Dict[PortKey, Port] = {}
+    parallel_index: int = 0
 
 
 class TerminateTaskMessage(Message):
     type = MessageType.Terminate
+
+
+class MPINodeReadyMessage(Message):
+    type = MessageType.MPINodeReady
+    queue: Optional[str] = None
 
 
 class PortJSON(BaseModel):
@@ -211,3 +221,35 @@ class OperatorLabels(BaseModel):
     name: str
     ports: PortsLabels
     params: Dict[ParamKey, ParamLabels] = {}
+
+
+class OperatorConfig(BaseModel):
+    run_locations: Sequence[int] = [0]
+    parallel: bool = False
+    distribute_parallel_tasks: bool = True
+    parallel_param: Optional[str] = None
+    parallel_output_to_stack: Optional[str] = None
+
+    @property
+    def num_containers(self):
+        return len(self.run_locations)
+
+    @property
+    def num_containers_on_this_rank(self):
+        return self.run_locations.count(mpi_rank)
+
+    def validate_params(self):
+        if not all(0 <= x < mpi_world_size for x in self.run_locations):
+            msg = (
+                f"All run locations ({self.run_locations}) must "
+                f"be between 0 and {mpi_world_size=}"
+            )
+            raise Exception(msg)
+
+        if self.parallel:
+            if not self.parallel_param or not self.parallel_output_to_stack:
+                msg = (
+                    "If parallel is True, then parallel_param and "
+                    "parallel_output_to_stack are required!"
+                )
+                raise Exception(msg)

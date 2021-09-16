@@ -1,11 +1,9 @@
-from oremda.messengers import Messenger
 from oremda.typing import (
     DisplayNodeJSON,
     DisplayType,
     EdgeJSON,
     IdType,
     JSONType,
-    LocationType,
     NodeJSON,
     OperatorNodeJSON,
     PipelineJSON,
@@ -13,7 +11,18 @@ from oremda.typing import (
     PortKey,
     PortInfo,
 )
-from typing import Any, Optional, Dict, Sequence, Set, Type, TypeVar, Generator, Tuple
+from typing import (
+    Any,
+    Iterator,
+    Optional,
+    Dict,
+    Sequence,
+    Set,
+    Type,
+    TypeVar,
+    cast,
+    Tuple,
+)
 from oremda.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
@@ -125,13 +134,13 @@ def validate_edge(
     if not output_node.has(output_port, IOType.Out):
         raise Exception(
             f'The port "{output_port.name}" with type "{output_port.type}" '
-            "does not exist on the output node."
+            f'does not exist on the output node "{output_node.id}".'
         )
 
     if not input_node.has(input_port, IOType.In):
         raise Exception(
             f'The port "{input_port.name}" with type "{input_port.type}" '
-            "does not exist on the input node."
+            f'does not exist on the input node "{input_node.id}".'
         )
 
 
@@ -140,10 +149,10 @@ T = TypeVar("T")
 
 def node_iter(
     nodes: Dict[IdType, PipelineNode], cls: Type[T]
-) -> Generator[Tuple[IdType, T], None, None]:
+) -> Iterator[Tuple[IdType, T]]:
     for node_id, node in nodes.items():
         if isinstance(node, cls):
-            yield node_id, node
+            yield node_id, cast(cls, node)
 
 
 class Pipeline:
@@ -172,7 +181,8 @@ class Pipeline:
         )
 
     def start_containers(self):
-        self.registry.start_containers(self.image_names)
+        # They should all be already registered
+        self.registry.start_containers()
 
     def set_graph(self, nodes: Sequence[PipelineNode], edges: Sequence[PipelineEdge]):
         self_nodes: Dict[IdType, PipelineNode] = {}
@@ -282,11 +292,7 @@ class Pipeline:
                         self.observer.on_error(self, err)
                         raise err
 
-                    if operator.location == LocationType.Local:
-                        output_queue = f"/{self.id}_{operator_node.id}"
-                    else:
-                        output_queue = operator.input_queue
-
+                    output_queue = f"/{self.id}_{operator_node.id}"
                     try:
                         output_ports: Dict[PortKey, Port] = operator.execute(
                             input_ports, output_queue
@@ -388,20 +394,17 @@ def deserialize_pipeline(
             _node = OperatorNodeJSON(**_node.dict())
             node = OperatorNode(_node.id)
 
-            location = LocationType(_node.location)
-
-            messenger = Messenger(location, client)
-
             _image_name = _node.image
-            registry.register(_image_name, location)
+            registry.register(_image_name)
             input_ports = registry.ports(_image_name, IOType.In)
             output_ports = registry.ports(_image_name, IOType.Out)
             name = registry.name(_image_name)
             params = _node.params
             input_queue = registry.input_queue(_image_name)
+            operator_config = registry.operator_config(_image_name)
 
             operator = OperatorHandle(
-                _image_name, name, input_queue, messenger, location
+                _image_name, name, input_queue, client, operator_config
             )
             operator.parameters = params
 

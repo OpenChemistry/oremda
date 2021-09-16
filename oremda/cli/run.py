@@ -2,8 +2,11 @@
 import json
 import os
 import click
+from typing import cast
 
 from oremda.clients import Client as ContainerClient
+from oremda.clients.singularity import SingularityClient
+from oremda.clients.docker import DockerClient
 from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
 from oremda.constants import (
@@ -22,8 +25,8 @@ import oremda.pipeline
     short_help="oremda cli runner",
     help="Run an oremda pipeline on the command line.",
 )
-@click.argument("pipeline", type=click.Path(exists=True, dir_okay=False))
-def main(pipeline: click.Path):
+@click.argument("pipeline_json", type=click.File("r"))
+def main(pipeline_json: click.File):
     if "SINGULARITY_BIND" in os.environ:
         # This means we are running singularity
         container_type = ContainerType.Singularity
@@ -43,7 +46,7 @@ def main(pipeline: click.Path):
         container_client = ContainerClient(container_type)
 
         if container_type == ContainerType.Singularity:
-            container_client.images_dir = "/images"
+            cast(SingularityClient, container_client).images_dir = "/images"
 
         registry = Registry(plasma_client, container_client)
 
@@ -64,7 +67,7 @@ def main(pipeline: click.Path):
         if container_type == ContainerType.Docker:
             # The mounts in docker "sibling" containers refer to the
             # host directories.
-            self_container = container_client.self_container()
+            self_container = cast(DockerClient, container_client).self_container()
             volumes = {
                 mount.source: {"bind": mount.destination}
                 for mount in self_container.mounts
@@ -76,8 +79,7 @@ def main(pipeline: click.Path):
 
         registry.run_kwargs = run_kwargs
 
-        with open(pipeline) as f:
-            pipeline_obj = json.load(f)
+        pipeline_obj = json.loads(pipeline_json.read())  # type: ignore
 
         pipeline = oremda.pipeline.deserialize_pipeline(
             pipeline_obj, plasma_client, registry, display_factory

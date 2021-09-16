@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from oremda.display import DisplayHandle
 from oremda.typing import DisplayType, IdType, Port
@@ -6,7 +6,7 @@ from oremda.typing import DisplayType, IdType, Port
 import matplotlib.pyplot as plt
 
 
-class MatplotlibDisplayHandle(DisplayHandle):
+class MatplotlibDisplayHandle1D(DisplayHandle):
     def __init__(self, id: IdType):
         super().__init__(id, DisplayType.OneD)
         self.inputs: Dict[IdType, Port] = {}
@@ -47,3 +47,43 @@ class MatplotlibDisplayHandle(DisplayHandle):
         ax.set(xlabel=x_label, ylabel=y_label)
 
         fg.savefig(f"/data/{self.id}.png", dpi=fg.dpi)
+
+
+class MatplotlibDisplayHandle2D(DisplayHandle):
+    def __init__(self, id: IdType):
+        super().__init__(id, DisplayType.TwoD)
+        self.sourceId: Optional[IdType] = None
+        self.input: Optional[Port] = None
+
+    def add(self, sourceId: IdType, input: Port):
+        self.sourceId = sourceId
+        self.input = input
+        self.render()
+
+    def remove(self, sourceId: IdType):
+        if self.sourceId == sourceId:
+            self.sourceId = None
+            self.input = None
+
+        self.render()
+
+    def clear(self):
+        self.sourceId = None
+        self.input = None
+        self.render()
+
+    def render(self):
+        if self.input is None:
+            return
+
+        array = self.input.data
+
+        if array is None:
+            return
+
+        data = array.data
+
+        cmap = plt.cm.get_cmap("viridis", 16)
+        norm = plt.Normalize(vmin=data.min(), vmax=data.max())
+
+        plt.imsave(f"/data/{self.id}.png", cmap(norm(data)))
