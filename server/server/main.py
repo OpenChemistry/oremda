@@ -1,7 +1,6 @@
 from oremda.display import NoopDisplayHandle
 import uuid
 import os
-import json
 import asyncio
 
 from typing import Dict, List, Set
@@ -13,7 +12,7 @@ from fastapi import (
     WebSocketDisconnect,
     BackgroundTasks,
 )
-from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from oremda.typing import DisplayType, IdType, JSONType, PipelineJSON
@@ -37,6 +36,14 @@ from .observer import ServerPipelineObserver
 from .displays import DisplayHandle1D, DisplayHandle2D
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # Setup and teardown of the required oremda objects
@@ -225,17 +232,3 @@ async def create_websocket(
             _ = await socket.receive_json()
     except WebSocketDisconnect:
         websocket_ids.remove(websocket.id)
-
-
-@app.get("/")
-async def get_index():
-    index_file = f"{os.path.join(os.path.dirname(__file__), 'index.html')}"
-    with open(index_file) as f:
-        return HTMLResponse(content=f.read(), status_code=200)
-
-
-@app.get("/pips")
-async def sample_pipeline(filename: str):
-    pipeline_file = f"{os.path.join(os.path.dirname(__file__), filename)}"
-    with open(pipeline_file) as f:
-        return json.load(f)

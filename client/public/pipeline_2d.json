@@ -1,0 +1,67 @@
+{
+    "nodes": [
+      {
+        "id": "10",
+        "image": "oremda/tiff_reader",
+        "params": {
+            "filename": "p.tiff"
+        }
+      },
+      {
+        "id": "11",
+        "image": "oremda/gaussian_blur",
+        "params": {
+            "sigma": [10, 10]
+        }
+      },
+      {
+        "id": "20",
+        "image": "oremda/picture",
+        "params": {}
+      },
+      {
+        "id": "21",
+        "image": "oremda/picture",
+        "params": {}
+      },
+      {
+        "id": "30",
+        "type": "display",
+        "display": "2D",
+        "params": {}
+      },
+      {
+        "id": "31",
+        "type": "display",
+        "display": "2D",
+        "params": {}
+      }
+    ],
+    "edges": [
+      {
+        "type": "data",
+        "from": { "id": "10", "port": "out" },
+        "to": { "id": "11", "port": "in" }
+      },
+      {
+        "type": "data",
+        "from": { "id": "10", "port": "out" },
+        "to": { "id": "20", "port": "in" }
+      },
+      {
+        "type": "data",
+        "from": { "id": "11", "port": "out" },
+        "to": { "id": "21", "port": "in" }
+      },
+      {
+        "type": "display",
+        "from": { "id": "20", "port": "out" },
+        "to": { "id": "30", "port": "in" }
+      },
+      {
+        "type": "display",
+        "from": { "id": "21", "port": "out" },
+        "to": { "id": "31", "port": "in" }
+      }
+    ]
+  }
