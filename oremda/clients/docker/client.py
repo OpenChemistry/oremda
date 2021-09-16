@@ -22,7 +22,10 @@ class DockerClient(ClientBase):
         return DockerContainer(self.client.containers.get(id))
 
     def self_container(self):
-        return self.container(os.environ.get("HOSTNAME"))
+        try:
+            return self.container(os.environ.get("HOSTNAME"))
+        except Exception:
+            return None
 
     def run(self, *args, **kwargs):
         # Always run in detached mode
