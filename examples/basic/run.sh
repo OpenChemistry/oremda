@@ -13,4 +13,4 @@ docker run \
   -v $RUNNER_DIR:/runner \
   -v $PLASMA_DIR:/tmp \
   --ipc=shareable \
-  oremda/runner
+  oremda/runner $@

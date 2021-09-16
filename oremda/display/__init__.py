@@ -53,3 +53,18 @@ class NoopDisplayHandle(DisplayHandle):
 
     def clear(self):
         pass
+
+
+def display_factory(id: IdType, display_type: DisplayType) -> DisplayHandle:
+    if display_type == DisplayType.OneD:
+        # Import here to delay import and break circular dep
+        from oremda.display.matplotlib import MatplotlibDisplayHandle1D
+
+        return MatplotlibDisplayHandle1D(id)
+    elif display_type == DisplayType.TwoD:
+        # Import here to delay import and break circular dep
+        from oremda.display.matplotlib import MatplotlibDisplayHandle2D
+
+        return MatplotlibDisplayHandle2D(id)
+    else:
+        return NoopDisplayHandle(id, display_type)

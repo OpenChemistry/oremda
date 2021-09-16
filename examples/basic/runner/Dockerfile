@@ -35,6 +35,6 @@ RUN . /setup_go_env.sh && \
     make -C ./builddir install
 
 RUN mkdir /runner
-COPY run.py pipeline_1d.json pipeline_2d.json /runner/
+COPY pipeline_1d.json pipeline_2d.json /runner/
 
-ENTRYPOINT ["python", "/runner/run.py"]
+ENTRYPOINT ["oremda", "run"]
