@@ -17,7 +17,7 @@ jobs:
       - run: pip install mpi4py
 
       # Install server dependencies
-      - run: pip install fastapi uvicorn[standard]
+      - run: pip install fastapi uvicorn[standard] fastapi_websocket_rpc
 
       # FIXME: is there a better way for us to do these?
       # Install operator dependencies
