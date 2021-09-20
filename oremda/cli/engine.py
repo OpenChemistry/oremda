@@ -4,9 +4,9 @@ from oremda.pipeline.runner import start
 
 
 @click.command(
-    "runner",
-    short_help="oremda runner",
-    help="Run the pipeline runner service.",
+    "engine",
+    short_help="oremda engine",
+    help="Run the pipeline engine.",
 )
 def main():
     start()

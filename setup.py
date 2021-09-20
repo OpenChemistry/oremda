@@ -34,7 +34,7 @@ setup(
         ],
         "oremda.cli.plugins": [
             "run = oremda.cli.run:main",
-            "runner = oremda.cli.runner:main",
+            "engine = oremda.cli.engine:main",
         ],
     },
 )
