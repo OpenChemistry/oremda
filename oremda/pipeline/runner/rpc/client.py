@@ -4,7 +4,7 @@ from typing import Dict
 from fastapi_websocket_rpc import RpcMethodsBase, WebSocketRpcClient
 
 from oremda.typing import DisplayType, IdType, JSONType, PipelineJSON
-from oremda.pipeline.runner.context import GlobalContext
+from oremda.pipeline.runner.context import GlobalContext, SessionWebModel, SessionModel
 from oremda.pipeline.messages import NotificationMessage, pipeline_created
 from oremda.pipeline.observer import ServerPipelineObserver
 from oremda.pipeline.displays import DisplayHandle1D, DisplayHandle2D
@@ -28,7 +28,11 @@ class RpcClient(WebSocketRpcClient):
 
 
 async def run_pipeline(session_id: IdType, pipeline_id: IdType, context: GlobalContext):
-    pipeline_ids = context.session_pipelines.get(session_id, set())
+    pipeline_ids = set({})
+    web_session = context.sessions.get(session_id)
+    if web_session is not None:
+        pipeline_ids = web_session.pipelines
+
     if pipeline_id not in pipeline_ids:
         return
 
@@ -85,7 +89,11 @@ class PipelineRunnerMethods(RpcMethodsBase):
             id=pipeline_id, graph=pipeline_definition, pipeline=pipeline
         )
 
-        pipeline_ids = self.context.session_pipelines.setdefault(session_id, set())
+        web_session = self.context.sessions.setdefault(
+            session_id, SessionWebModel(session=SessionModel(id=session_id))
+        )
+
+        pipeline_ids = web_session.pipelines
         pipeline_ids.add(model.id)
 
         self.context.pipelines[model.id] = model

@@ -24,15 +24,19 @@ from oremda.pipeline.models import (
 )
 
 
+class SessionWebModel(BaseModel):
+    session: SessionModel
+    pipelines: Set[IdType] = set()
+    websockets: Set[IdType] = set()
+
+
 class GlobalContext(BaseModel):
     plasma_client: PlasmaClient = Field(...)
     container_client: ContainerClient = Field(...)
     registry: Registry = Field(...)
-    sessions: Dict[IdType, SessionModel] = {}
+    sessions: Dict[IdType, SessionWebModel] = {}
     pipelines: Dict[IdType, PipelineModel] = {}
     websockets: Dict[IdType, WebsocketModel] = {}
-    session_pipelines: Dict[IdType, Set[IdType]] = {}
-    session_websockets: Dict[IdType, Set[IdType]] = {}
 
     class Config:
         arbitrary_types_allowed = True
