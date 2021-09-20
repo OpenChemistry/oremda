@@ -1,4 +1,3 @@
-import uuid
 import asyncio
 from typing import Dict
 from fastapi_websocket_rpc import RpcMethodsBase, WebSocketRpcClient
@@ -11,10 +10,7 @@ from oremda.pipeline.displays import DisplayHandle1D, DisplayHandle2D
 from oremda.pipeline.models import PipelineModel, SerializablePipelineModel
 from oremda.pipeline import deserialize_pipeline
 from oremda.display import NoopDisplayHandle
-
-
-def unique_id():
-    return str(uuid.uuid4())
+from oremda.utils.id import unique_id
 
 
 class RpcClient(WebSocketRpcClient):
