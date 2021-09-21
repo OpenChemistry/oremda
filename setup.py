@@ -7,7 +7,7 @@ install_requires = [
     "docker",
     "six",  # because of docker
     "spython",
-    "pydantic",
+    "pydantic[dotenv]",
     "click",
     "click_plugins",
 ]
@@ -32,6 +32,9 @@ setup(
         "console_scripts": [
             "oremda = oremda.cli:main",
         ],
-        "oremda.cli.plugins": ["run = oremda.cli.run:main"],
+        "oremda.cli.plugins": [
+            "run = oremda.cli.run:main",
+            "engine = oremda.cli.engine:main",
+        ],
     },
 )

@@ -1,10 +1,7 @@
 from pydantic import BaseModel, Field
 from fastapi import WebSocket
 
-from oremda.typing import PipelineJSON
-from oremda.pipeline import Pipeline
-
-from ..typing import IdType
+from oremda.typing import IdType
 
 
 class ObjectModel(BaseModel):
@@ -16,14 +13,6 @@ class ObjectModel(BaseModel):
 
 class SessionModel(ObjectModel):
     pass
-
-
-class SerializablePipelineModel(ObjectModel):
-    graph: PipelineJSON = Field(...)
-
-
-class PipelineModel(SerializablePipelineModel):
-    pipeline: Pipeline = Field(...)
 
 
 class WebsocketModel(ObjectModel):
