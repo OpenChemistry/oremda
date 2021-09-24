@@ -21,10 +21,10 @@ def with_resolved_path(func):
 
 
 class SingularityClient(ClientBase):
+    images_dir = ""
+
     def __init__(self):
         super().__init__()
-
-        self.images_dir = ""
 
     @property
     def client(self):
