@@ -41,7 +41,7 @@ class DockerClient(ClientBase):
         images = []
         for image in self.client.images.list():
             for tag in image.tags:
-                # Apply the organization filter is we have one
+                # Apply the organization filter if we have one
                 if organization is not None and not tag.startswith(f"{organization}/"):
                     continue
 
