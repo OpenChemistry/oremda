@@ -1,22 +1,22 @@
 from typing import Dict
 
-from scipy.ndimage import gaussian_filter
+import numpy as np
 
 from oremda import operator
 from oremda.typing import JSONType, PortKey, RawPort
 
 
 @operator
-def gaussian_blur(
+def tile(
     inputs: Dict[PortKey, RawPort], parameters: JSONType
 ) -> Dict[PortKey, RawPort]:
-
-    sigma = parameters.get("sigma", 0)
     image = inputs["image"].data
+    n_x = parameters.get("n_x", 1)
+    n_y = parameters.get("n_y", 1)
 
-    if image is not None:
-        image = gaussian_filter(image, sigma=sigma)
+    if image is None:
+        raise Exception('Data is missing from the "in" port')
 
-    outputs = {"image": RawPort(meta=inputs["image"].meta, data=image)}
+    outputs = {"image": RawPort(data=np.tile(image, (n_y, n_x)))}
 
     return outputs

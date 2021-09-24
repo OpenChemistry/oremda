@@ -4,10 +4,11 @@ FROM ${BASE_IMAGE}
 
 COPY run.py /
 
-LABEL oremda.name="picture" \
+LABEL oremda.name="scatter" \
       oremda.ports.input.in.type="data" \
       oremda.ports.output.out.type="display" \
       oremda.params.z.type="number" \
-      oremda.params.normalize.type="string"
+      oremda.params.marker_style.type="string" \
+      oremda.params.marker_size.type="number"
 
 ENTRYPOINT ["python", "/run.py"]

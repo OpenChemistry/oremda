@@ -1,0 +1,459 @@
+{
+  "nodes": [
+    {
+      "id": "0",
+      "image": "oremda/ncem_reader",
+      "params": {
+          "filename": "Acquisition_0032.emd"
+      }
+    },
+    {
+      "id": "10",
+      "image": "oremda/crop2d",
+      "params": {
+          "bounds": [0, 512, 0, 512]
+      }
+    },
+    {
+      "id": "11",
+      "image": "oremda/gaussian_blur",
+      "params": {
+          "sigma": 2
+      }
+    },
+    {
+      "id": "12",
+      "image": "oremda/peak_find",
+      "params": {
+          "threshold": 0.79,
+          "min_distance": 9
+      }
+    },
+    {
+      "id": "13",
+      "image": "oremda/diffractogram",
+      "params": {}
+    },
+    {
+      "id": "14",
+      "image": "oremda/peak_opt",
+      "params": {
+        "cutout": 6
+      }
+    },
+    {
+      "id": "15",
+      "image": "oremda/lattice_find",
+      "params": {}
+    },
+    {
+      "id": "16",
+      "image": "oremda/difference",
+      "params": {}
+    },
+    {
+      "id": "17",
+      "image": "oremda/unit_cell",
+      "params": {
+        "oversample": 5
+      }
+    },
+    {
+      "id": "18",
+      "image": "oremda/tile",
+      "params": {
+        "n_x": 3,
+        "n_y": 3
+      }
+    },
+    {
+      "id": "20",
+      "image": "oremda/picture",
+      "params": {
+        "z": 0,
+        "normalize": "linear"
+      }
+    },
+    {
+      "id": "21",
+      "image": "oremda/picture",
+      "params": {
+        "z": 0,
+        "normalize": "linear"
+      }
+    },
+    {
+      "id": "22",
+      "image": "oremda/scatter",
+      "params": {
+        "z": 1,
+        "color": "red",
+        "size": 2,
+        "label": "peaks"
+      }
+    },
+    {
+      "id": "23",
+      "image": "oremda/picture",
+      "params": {
+        "z": 0,
+        "normalize": "log"
+      }
+    },
+    {
+      "id": "24",
+      "image": "oremda/scatter",
+      "params": {
+        "z": 2,
+        "color": "blue",
+        "size": 2,
+        "label": "opt peaks"
+      }
+    },
+    {
+      "id": "25",
+      "image": "oremda/vector",
+      "params": {
+        "z": 2,
+        "color": "red",
+        "label": "u"
+      }
+    },
+    {
+      "id": "26",
+      "image": "oremda/vector",
+      "params": {
+        "z": 2,
+        "color": "blue",
+        "label": "v"
+      }
+    },
+    {
+      "id": "27",
+      "image": "oremda/scatter",
+      "params": {
+        "z": 1,
+        "color": "m",
+        "size": 2,
+        "label": "lattice"
+      }
+    },
+    {
+      "id": "28",
+      "image": "oremda/scatter",
+      "params": {
+        "z": 0,
+        "color": "blue",
+        "size": 2
+      }
+    },
+    {
+      "id": "29",
+      "image": "oremda/picture",
+      "params": {
+        "z": 0,
+        "normalize": "linear"
+      }
+    },
+    {
+      "id": "40",
+      "image": "oremda/histograms",
+      "params": {
+        "z": 0,
+        "bins": 100,
+        "label": "Original"
+      }
+    },
+    {
+      "id": "41",
+      "image": "oremda/histograms",
+      "params": {
+        "z": 1,
+        "bins": 100,
+        "label": "Blurred"
+      }
+    },
+    {
+      "id": "30",
+      "type": "display",
+      "display": "2D",
+      "params": {}
+    },
+    {
+      "id": "31",
+      "type": "display",
+      "display": "2D",
+      "params": {}
+    },
+    {
+      "id": "32",
+      "type": "display",
+      "display": "2D",
+      "params": {}
+    },
+    {
+      "id": "33",
+      "type": "display",
+      "display": "2D",
+      "params": {}
+    },
+    {
+      "id": "34",
+      "type": "display",
+      "display": "2D",
+      "params": {}
+    },
+    {
+      "id": "35",
+      "type": "display",
+      "display": "2D",
+      "params": {}
+    },
+    {
+      "id": "36",
+      "type": "display",
+      "display": "2D",
+      "params": {}
+    },
+    {
+      "id": "37",
+      "type": "display",
+      "display": "1D",
+      "params": {
+        "xLabel": "Scalar",
+        "yLabel": "Occurrence"
+      }
+    },
+    {
+      "id": "38",
+      "type": "display",
+      "display": "1D",
+      "params": {
+        "xLabel": "Scalar",
+        "yLabel": "Occurrence"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "type": "data",
+      "from": { "id": "0", "port": "image" },
+      "to": { "id": "10", "port": "image" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "10", "port": "image" },
+      "to": { "id": "11", "port": "image" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "11", "port": "image" },
+      "to": { "id": "12", "port": "image" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "11", "port": "image" },
+      "to": { "id": "13", "port": "image" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "10", "port": "image" },
+      "to": { "id": "20", "port": "in" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "11", "port": "image" },
+      "to": { "id": "21", "port": "in" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "12", "port": "peaks" },
+      "to": { "id": "22", "port": "in" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "13", "port": "diffractogram" },
+      "to": { "id": "23", "port": "in" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "10", "port": "image" },
+      "to": { "id": "14", "port": "image" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "12", "port": "peaks" },
+      "to": { "id": "14", "port": "peaks" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "11", "port": "image" },
+      "to": { "id": "15", "port": "image" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "14", "port": "peaks" },
+      "to": { "id": "15", "port": "peaks" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "15", "port": "origin" },
+      "to": { "id": "25", "port": "origin" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "15", "port": "u" },
+      "to": { "id": "25", "port": "direction" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "15", "port": "origin" },
+      "to": { "id": "26", "port": "origin" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "15", "port": "v" },
+      "to": { "id": "26", "port": "direction" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "15", "port": "lattice" },
+      "to": { "id": "27", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "25", "port": "out" },
+      "to": { "id": "34", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "26", "port": "out" },
+      "to": { "id": "34", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "27", "port": "out" },
+      "to": { "id": "34", "port": "in" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "14", "port": "peaks" },
+      "to": { "id": "24", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "20", "port": "out" },
+      "to": { "id": "30", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "21", "port": "out" },
+      "to": { "id": "31", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "22", "port": "out" },
+      "to": { "id": "31", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "23", "port": "out" },
+      "to": { "id": "32", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "21", "port": "out" },
+      "to": { "id": "33", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "22", "port": "out" },
+      "to": { "id": "33", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "24", "port": "out" },
+      "to": { "id": "33", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "21", "port": "out" },
+      "to": { "id": "34", "port": "in" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "14", "port": "peaks" },
+      "to": { "id": "16", "port": "a" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "15", "port": "lattice" },
+      "to": { "id": "16", "port": "b" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "16", "port": "diff" },
+      "to": { "id": "28", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "28", "port": "out" },
+      "to": { "id": "35", "port": "in" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "10", "port": "image" },
+      "to": { "id": "17", "port": "image" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "15", "port": "origin" },
+      "to": { "id": "17", "port": "origin" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "15", "port": "u" },
+      "to": { "id": "17", "port": "u" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "15", "port": "v" },
+      "to": { "id": "17", "port": "v" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "17", "port": "image" },
+      "to": { "id": "18", "port": "image" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "18", "port": "image" },
+      "to": { "id": "29", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "29", "port": "out" },
+      "to": { "id": "36", "port": "in" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "10", "port": "image" },
+      "to": { "id": "40", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "40", "port": "out" },
+      "to": { "id": "37", "port": "in" }
+    },
+    {
+      "type": "data",
+      "from": { "id": "11", "port": "image" },
+      "to": { "id": "41", "port": "in" }
+    },
+    {
+      "type": "display",
+      "from": { "id": "41", "port": "out" },
+      "to": { "id": "37", "port": "in" }
+    }
+  ]
+}

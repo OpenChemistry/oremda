@@ -7,8 +7,9 @@ RUN pip install \
 
 COPY run.py /
 
-LABEL oremda.name="ncem_reader" \
-      oremda.ports.output.image.type="data" \
+LABEL oremda.name="ncem_reader_eels" \
+      oremda.ports.output.eloss.type="data" \
+      oremda.ports.output.spec.type="data" \
       oremda.params.filename.type="string" \
       oremda.params.filename.required="true"
 
