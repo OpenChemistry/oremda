@@ -5,7 +5,7 @@ from typing import List
 
 from spython.main import Client as client
 
-from oremda.clients.base.client import ClientBase, ImageBase
+from oremda.clients.base.client import ClientBase
 from oremda.clients.singularity.container import SingularityContainer
 from oremda.clients.singularity.image import SingularityImage
 from oremda.constants import OREMDA_SIF_GLOB_PATTERN, OREMDA_IMAGE_LABEL_NAME
@@ -99,14 +99,13 @@ class SingularityClient(ClientBase):
             msg += f"  {p}\n"
         raise Exception(msg)
 
-    def images(self, organization: str = None) -> List[ImageBase]:
+    def images(self, organization: str = None) -> List[SingularityImage]:
         images = []
 
         images_path = Path(self.images_dir)
-        print(f"path: {images_path}")
 
         for image_file in images_path.glob(OREMDA_SIF_GLOB_PATTERN):
-            image = SingularityImage(self.client, image_file)
+            image = self.client(image_file)
 
             # Skip over anything without at least a name
             if OREMDA_IMAGE_LABEL_NAME not in image.raw_labels:

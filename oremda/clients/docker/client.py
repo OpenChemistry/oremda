@@ -46,7 +46,7 @@ class DockerClient(ClientBase):
                     continue
 
                 # Check that we have labels
-                docker_image = DockerImage(self.client, tag)
+                docker_image = self.image(tag)
                 labels = docker_image.raw_labels
 
                 # Skip over anything without at least a name

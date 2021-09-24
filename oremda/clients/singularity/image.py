@@ -7,7 +7,6 @@ class SingularityImage(ImageBase):
         self.client = client
         self.path = path
         self._name = None
-        self._name_extracted = False
 
     @property
     def name(self):

@@ -11,6 +11,8 @@ from oremda.pipeline.models import PipelineModel, SerializablePipelineModel
 from oremda.pipeline import deserialize_pipeline
 from oremda.display import NoopDisplayHandle
 from oremda.utils.id import unique_id
+from oremda.pipeline.runner.config import settings
+from oremda.clients import Client
 
 
 class RpcClient(WebSocketRpcClient):
@@ -103,3 +105,11 @@ class PipelineRunnerMethods(RpcMethodsBase):
         return SerializablePipelineModel(
             id=pipeline_id, graph=pipeline_definition
         ).dict(by_alias=True)
+
+    async def get_available_operators(self, session_id: IdType) -> Dict:
+        operators = {}
+
+        for image in Client(settings.OREMDA_CONTAINER_TYPE).images():
+            operators[image.name] = image.labels
+
+        return operators
