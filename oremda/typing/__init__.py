@@ -129,6 +129,7 @@ class MessageType(str, Enum):
     Terminate = "terminate"
     Complete = "complete"
     MPINodeReady = "mpi_node_ready"
+    Error = "error"
 
 
 class Message(BaseModel):
@@ -155,6 +156,12 @@ class ResultTaskMessage(Message):
 
     type = MessageType.Complete
     outputs: Dict[PortKey, Port] = {}
+    parallel_index: int = 0
+
+
+class ErrorTaskMessage(Message):
+    type = MessageType.Error
+    error_string: str
     parallel_index: int = 0
 
 

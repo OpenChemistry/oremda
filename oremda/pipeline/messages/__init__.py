@@ -19,6 +19,7 @@ class ActionType(str, Enum):
     DisplayRemoveInput = "DISPLAY_REMOVE_INPUT"
     DisplayClearInputs = "DISPLAY_CLEAR_INPUTS"
     DisplayRender = "DISPLAY_RENDER"
+    OperatorError = "OPERATOR_ERROR"
 
 
 class NotificationMessage(BaseModel):
@@ -61,4 +62,10 @@ def operator_started(payload: JSONType):
 def operator_completed(payload: JSONType):
     return NotificationMessage(
         **{"action": ActionType.OperatorCompleted, "payload": payload}
+    )
+
+
+def operator_error(payload: JSONType):
+    return NotificationMessage(
+        **{"action": ActionType.OperatorError, "payload": payload}
     )
