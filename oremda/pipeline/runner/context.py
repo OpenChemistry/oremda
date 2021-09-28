@@ -73,4 +73,4 @@ def pipeline_context():
             }
         )
 
-    registry.release()
+        registry.release()
