@@ -23,7 +23,7 @@ from typing import (
     cast,
     Tuple,
 )
-from oremda.operator import OperatorHandle
+from oremda.pipeline.operator import OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
 from oremda.registry import Registry
