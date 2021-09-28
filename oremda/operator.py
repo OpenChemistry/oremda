@@ -1,12 +1,15 @@
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Any, Callable, Dict, Optional, Union
+from io import StringIO
+import traceback
 
 from oremda import PlasmaClient
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
 from oremda.messengers import BaseMessenger, MQPMessenger
 from oremda.plasma_client import PlasmaArray
 from oremda.typing import (
+    ErrorTaskMessage,
     JSONType,
     OperateTaskMessage,
     PortKey,
@@ -50,22 +53,30 @@ class Operator(ABC):
         params = task_message.params
         output_queue = task_message.output_queue
 
-        raw_inputs = {key: RawPort.from_port(port) for key, port in inputs.items()}
-        _raw_outputs = self.kernel(raw_inputs, params)
+        try:
+            raw_inputs = {key: RawPort.from_port(port) for key, port in inputs.items()}
+            _raw_outputs = self.kernel(raw_inputs, params)
 
-        raw_outputs: Dict[PortKey, RawPort] = {
-            key: port if isinstance(port, RawPort) else RawPort(**port)
-            for key, port in _raw_outputs.items()
-        }
+            raw_outputs: Dict[PortKey, RawPort] = {
+                key: port if isinstance(port, RawPort) else RawPort(**port)
+                for key, port in _raw_outputs.items()
+            }
 
-        outputs = {
-            key: port.to_port(self.array_constructor)
-            for key, port in raw_outputs.items()
-        }
+            outputs = {
+                key: port.to_port(self.array_constructor)
+                for key, port in raw_outputs.items()
+            }
 
-        result = ResultTaskMessage(outputs=outputs)
-        result.parallel_index = task_message.parallel_index
-        self.messenger.send(result, output_queue)
+            result = ResultTaskMessage(outputs=outputs)
+            result.parallel_index = task_message.parallel_index
+            self.messenger.send(result, output_queue)
+        except BaseException:
+            # Write exception details to str
+            buf = StringIO()
+            traceback.print_exc(file=buf)
+            error_string = buf.getvalue()
+            error_message = ErrorTaskMessage(error_string=error_string)
+            self.messenger.send(error_message, output_queue)
 
     @abstractmethod
     def kernel(

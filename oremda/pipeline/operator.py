@@ -7,6 +7,7 @@ from oremda import PlasmaClient
 from oremda.messengers import MQPMessenger
 from oremda.plasma_client import PlasmaArray
 from oremda.typing import (
+    ErrorTaskMessage,
     JSONType,
     OperateTaskMessage,
     PortKey,
@@ -23,6 +24,11 @@ KernelFn = Callable[
     [Dict[PortKey, RawPort], JSONType],
     Union[Dict[PortKey, RawPort], Dict[PortKey, Dict]],
 ]
+
+
+class OperatorException(Exception):
+    def __init__(self, error_string) -> None:
+        self.error_string = error_string
 
 
 class OperatorHandle:
@@ -69,6 +75,9 @@ class OperatorHandle:
         if message.type == MessageType.Complete:
             result = ResultTaskMessage(**message.dict())
             return result.outputs
+        elif message.type == MessageType.Error:
+            error = ErrorTaskMessage(**message.dict())
+            raise OperatorException(error.error_string)
         else:
             raise Exception(f"Unknown message type: {message.type}")
 
@@ -108,7 +117,10 @@ class OperatorHandle:
         for _ in outputs:
             message = self.messenger.recv(output_queue)
 
-            if message.type != MessageType.Complete:
+            if message.type == MessageType.Error:
+                error = ErrorTaskMessage(**message.dict())
+                raise OperatorException(error.error_string)
+            elif message.type != MessageType.Complete:
                 raise Exception(f"Unknown message type: {message.type}")
 
             result = ResultTaskMessage(**message.dict())

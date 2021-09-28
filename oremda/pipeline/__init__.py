@@ -23,7 +23,7 @@ from typing import (
     cast,
     Tuple,
 )
-from oremda.pipeline.operator import OperatorHandle
+from oremda.pipeline.operator import OperatorException, OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
 from oremda.registry import Registry
@@ -288,7 +288,6 @@ class Pipeline:
                             f"The operator node {operator_id} does not "
                             "have an associated operator handle."
                         )
-                        self.observer.on_operator_error(self, operator_node, err)
                         self.observer.on_error(self, err)
                         raise err
 
@@ -297,8 +296,10 @@ class Pipeline:
                         output_ports: Dict[PortKey, Port] = operator.execute(
                             input_ports, output_queue
                         )
+                    except OperatorException as op_err:
+                        self.observer.on_operator_error(self, operator_node, op_err)
+                        return
                     except Exception as err:
-                        self.observer.on_operator_error(self, operator_node, err)
                         self.observer.on_error(self, err)
                         raise
 
@@ -352,7 +353,9 @@ class PipelineObserver:
     def on_operator_complete(self, pipeline: Pipeline, operator: OperatorNode):
         pass
 
-    def on_operator_error(self, pipeline: Pipeline, operator: OperatorNode, error: Any):
+    def on_operator_error(
+        self, pipeline: Pipeline, operator: OperatorNode, error: OperatorException
+    ):
         pass
 
 
