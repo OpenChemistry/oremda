@@ -32,7 +32,7 @@ for key, value in labels.items():
 
 definition = f"""\
 Bootstrap: docker-daemon
-From: {image.id}
+From: {image_name}
 
 %labels
 {labels_string}

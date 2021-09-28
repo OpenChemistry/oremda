@@ -1,12 +1,14 @@
 from functools import wraps
 from pathlib import Path
 import re
+from typing import List
 
 from spython.main import Client as client
 
 from oremda.clients.base.client import ClientBase
 from oremda.clients.singularity.container import SingularityContainer
 from oremda.clients.singularity.image import SingularityImage
+from oremda.constants import OREMDA_SIF_GLOB_PATTERN, OREMDA_IMAGE_LABEL_NAME
 
 
 def with_resolved_path(func):
@@ -19,10 +21,10 @@ def with_resolved_path(func):
 
 
 class SingularityClient(ClientBase):
+    images_dir = ""
+
     def __init__(self):
         super().__init__()
-
-        self.images_dir = ""
 
     @property
     def client(self):
@@ -96,3 +98,19 @@ class SingularityClient(ClientBase):
         for p in paths_tried:
             msg += f"  {p}\n"
         raise Exception(msg)
+
+    def images(self, organization: str = None) -> List[SingularityImage]:
+        images = []
+
+        images_path = Path(self.images_dir)
+
+        for image_file in images_path.glob(OREMDA_SIF_GLOB_PATTERN):
+            image = self.client(image_file)
+
+            # Skip over anything without at least a name
+            if OREMDA_IMAGE_LABEL_NAME not in image.raw_labels:
+                continue
+
+            images.append(image)
+
+        return images

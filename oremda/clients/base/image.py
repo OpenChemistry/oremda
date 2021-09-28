@@ -9,6 +9,11 @@ from oremda.typing import OperatorLabels
 class ImageBase(ABC):
     @property
     @abstractmethod
+    def name(self):
+        pass
+
+    @property
+    @abstractmethod
     def raw_labels(self):
         pass
 

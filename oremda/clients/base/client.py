@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from oremda.clients.base.container import ContainerBase
 from oremda.clients.base.image import ImageBase
 from oremda.typing import ContainerType
-from typing import Any
+from typing import Any, List
 
 
 class ClientBase(ABC):
@@ -22,4 +22,8 @@ class ClientBase(ABC):
 
     @abstractmethod
     def run(self, *args, **kwargs) -> ContainerBase:
+        pass
+
+    @abstractmethod
+    def images(self, organization: str = None) -> List[ImageBase]:
         pass
