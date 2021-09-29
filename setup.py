@@ -10,6 +10,7 @@ install_requires = [
     "pydantic[dotenv]",
     "click",
     "click_plugins",
+    "coloredlogs",
 ]
 
 setup(

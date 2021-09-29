@@ -44,6 +44,7 @@ async def run_pipeline(session_id: IdType, pipeline_id: IdType, context: GlobalC
 
 
 async def notify_clients(session_id, queue: asyncio.Queue, client: RpcClient):
+
     while True:
         msg = await queue.get()
         await client.notify_clients(msg.dict(), session_id)
@@ -61,7 +62,12 @@ class PipelineRunnerMethods(RpcMethodsBase):
         pipeline_definition.id = pipeline_id
 
         queue = asyncio.Queue()
-        asyncio.create_task(notify_clients(session_id, queue, self.client))
+        notify_task = asyncio.create_task(
+            notify_clients(session_id, queue, self.client)
+        )
+
+        def cleanup_notify_task(context) -> None:
+            notify_task.cancel()
 
         def notify(message: NotificationMessage):
             queue.put_nowait(message)
@@ -100,7 +106,10 @@ class PipelineRunnerMethods(RpcMethodsBase):
 
         asyncio.create_task(self.client.notify_clients(message.dict(), session_id))
 
-        asyncio.create_task(run_pipeline(session_id, model.id, self.context))
+        pipeline_task = asyncio.create_task(
+            run_pipeline(session_id, model.id, self.context)
+        )
+        pipeline_task.add_done_callback(cleanup_notify_task)
 
         return SerializablePipelineModel(
             id=pipeline_id, graph=pipeline_definition
