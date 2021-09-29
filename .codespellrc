@@ -1,2 +1,3 @@
 [codespell]
-skip = **/package-lock.json
+skip = **/package-lock.json,**/peakFind.py,**/gaussND.py
+ignore-words-list = hist

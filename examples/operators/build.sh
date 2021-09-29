@@ -18,14 +18,28 @@ with_vis=false
 prefix=""
 
 directories=(
+  peak_base
   background_fit
   ncem_reader
+  ncem_reader_eels
+  peak_find
+  peak_opt
+  fft2d
+  crop2d
+  diffractogram
+  lattice_find
+  unit_cell
+  difference
+  tile
   plot
   print
   subtract
   tiff_reader
   gaussian_blur
   picture
+  scatter
+  vector
+  histograms
 )
 
 if [ "$with_vis" == true ]; then

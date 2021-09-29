@@ -48,6 +48,23 @@ class DisplayType(str, Enum):
     ThreeD = "3D"
 
 
+class PlotType1D(str, Enum):
+    Line = "line"
+    Scatter = "scatter"
+    Histograms = "histograms"
+
+
+class PlotType2D(str, Enum):
+    Image = "image"
+    Points = "points"
+    Vectors = "vectors"
+
+
+class NormalizeType(str, Enum):
+    Linear = "linear"
+    Log = "log"
+
+
 class ContainerType(str, Enum):
     Docker = "docker"
     Singularity = "singularity"

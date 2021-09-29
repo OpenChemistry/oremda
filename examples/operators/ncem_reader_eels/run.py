@@ -9,7 +9,7 @@ from oremda.typing import JSONType, PortKey, RawPort
 
 
 @operator
-def ncem_reader(
+def ncem_reader_eels(
     _inputs: Dict[PortKey, RawPort], parameters: JSONType
 ) -> Dict[PortKey, RawPort]:
     filename = parameters.get("filename", "")
@@ -18,10 +18,12 @@ def ncem_reader(
     fPath = Path(filename)
 
     spectrum = nio.read(dPath / fPath)
-    data = spectrum["data"]
+    eloss = spectrum["coords"][1]
+    spec = spectrum["data"][0, :]
 
     outputs = {
-        "image": RawPort(data=data),
+        "eloss": RawPort(data=eloss),
+        "spec": RawPort(data=spec),
     }
 
     return outputs

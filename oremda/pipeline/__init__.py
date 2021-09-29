@@ -129,7 +129,7 @@ def validate_edge(
     input_port: PortInfo,
 ):
     if output_port.type != input_port.type:
-        raise Exception("Cannot connect a Meta port to a Data port")
+        raise Exception("Cannot connect a Data port to a Display port")
 
     if not output_node.has(output_port, IOType.Out):
         raise Exception(
@@ -279,7 +279,7 @@ class Pipeline:
                     input_ports[edge.input_port.name] = port
 
                 if do_run:
-                    self.observer.on_operator_start(self, operator_node)
+                    self.observer.on_operator_start(self, operator_node, input_ports)
 
                     operator = operator_node.operator
 
@@ -329,7 +329,9 @@ class Pipeline:
                     run_operators.add(operator_id)
                     count = count + 1
 
-                    self.observer.on_operator_complete(self, operator_node)
+                    self.observer.on_operator_complete(
+                        self, operator_node, output_ports
+                    )
 
             if count == 0:
                 raise Exception("The pipeline couldn't be resolved")
@@ -347,16 +349,52 @@ class PipelineObserver:
     def on_error(self, pipeline: Pipeline, error: Any):
         pass
 
-    def on_operator_start(self, pipeline: Pipeline, operator: OperatorNode):
+    def on_operator_start(
+        self, pipeline: Pipeline, operator: OperatorNode, inputs: Dict[PortKey, Port]
+    ):
         pass
 
-    def on_operator_complete(self, pipeline: Pipeline, operator: OperatorNode):
+    def on_operator_complete(
+        self, pipeline: Pipeline, operator: OperatorNode, outputs: Dict[PortKey, Port]
+    ):
         pass
 
     def on_operator_error(
         self, pipeline: Pipeline, operator: OperatorNode, error: OperatorException
     ):
         pass
+
+
+class DebugPipelineObserver(PipelineObserver):
+    def __init__(self, print_fn=None):
+        if print_fn is None:
+            print_fn = print
+
+        self.print = print_fn
+
+    def on_start(self, pipeline: Pipeline):
+        self.print("Pipeline: ", pipeline.id, " Started")
+
+    def on_complete(self, pipeline: Pipeline):
+        self.print("Pipeline: ", pipeline.id, " Completed")
+
+    def on_error(self, pipeline: Pipeline, error: Any):
+        self.print("Pipeline: ", pipeline.id, " Failed", error)
+
+    def on_operator_start(
+        self, pipeline: Pipeline, operator: OperatorNode, inputs: Dict[PortKey, Port]
+    ):
+        self.print("Pipeline: ", pipeline.id, " Started Operator", operator.id, inputs)
+
+    def on_operator_complete(
+        self, pipeline: Pipeline, operator: OperatorNode, outputs: Dict[PortKey, Port]
+    ):
+        self.print(
+            "Pipeline: ", pipeline.id, " Completed Operator", operator.id, outputs
+        )
+
+    def on_operator_error(self, pipeline: Pipeline, operator: OperatorNode, error: Any):
+        self.print("Pipeline: ", pipeline.id, " Failed Operator", operator.id, error)
 
 
 def validate_port_type(type):

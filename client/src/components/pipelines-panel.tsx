@@ -44,6 +44,7 @@ const PipelinesPanel: React.FC<Props> = () => {
         Pipelines
         <button onClick={() => addPipeline('pipeline_1d.json')}>Add 1D</button>
         <button onClick={() => addPipeline('pipeline_2d.json')}>Add 2D</button>
+        <button onClick={() => addPipeline('pipeline_peak.json')}>Add Peak</button>
       </h4>
 
 
