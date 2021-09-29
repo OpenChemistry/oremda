@@ -1,10 +1,10 @@
 FROM oremda/oremda
 
-RUN pip install \
-    fastapi \
-    uvicorn[standard]
-
 COPY server /server
+
+COPY requirements.txt /server/
+
+RUN pip install -r /server/requirements.txt
 
 # Since we leave this image open until the end, make sure all
 # output gets printed as it comes in.

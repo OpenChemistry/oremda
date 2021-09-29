@@ -1,0 +1,3 @@
+fastapi 
+uvicorn[standard]
+fastapi_websocket_rpc
