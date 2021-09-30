@@ -12,4 +12,6 @@ LABEL oremda.name="lattice_find" \
       oremda.ports.output.v.type="data" \
       oremda.ports.output.lattice.type="data"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

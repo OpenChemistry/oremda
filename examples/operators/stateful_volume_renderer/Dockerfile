@@ -23,4 +23,6 @@ LABEL oremda.name="stateful_volume_renderer" \
 
 ENV PYTHONUNBUFFERED=1
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

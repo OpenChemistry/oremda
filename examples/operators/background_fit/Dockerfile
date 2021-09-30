@@ -17,4 +17,6 @@ LABEL oremda.name="background_fit" \
       oremda.params.stop.type="number" \
       oremda.params.stop.required="true"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

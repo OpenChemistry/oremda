@@ -17,4 +17,6 @@ LABEL oremda.name="vtk_reader" \
       oremda.params.filename.type="string" \
       oremda.params.filename.required="true"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

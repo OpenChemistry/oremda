@@ -6,4 +6,6 @@ RUN pip install \
 COPY run.py /
 COPY pipeline.json /
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

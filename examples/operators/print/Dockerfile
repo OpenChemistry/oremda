@@ -11,4 +11,6 @@ LABEL oremda.name="print" \
       oremda.ports.input.data.type="data" \
       oremda.ports.output.data.type="data"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

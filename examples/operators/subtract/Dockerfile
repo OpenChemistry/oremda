@@ -19,4 +19,6 @@ LABEL oremda.name="subtract" \
       oremda.params.stop.type="number" \
       oremda.params.stop.required="true"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

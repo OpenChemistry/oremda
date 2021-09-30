@@ -11,4 +11,6 @@ LABEL oremda.name="peak_opt" \
       oremda.ports.output.sigmas.type="data"\
       oremda.params.cutout.type="number"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

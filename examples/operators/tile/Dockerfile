@@ -10,4 +10,6 @@ LABEL oremda.name="tile" \
       oremda.params.n_x.type="number" \
       oremda.params.n_y.type="number"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

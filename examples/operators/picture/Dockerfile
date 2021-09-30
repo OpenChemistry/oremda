@@ -10,4 +10,6 @@ LABEL oremda.name="picture" \
       oremda.params.z.type="number" \
       oremda.params.normalize.type="string"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

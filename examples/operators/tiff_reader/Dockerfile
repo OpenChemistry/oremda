@@ -12,4 +12,6 @@ LABEL oremda.name="tiff_reader" \
       oremda.params.filename.type="string" \
       oremda.params.filename.required="true"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]
