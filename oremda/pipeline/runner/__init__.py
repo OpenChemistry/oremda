@@ -43,8 +43,9 @@ async def shutdown(signal, loop, run_task):
 
     tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
 
-    logger.info(f"Waiting for {len(tasks)} to complete.")
-    await asyncio.wait(tasks)
+    if len(tasks) > 0:
+        logger.info(f"Waiting for {len(tasks)} to complete.")
+        await asyncio.wait(tasks)
     logger.info("Stopping event loop.")
     loop = asyncio.get_event_loop()
     loop.stop()
