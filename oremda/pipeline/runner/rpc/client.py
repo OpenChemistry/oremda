@@ -47,10 +47,16 @@ async def run_pipeline(session_id: IdType, pipeline_id: IdType, context: GlobalC
 
 
 async def notify_clients(session_id, queue: asyncio.Queue, client: RpcClient):
-
-    while True:
+    async def process_message():
         msg = await queue.get()
         await client.notify_clients(msg.dict(), session_id)
+
+    try:
+        while True:
+            await process_message()
+    except asyncio.CancelledError:
+        while not queue.empty():
+            await process_message()
 
 
 class PipelineRunnerMethods(RpcMethodsBase):
