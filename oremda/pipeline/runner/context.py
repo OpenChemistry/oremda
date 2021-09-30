@@ -1,5 +1,6 @@
 from contextlib import contextmanager
-
+import os
+import platform
 from typing import Dict, Set
 
 from pydantic import BaseModel, Field
@@ -64,6 +65,13 @@ def pipeline_context():
             "detach": True,
             "working_dir": "/data",
         }
+
+        # Run containers using same id as process running the engine if we are
+        # running on Linux
+        if platform.system() == "Linux":
+            uid = os.getuid()
+
+            registry.run_kwargs["user"] = uid
 
         yield GlobalContext(
             **{
