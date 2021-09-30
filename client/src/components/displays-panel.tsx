@@ -2,8 +2,7 @@ import React from 'react';
 import { useAppSelector } from '../app/hooks';
 import { displaysSelector } from '../features/displays';
 import { DisplayType } from '../types/pipeline';
-import Display1DComponent from './display-1d';
-import Display2DComponent from './display-2d';
+import RemoteDisplayComponent from './display-remote';
 
 type Props = {};
 
@@ -15,10 +14,10 @@ const DisplaysPanel: React.FC<Props> = () => {
         return (
           <div className="display-container" key={display.id}>
             {display.type === DisplayType.OneD &&
-              <Display1DComponent display={display}/>
+              <RemoteDisplayComponent display={display}/>
             }
             {display.type === DisplayType.TwoD &&
-              <Display2DComponent display={display}/>
+              <RemoteDisplayComponent display={display}/>
             }
           </div>
         );

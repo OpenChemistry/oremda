@@ -1,5 +1,6 @@
-from typing import Callable
+from typing import Callable, Dict
 
+from oremda.typing import PortKey, Port
 from oremda.pipeline import Pipeline, OperatorNode, PipelineObserver
 from oremda.pipeline.operator import OperatorException
 
@@ -25,13 +26,17 @@ class ServerPipelineObserver(PipelineObserver):
         message = pipeline_completed({"id": pipeline.id})
         self.notify(message)
 
-    def on_operator_start(self, pipeline: Pipeline, operator: OperatorNode):
+    def on_operator_start(
+        self, pipeline: Pipeline, operator: OperatorNode, inputs: Dict[PortKey, Port]
+    ):
         message = operator_started(
             {"pipelineId": pipeline.id, "operatorId": operator.id}
         )
         self.notify(message)
 
-    def on_operator_complete(self, pipeline: Pipeline, operator: OperatorNode):
+    def on_operator_complete(
+        self, pipeline: Pipeline, operator: OperatorNode, outputs: Dict[PortKey, Port]
+    ):
         message = operator_completed(
             {"pipelineId": pipeline.id, "operatorId": operator.id}
         )

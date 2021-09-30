@@ -41,7 +41,7 @@
       {
         "type": "data",
         "from": { "id": "10", "port": "out" },
-        "to": { "id": "11", "port": "in" }
+        "to": { "id": "11", "port": "image" }
       },
       {
         "type": "data",
@@ -50,7 +50,7 @@
       },
       {
         "type": "data",
-        "from": { "id": "11", "port": "out" },
+        "from": { "id": "11", "port": "image" },
         "to": { "id": "21", "port": "in" }
       },
       {

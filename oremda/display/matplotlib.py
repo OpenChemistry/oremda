@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import os
 from typing import Any, Dict
 import matplotlib
@@ -35,12 +36,23 @@ class BaseMatplotLibDisplayHandle(DisplayHandle):
         self.inputs = {}
         self.render()
 
+    def render(self):
+        data_dir = os.environ.get("OREMDA_DATA_DIR") or DEFAULT_DATA_DIR
+        filename = os.path.join(data_dir, f"{self.id}.png")
+        file_obj = open(filename, "wb")
+        self.raw_render(file_obj)
+        file_obj.close()
+
+    @abstractmethod
+    def raw_render(self, file_obj):
+        pass
+
 
 class MatplotlibDisplayHandle1D(BaseMatplotLibDisplayHandle):
     def __init__(self, id: IdType):
         super().__init__(id, DisplayType.OneD)
 
-    def render(self):
+    def raw_render(self, file_obj):
         inputs = sorted(self.inputs.values(), key=z_sort)
 
         x_label = self.parameters.get("xLabel", "x")
@@ -55,7 +67,7 @@ class MatplotlibDisplayHandle1D(BaseMatplotLibDisplayHandle):
             if data is None:
                 continue
 
-            plot = meta.get("plot", PlotType1D.Histograms)
+            plot = meta.get("plot", PlotType1D.Line)
             label = meta.get("label")
             color = meta.get("color")
 
@@ -82,10 +94,7 @@ class MatplotlibDisplayHandle1D(BaseMatplotLibDisplayHandle):
 
         ax.set(xlabel=x_label, ylabel=y_label)
 
-        data_dir = os.environ.get("OREMDA_DATA_DIR") or DEFAULT_DATA_DIR
-        filename = os.path.join(data_dir, f"{self.id}.png")
-
-        fig.savefig(filename, dpi=fig.dpi)
+        fig.savefig(file_obj, dpi=fig.dpi)
         plt.close()
 
 
@@ -93,7 +102,7 @@ class MatplotlibDisplayHandle2D(BaseMatplotLibDisplayHandle):
     def __init__(self, id: IdType):
         super().__init__(id, DisplayType.TwoD)
 
-    def render(self):
+    def raw_render(self, file_obj):
         inputs = sorted(self.inputs.values(), key=z_sort)
 
         fig, ax = plt.subplots()
@@ -149,9 +158,7 @@ class MatplotlibDisplayHandle2D(BaseMatplotLibDisplayHandle):
         if legend:
             ax.legend()
 
-        data_dir = os.environ.get("OREMDA_DATA_DIR") or DEFAULT_DATA_DIR
-        filename = os.path.join(data_dir, f"{self.id}.png")
-        fig.savefig(filename, dpi=fig.dpi)
+        fig.savefig(file_obj, dpi=fig.dpi)
         plt.close()
 
 
