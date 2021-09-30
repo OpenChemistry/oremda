@@ -6,13 +6,16 @@ from oremda.typing import DisplayType, IdType, JSONType, PipelineJSON
 from oremda.pipeline.runner.context import GlobalContext, SessionWebModel, SessionModel
 from oremda.pipeline.messages import NotificationMessage, pipeline_created
 from oremda.pipeline.observer import ServerPipelineObserver
-from oremda.pipeline.displays import DisplayHandle1D, DisplayHandle2D
 from oremda.pipeline.models import PipelineModel, SerializablePipelineModel
 from oremda.pipeline import deserialize_pipeline
 from oremda.display import NoopDisplayHandle
 from oremda.utils.id import unique_id
 from oremda.pipeline.runner.config import settings
 from oremda.clients import Client
+from oremda.pipeline.runner.rpc.displays import (
+    RemoteRenderDisplayHandle1D,
+    RemoteRenderDisplayHandle2D,
+)
 
 
 class RpcClient(WebSocketRpcClient):
@@ -55,11 +58,11 @@ class PipelineRunnerMethods(RpcMethodsBase):
         self.context = context
         self.client = client
 
-    async def run(self, session_id: IdType, pipeline_definition: PipelineJSON) -> Dict:
-        pipeline_definition = PipelineJSON(**pipeline_definition)
+    async def run(self, session_id: IdType, pipeline_definition: dict) -> Dict:
+        pipeline_json = PipelineJSON(**pipeline_definition)
 
         pipeline_id = unique_id()
-        pipeline_definition.id = pipeline_id
+        pipeline_json.id = pipeline_id
 
         queue = asyncio.Queue()
         notify_task = asyncio.create_task(
@@ -74,14 +77,14 @@ class PipelineRunnerMethods(RpcMethodsBase):
 
         def display_factory(id: IdType, display_type: DisplayType):
             if display_type == DisplayType.OneD:
-                return DisplayHandle1D(id, notify)
+                return RemoteRenderDisplayHandle1D(id, notify)
             elif display_type == DisplayType.TwoD:
-                return DisplayHandle2D(id, notify)
+                return RemoteRenderDisplayHandle2D(id, notify)
             else:
                 return NoopDisplayHandle(id, display_type)
 
         pipeline = deserialize_pipeline(
-            pipeline_definition.dict(by_alias=True),
+            pipeline_json.dict(by_alias=True),
             self.context.plasma_client,
             self.context.registry,
             display_factory,
@@ -89,9 +92,7 @@ class PipelineRunnerMethods(RpcMethodsBase):
 
         pipeline.observer = ServerPipelineObserver(notify)
 
-        model = PipelineModel(
-            id=pipeline_id, graph=pipeline_definition, pipeline=pipeline
-        )
+        model = PipelineModel(id=pipeline_id, graph=pipeline_json, pipeline=pipeline)
 
         web_session = self.context.sessions.setdefault(
             session_id, SessionWebModel(session=SessionModel(id=session_id))
@@ -111,9 +112,9 @@ class PipelineRunnerMethods(RpcMethodsBase):
         )
         pipeline_task.add_done_callback(cleanup_notify_task)
 
-        return SerializablePipelineModel(
-            id=pipeline_id, graph=pipeline_definition
-        ).dict(by_alias=True)
+        return SerializablePipelineModel(id=pipeline_id, graph=pipeline_json).dict(
+            by_alias=True
+        )
 
     async def get_available_operators(self, session_id: IdType) -> Dict:
         operators = {}
