@@ -14,5 +14,5 @@ class BaseMessenger(ABC):
         pass
 
     @abstractmethod
-    def recv(self, source: str) -> Message:
+    def recv(self, source: str, cleanup: bool = False) -> Message:
         pass

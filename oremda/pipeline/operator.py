@@ -70,7 +70,7 @@ class OperatorHandle:
         )
 
         self.messenger.send(task, self.input_queue)
-        message = self.messenger.recv(output_queue)
+        message = self.messenger.recv(output_queue, cleanup=True)
 
         if message.type == MessageType.Complete:
             result = ResultTaskMessage(**message.dict())
