@@ -20,7 +20,7 @@ from oremda.models import (
     WebsocketModel,
 )
 
-from oremda.pipeline.models import (
+from oremda.pipeline.engine.rpc.models import (
     PipelineModel,
 )
 

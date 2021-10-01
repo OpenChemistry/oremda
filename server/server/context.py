@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from oremda.typing import IdType
 
 from oremda.models import SessionModel
-from oremda.pipeline.models import (
+from oremda.pipeline.engine.rpc.models import (
     PipelineModel,
 )
 

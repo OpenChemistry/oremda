@@ -4,9 +4,9 @@ from fastapi_websocket_rpc import RpcMethodsBase, WebSocketRpcClient
 
 from oremda.typing import DisplayType, IdType, JSONType, PipelineJSON
 from oremda.pipeline.engine.context import GlobalContext, SessionWebModel, SessionModel
-from oremda.pipeline.messages import NotificationMessage, pipeline_created
-from oremda.pipeline.observer import ServerPipelineObserver
-from oremda.pipeline.models import PipelineModel, SerializablePipelineModel
+from oremda.pipeline.engine.rpc.messages import NotificationMessage, pipeline_created
+from oremda.pipeline.engine.rpc.observer import ServerPipelineObserver
+from oremda.pipeline.engine.rpc.models import PipelineModel, SerializablePipelineModel
 from oremda.pipeline import deserialize_pipeline
 from oremda.display import NoopDisplayHandle
 from oremda.utils.id import unique_id

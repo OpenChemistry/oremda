@@ -1,3 +1,6 @@
+import base64
+import io
+import functools
 from typing import Dict, Callable
 
 from oremda.display import DisplayHandle, DisplayType
@@ -7,6 +10,10 @@ from ..messages import (
     ActionType,
     NotificationMessage,
     generic_message,
+)
+from oremda.display.matplotlib import (
+    MatplotlibDisplayHandle1D,
+    MatplotlibDisplayHandle2D,
 )
 
 
@@ -116,3 +123,32 @@ class DisplayHandle2D(DisplayHandle):
 
         message = generic_message(ActionType.DisplayRender, payload)
         self.notify(message)
+
+
+def remote_render(self):
+    file_obj = io.BytesIO()
+    self.raw_render(file_obj)
+    img_src = base64.b64encode(file_obj.getvalue()).decode()
+    file_obj.close()
+
+    payload = {
+        "displayId": self.id,
+        "imageSrc": f"data:image/png;base64,{img_src}",
+    }
+
+    message = generic_message(ActionType.DisplayRender, payload)
+    self.notify(message)
+
+
+class RemoteRenderDisplayHandle1D(MatplotlibDisplayHandle1D):
+    def __init__(self, id: IdType, notify: Callable[[NotificationMessage], None]):
+        super().__init__(id)
+        self.notify = notify
+        self.render = functools.partial(remote_render, self)
+
+
+class RemoteRenderDisplayHandle2D(MatplotlibDisplayHandle2D):
+    def __init__(self, id: IdType, notify: Callable[[NotificationMessage], None]):
+        super().__init__(id)
+        self.notify = notify
+        self.render = functools.partial(remote_render, self)

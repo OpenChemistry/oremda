@@ -4,7 +4,7 @@ from fastapi import Query, Body, HTTPException, APIRouter
 
 from oremda.typing import IdType, PipelineJSON
 
-from oremda.pipeline.models import (
+from oremda.pipeline.engine.rpc.models import (
     SerializablePipelineModel,
 )
 
