@@ -7,6 +7,7 @@ import PipelinesPanel from './components/pipelines-panel';
 import StatusBar from './components/status-bar';
 import { createSession } from './features/session';
 import { NodeType, Pipeline } from './types/pipeline';
+import Split from 'react-split'
 
 function App() {
   const [pipeline, setPipeline] = useState<Pipeline>();
@@ -43,8 +44,11 @@ function App() {
       </div>
       <div className="content">
         <div className="inner-content">
-          <PipelinesPanel/>
-          <DisplaysPanel/>
+
+          <Split className="split">
+            <PipelinesPanel/>
+            <DisplaysPanel/>
+          </Split>
         </div>
       </div>
       <div className="footer">
