@@ -3,16 +3,16 @@ from typing import Dict
 from fastapi_websocket_rpc import RpcMethodsBase, WebSocketRpcClient
 
 from oremda.typing import DisplayType, IdType, JSONType, PipelineJSON
-from oremda.pipeline.runner.context import GlobalContext, SessionWebModel, SessionModel
+from oremda.pipeline.engine.context import GlobalContext, SessionWebModel, SessionModel
 from oremda.pipeline.messages import NotificationMessage, pipeline_created
 from oremda.pipeline.observer import ServerPipelineObserver
 from oremda.pipeline.models import PipelineModel, SerializablePipelineModel
 from oremda.pipeline import deserialize_pipeline
 from oremda.display import NoopDisplayHandle
 from oremda.utils.id import unique_id
-from oremda.pipeline.runner.config import settings
+from oremda.pipeline.engine.config import settings
 from oremda.clients import Client
-from oremda.pipeline.runner.rpc.displays import (
+from oremda.pipeline.engine.rpc.displays import (
     RemoteRenderDisplayHandle1D,
     RemoteRenderDisplayHandle2D,
 )

@@ -13,7 +13,7 @@ from oremda.registry import Registry
 from oremda.constants import DEFAULT_OREMDA_VAR_DIR
 from oremda.utils.plasma import start_plasma_store
 from oremda.typing import ContainerType
-from oremda.pipeline.runner.config import settings
+from oremda.pipeline.engine.config import settings
 
 from oremda.models import (
     SessionModel,
