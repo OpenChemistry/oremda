@@ -43,7 +43,7 @@ class MPIMessenger(BaseMessenger):
                     return
 
     @validate_arguments
-    def recv(self, source: int, cleanup: bool = False) -> Message:
+    def recv(self, source: int) -> Message:
         with comm_lock:
             # recv can probe the needed buffer size beforehand and allocate
             # it automatically. But irecv needs a big enough buffer size

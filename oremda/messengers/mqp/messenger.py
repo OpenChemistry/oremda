@@ -32,8 +32,8 @@ class MQPMessenger(BaseMessenger):
         with open_queue(dest, create=True, reuse=True) as queue:
             queue.send(json.dumps(serialized_msg))
 
-    def recv(self, source, cleanup=False) -> Message:
-        with open_queue(source, create=True, reuse=True, consume=cleanup) as queue:
+    def recv(self, source) -> Message:
+        with open_queue(source, create=True, reuse=True) as queue:
             serialized_msg, priority = queue.receive()
 
         serialized_msg = json.loads(serialized_msg)
