@@ -53,18 +53,14 @@ body {
 .displays-panel {
   flex-grow: 1;
   height: 100%;
-  display: flex;
-  flex-direction: row;
+  position: relative;
 }
 
 .display-container {
-  position:relative;
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: 0;
+  position: absolute;
   border-style: solid;
-  border-color: red;
-  border-width: 2;
+  border-color: #eee;
+  border-width: 1;
 }
 
 .pipeline-container {
