@@ -8,8 +8,7 @@ RUN apt-get update && \
 
 # Just copy over the parts that we need. Eventually we should probably split the
 # repo.
-COPY  setup.py /oremda/
-COPY  pyproject.toml /oremda/
+COPY  setup.py pyproject.toml /oremda/
 COPY  oremda /oremda/oremda/
 COPY  ./.git /oremda/.git/
 
