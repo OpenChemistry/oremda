@@ -36,6 +36,7 @@ setup(
         "oremda.cli.plugins": [
             "run = oremda.cli.run:main",
             "engine = oremda.cli.engine:main",
+            "pull = oremda.cli.pull:main",
         ],
     },
 )
