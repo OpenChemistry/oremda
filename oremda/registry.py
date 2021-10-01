@@ -165,6 +165,9 @@ class Registry:
         for _ in range(info.operator_config.num_containers):
             messenger.send(TerminateTaskMessage(), input_queue)
 
+        # Tell it to unlink, so the queue gets removed
+        messenger.unlink(input_queue)
+
         info.running = False
 
     def release(self):

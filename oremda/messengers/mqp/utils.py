@@ -53,3 +53,14 @@ def open_queue(name: str, create=False, consume=False, reuse=False):
             queue.close()
             if consume:
                 queue.unlink()
+
+
+def unlink_queue(name: str):
+    try:
+        queue = MessageQueue(name)
+    except posix_ipc.ExistentialError:
+        # The queue already doesn't exist. Nothing to do.
+        return
+
+    queue.close()
+    queue.unlink()

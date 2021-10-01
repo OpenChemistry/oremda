@@ -4,7 +4,7 @@ from oremda.messengers.base import BaseMessenger
 from oremda.plasma_client import PlasmaArray
 from oremda.typing import Message, Port
 
-from .utils import open_queue
+from .utils import open_queue, unlink_queue
 
 
 class MQPMessenger(BaseMessenger):
@@ -39,6 +39,9 @@ class MQPMessenger(BaseMessenger):
         serialized_msg = json.loads(serialized_msg)
         msg = self.join_data(serialized_msg)
         return Message(**msg)
+
+    def unlink(self, source: str):
+        unlink_queue(source)
 
     def detach_data(self, original_msg: dict):
         def recurse(cur, original_cur):
