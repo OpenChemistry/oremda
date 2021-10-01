@@ -12,9 +12,6 @@ build_singularity=true
 # via plasma and message queues.
 with_mpi=false
 
-# Whether or not to build visualization containers
-with_vis=false
-
 prefix=""
 
 directories=(
@@ -41,11 +38,6 @@ directories=(
   vector
   histograms
 )
-
-if [ "$with_vis" == true ]; then
-  directories+='stateful_volume_renderer'
-  directories+='vtk_reader'
-fi
 
 build_args=()
 
