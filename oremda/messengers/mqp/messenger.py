@@ -4,7 +4,7 @@ from oremda.messengers.base import BaseMessenger
 from oremda.plasma_client import PlasmaArray
 from oremda.typing import Message, Port
 
-from .utils import open_queue
+from .utils import open_queue, unlink_queue
 
 
 class MQPMessenger(BaseMessenger):
@@ -33,17 +33,15 @@ class MQPMessenger(BaseMessenger):
             queue.send(json.dumps(serialized_msg))
 
     def recv(self, source) -> Message:
-        # FIXME: we are currently not cleaning up the queues we create,
-        # so that running multiple instances of an operator on one node
-        # will work (otherwise, the queue will be deleted while an
-        # operator is still trying to recv).
-        # We should clean up the queues somewhere, though. Just not here...
         with open_queue(source, create=True, reuse=True) as queue:
             serialized_msg, priority = queue.receive()
 
         serialized_msg = json.loads(serialized_msg)
         msg = self.join_data(serialized_msg)
         return Message(**msg)
+
+    def unlink(self, source: str):
+        unlink_queue(source)
 
     def detach_data(self, original_msg: dict):
         def recurse(cur, original_cur):
