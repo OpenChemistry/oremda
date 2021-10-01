@@ -13,4 +13,6 @@ LABEL oremda.name="ncem_reader_eels" \
       oremda.params.filename.type="string" \
       oremda.params.filename.required="true"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

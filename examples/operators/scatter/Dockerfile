@@ -11,4 +11,6 @@ LABEL oremda.name="scatter" \
       oremda.params.marker_style.type="string" \
       oremda.params.marker_size.type="number"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

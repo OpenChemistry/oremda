@@ -8,4 +8,6 @@ LABEL oremda.name="diffractogram" \
       oremda.ports.input.image.type="data" \
       oremda.ports.output.diffractogram.type="data"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

@@ -12,4 +12,6 @@ LABEL oremda.name="vector" \
       oremda.params.color.type="string" \
       oremda.params.label.type="string"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

@@ -12,4 +12,6 @@ LABEL oremda.name="unit_cell" \
       oremda.ports.output.image.type="data" \
       oremda.params.oversample.type="number"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

@@ -9,4 +9,6 @@ LABEL oremda.name="difference" \
       oremda.ports.input.b.type="data" \
       oremda.ports.output.diff.type="data"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

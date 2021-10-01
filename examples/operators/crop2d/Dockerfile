@@ -8,4 +8,6 @@ LABEL oremda.name="crop2d" \
       oremda.ports.input.image.type="data" \
       oremda.ports.output.image.type="data"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

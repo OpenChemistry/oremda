@@ -12,4 +12,6 @@ LABEL oremda.name="histograms" \
       oremda.params.label.type="string" \
       oremda.params.color.type="string"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

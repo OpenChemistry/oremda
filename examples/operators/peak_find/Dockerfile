@@ -10,4 +10,6 @@ LABEL oremda.name="peak_find" \
       oremda.params.threshold.type="number" \
       oremda.params.min_distance.type="number"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

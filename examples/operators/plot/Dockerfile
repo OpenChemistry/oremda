@@ -9,4 +9,6 @@ LABEL oremda.name="plot" \
       oremda.ports.input.y.type="data" \
       oremda.ports.output.out.type="display"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]

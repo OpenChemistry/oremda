@@ -9,4 +9,6 @@ LABEL oremda.name="fft2d" \
       oremda.ports.output.real.type="data" \
       oremda.ports.output.imag.type="data"
 
+USER oremda
+
 ENTRYPOINT ["python", "/run.py"]
