@@ -1,5 +1,5 @@
 {
-  "oremda/ncem_reader": {
+  "oremda/ncem_reader_eels": {
     "run_locations": [1, 7]
   },
   "oremda/background_fit": {

@@ -2,7 +2,7 @@
   "nodes": [
     {
       "id": "10",
-      "image": "oremda/ncem_reader",
+      "image": "oremda/ncem_reader_eels",
       "params": {
           "filename": "08_carbon.dm3"
       }
