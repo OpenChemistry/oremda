@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import click
-from oremda.pipeline.runner import start
+from oremda.pipeline.engine import start
 
 
 @click.command(
