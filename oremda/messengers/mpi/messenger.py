@@ -1,17 +1,11 @@
-from typing import Any
-from mpi4py import MPI
 from pydantic import validate_arguments
-from threading import Lock
-import time
 
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
 from oremda.messengers.base import BaseMessenger
 from oremda.plasma_client import PlasmaArray, PlasmaClient
 from oremda.typing import Message, Port
 
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-comm_lock = Lock()
+from .implementations import MPIMessengerImplementation
 
 
 class MPIMessenger(BaseMessenger):
@@ -24,6 +18,7 @@ class MPIMessenger(BaseMessenger):
 
     def __init__(self):
         self.plasma_client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
+        self.impl = MPIMessengerImplementation()
 
     @property
     def type(self) -> str:
@@ -32,38 +27,11 @@ class MPIMessenger(BaseMessenger):
     @validate_arguments
     def send(self, msg: Message, dest: int):
         serialized_msg = self.detach_data(dict(msg))
-        with comm_lock:
-            req = comm.isend(serialized_msg, dest=dest)
-
-        while True:
-            time.sleep(1)
-            with comm_lock:
-                output = req.test()
-                if output[0]:
-                    return
+        self.impl.send(serialized_msg, dest=dest)
 
     @validate_arguments
     def recv(self, source: int) -> Message:
-        with comm_lock:
-            # recv can probe the needed buffer size beforehand and allocate
-            # it automatically. But irecv needs a big enough buffer size
-            # without probing, unfortunately. So we have to allocate a big
-            # enough buffer every time. Let's do 1 MB for now.
-            req = comm.irecv(bytearray(1 << 20), source=source)
-
-        while True:
-            time.sleep(1)
-            with comm_lock:
-                try:
-                    output = req.test()
-                except Exception as e:
-                    print(f"Caught exception on {rank=} from {source=}", e)
-                    print(f"{comm.probe(source=source)=}")
-                    raise
-                if output[0]:
-                    serialized_msg: Any = output[1]
-                    break
-
+        serialized_msg = self.impl.recv(source=source)
         msg = self.join_data(serialized_msg)
         return Message(**msg)
 
