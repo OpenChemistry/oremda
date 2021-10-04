@@ -2,7 +2,7 @@
 #SBATCH --account=ncemhub
 #SBATCH --qos=debug
 #SBATCH -C haswell
-#SBATCH --time=00:02:00
+#SBATCH --time=00:01:00
 #SBATCH -N 8
 
 home=/global/homes/p/psavery/
