@@ -118,7 +118,15 @@ class MPIFuture:
             if self.request is None:
                 return False
 
-            complete, result = self.request.test()
+            # Must test multiple times using a timeout, or else
+            # we will sometimes miss receives.
+            # FIXME: why???
+            complete = False
+            result = None
+            timeout = 0.001
+            start = time.time()
+            while time.time() < start + timeout and not complete:
+                complete, result = self.request.test()
 
             if not complete:
                 return False
