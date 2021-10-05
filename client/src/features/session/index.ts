@@ -4,7 +4,7 @@ import { createSession as createSessionAPI } from './api';
 
 import { Session } from '../../types/session';
 
-import { connectNotifications } from '../notifications';
+import { connectWebSocket } from '../websocket';
 
 export type SessionState = {
   currentSession: Session | undefined;
@@ -19,7 +19,9 @@ export const createSession = createAsyncThunk<Session>(
   async (payload, thunkAPI) => {
     const session = await createSessionAPI();
 
-    thunkAPI.dispatch(connectNotifications({sessionId: session.id}));
+    thunkAPI.dispatch(connectWebSocket({sessionId: session.id})).then(action => {
+
+    }) ;
     return session;
   }
 );

@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { useAppSelector } from '../app/hooks';
 import { IdType } from '../types';
 import { Display } from '../types/pipeline';
+import { useNotifications, NotificationEvent } from '../notifications';
 
 type Props = {
     display: Display;
@@ -73,23 +74,24 @@ class DisplayHandle2D {
 }
 
 const Display2DComponent: React.FC<Props> = (props) => {
-  const ws = useAppSelector((state) => state.notifications.ws);
-
   const container = useRef<HTMLImageElement>(null);
 
   const displayHandle = useRef(new DisplayHandle2D(container));
 
+  const notifications = useNotifications();
+
   useEffect(() => {
-    if (!ws) {
+
+    if (notifications === undefined) {
       return;
     }
 
-    const listener = (ev: MessageEvent) => {
+    const listener = (ev: NotificationEvent) => {
       if (!displayHandle.current) {
         return;
       }
 
-      const data = JSON.parse(ev.data);
+      const data = ev.data;
 
       if (data.type !== '@@OREMDA') {
         return;
@@ -112,10 +114,10 @@ const Display2DComponent: React.FC<Props> = (props) => {
       }
     }
 
-    ws.addEventListener('message', listener);
+    notifications.addNotificationEventListener('message', listener);
 
-    return () => ws.removeEventListener('message', listener);
-  }, [ws]);
+    return () => notifications.removeNotificationEventListener('message', listener);
+  }, [notifications]);
     return <img style={{objectFit: 'contain', width: '100%'}} ref={container}/>;
 }
 

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@msgpack/msgpack": "^2.7.1",
     "@projectstorm/react-canvas-core": "^6.6.1",
     "@projectstorm/react-diagrams": "^6.6.1",
     "@reduxjs/toolkit": "^1.6.1",

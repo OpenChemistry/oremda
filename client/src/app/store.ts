@@ -2,14 +2,14 @@ import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
 import sessionReducer from '../features/session';
 import pipelinesReducer from '../features/pipelines';
 import displaysReducer from '../features/displays';
-import notificationsReducer from '../features/notifications';
+import webSocketReducer from '../features/websocket';
 
 export const store = configureStore({
   reducer: {
     session: sessionReducer,
     pipelines: pipelinesReducer,
     displays: displaysReducer,
-    notifications: notificationsReducer,
+    websocket: webSocketReducer,
   },
 });
 

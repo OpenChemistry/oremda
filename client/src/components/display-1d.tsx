@@ -5,6 +5,7 @@ import Plotly from 'plotly.js';
 import { useAppSelector } from '../app/hooks';
 import { IdType } from '../types';
 import { Display } from '../types/pipeline';
+import { useNotifications, NotificationEvent } from '../notifications';
 
 type Props = {
     display: Display;
@@ -40,23 +41,23 @@ class DisplayHandle1D {
 }
 
 const Display1DComponent: React.FC<Props> = (props) => {
-  const ws = useAppSelector((state) => state.notifications.ws);
-
   const container = useRef<HTMLDivElement>(null);
 
   const displayHandle = useRef(new DisplayHandle1D(container));
 
+  const notifications = useNotifications();
+
   useEffect(() => {
-    if (!ws) {
+    if (notifications === undefined) {
       return;
     }
 
-    const listener = (ev: MessageEvent) => {
+    const listener = (ev: NotificationEvent) => {
       if (!displayHandle.current) {
         return;
       }
 
-      const data = JSON.parse(ev.data);
+      const data = ev.data;
 
       if (data.type !== '@@OREMDA') {
         return;
@@ -79,10 +80,10 @@ const Display1DComponent: React.FC<Props> = (props) => {
       }
     }
 
-    ws.addEventListener('message', listener);
+    notifications.addNotificationEventListener('message', listener);
 
-    return () => ws.removeEventListener('message', listener);
-  }, [ws]);
+    return () => notifications.removeNotificationEventListener('message', listener);
+  }, [notifications]);
     return <div className='fill' ref={container}/>;
 }
 
