@@ -53,7 +53,11 @@ class OperatorHandle:
         inputs: Dict[PortKey, Port],
         output_queue: str,
     ) -> Dict[PortKey, Port]:
-        return self.execute_func(inputs, output_queue)
+        try:
+            return self.execute_func(inputs, output_queue)
+        finally:
+            # Clean up the output queue
+            self.messenger.unlink(output_queue)
 
     @property
     def execute_func(self):
