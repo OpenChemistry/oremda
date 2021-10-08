@@ -407,6 +407,7 @@ def validate_port_type(type):
     valid_types = [
         PortType.Data,
         PortType.Display,
+        PortType.Binary,
     ]
 
     if type not in valid_types:
