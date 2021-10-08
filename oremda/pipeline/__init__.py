@@ -1,3 +1,5 @@
+import logging
+
 from oremda.typing import (
     DisplayNodeJSON,
     DisplayType,
@@ -29,6 +31,8 @@ from oremda.typing import PortType, NodeType, IOType
 from oremda.registry import Registry
 from oremda.plasma_client import PlasmaClient
 from oremda.display import DisplayFactory, DisplayHandle, NoopDisplayHandle
+
+logger = logging.getLogger("oremda")
 
 
 class PipelineEdge:
@@ -298,6 +302,8 @@ class Pipeline:
                         )
                     except OperatorException as op_err:
                         self.observer.on_operator_error(self, operator_node, op_err)
+                        logger.error(f"Operator error: id={operator_node.id}")
+                        logger.error(op_err)
                         return
                     except Exception as err:
                         self.observer.on_error(self, err)
