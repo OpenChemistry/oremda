@@ -43,7 +43,7 @@ const DisplaysPanel: React.FC<Props> = () => {
     <div className="displays-panel">
       {displays.map((display, i) => {
         const col = i % cols;
-        const row = Math.floor(i / rows);
+        const row = Math.floor(i / cols);
         const left = `${100 * col / cols}%`;
         const top = `${100 * row / rows}%`;
         const width = `${100 / cols}%`;
