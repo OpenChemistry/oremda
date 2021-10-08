@@ -2,4 +2,4 @@
 
 script_dir=$(dirname "$0")
 
-docker build -t oremda/ncem_reader $script_dir "$@"
+docker build -t oremda/http_reader $script_dir "$@"
