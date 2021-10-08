@@ -8,9 +8,9 @@ RUN pip install \
 COPY run.py /
 
 LABEL oremda.name="tiff_reader" \
+      oremda.ports.input.data.type="binary" \
       oremda.ports.output.out.type="data" \
-      oremda.params.filename.type="string" \
-      oremda.params.filename.required="true"
+      oremda.params.filename.type="string"
 
 USER oremda
 
