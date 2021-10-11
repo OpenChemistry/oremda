@@ -243,6 +243,7 @@ class ParamLabels(BaseModel):
 
 class OperatorLabels(BaseModel):
     name: str
+    description: Optional[str]
     ports: PortsLabels
     params: Dict[ParamKey, ParamLabels] = {}
 
