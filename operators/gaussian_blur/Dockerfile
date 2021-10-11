@@ -7,6 +7,7 @@ RUN pip install scipy
 COPY run.py /
 
 LABEL oremda.name="gaussian_blur" \
+      oremda.description="Apply a Gaussian filter" \
       oremda.ports.input.image.type="data" \
       oremda.ports.output.image.type="data"
 
