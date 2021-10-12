@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState }  from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -8,6 +8,7 @@ import { pipelinesSelector, setPipeline } from '../features/pipelines';
 import { createPipeline } from '../features/pipelines/api';
 import { Pipeline, NodeType, isDisplayNode } from '../types/pipeline';
 import PipelineComponent from './pipeline-graph';
+import { NewPipelineWidget } from './new-pipeline'
 
 type Props = {};
 
@@ -16,6 +17,8 @@ const PipelinesPanel: React.FC<Props> = () => {
   const pipelines = useAppSelector(pipelinesSelector.selectAll);
   const pipelinesStatus = useAppSelector((state) => state.pipelines.status);
   const currentSession = useAppSelector((state) => state.session.currentSession);
+  const operators = useAppSelector((state) => state.operators.operators);
+  const [showNewPipeline, setShowNewPipeline] = useState(false);
 
   const addPipeline = (url: string) => {
     fetch(url)
@@ -30,6 +33,11 @@ const PipelinesPanel: React.FC<Props> = () => {
       });
   }
 
+  // We should rework this so we add multiple new pipelines ...
+  const newPipeline = () => {
+    setShowNewPipeline(true);
+  }
+
   const runPipeline = (pipeline: Pipeline) => {
     if (!currentSession) {
       return;
@@ -42,6 +50,7 @@ const PipelinesPanel: React.FC<Props> = () => {
     <div className="pipelines-panel">
       <h4>
         Pipelines
+        <button onClick={() => newPipeline()}>New Pipeline</button>
         <button onClick={() => addPipeline('pipeline_1d.json')}>Add 1D</button>
         <button onClick={() => addPipeline('pipeline_2d.json')}>Add 2D</button>
         <button onClick={() => addPipeline('pipeline_peak.json')}>Add Peak</button>
@@ -59,6 +68,11 @@ const PipelinesPanel: React.FC<Props> = () => {
             </React.Fragment>
           );
         })
+      }
+      { showNewPipeline &&
+      <div>
+        <NewPipelineWidget operators={ operators }/>
+      </div>
       }
     </div>
   )

@@ -6,6 +6,8 @@ import { Session } from '../../types/session';
 
 import { connectNotifications } from '../notifications';
 
+import { fetchOperators } from '../operators';
+
 export type SessionState = {
   currentSession: Session | undefined;
 }
@@ -20,6 +22,7 @@ export const createSession = createAsyncThunk<Session>(
     const session = await createSessionAPI();
 
     thunkAPI.dispatch(connectNotifications({sessionId: session.id}));
+    thunkAPI.dispatch(fetchOperators({sessionId: session.id}))
     return session;
   }
 );

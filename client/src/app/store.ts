@@ -3,6 +3,7 @@ import sessionReducer from '../features/session';
 import pipelinesReducer from '../features/pipelines';
 import displaysReducer from '../features/displays';
 import notificationsReducer from '../features/notifications';
+import operatorsReducer from '../features/operators';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     pipelines: pipelinesReducer,
     displays: displaysReducer,
     notifications: notificationsReducer,
+    operators: operatorsReducer,
   },
 });
 
