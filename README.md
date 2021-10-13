@@ -1,6 +1,6 @@
 # Open Reproducible Electron Microscopy Data Analysis (OREMDA)
 
-The OREMDA project is developing an open source platform for the analysis and visualization of electron microcopy data sets. We are leveraging container technologies to encapsulate processing into scalabilty, reproducible pipelines. 
+The OREMDA project is developing an open source platform for the analysis and visualization of electron microcopy data sets. We are leveraging container technologies to encapsulate processing into scalable, reproducible pipelines. 
 
 The OREMDA project is funded by DOE Office of Science contract DE-SC0021601.
 
