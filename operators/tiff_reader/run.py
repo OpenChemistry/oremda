@@ -19,7 +19,7 @@ def tiff_reader(
     else:
         filename = parameters.get("filename")
         if filename is None:
-            raise Exception("Data port of filename must be provided.")
+            raise Exception("Data port or filename must be provided.")
 
         dPath = Path("/data")
         fPath = Path(filename)
