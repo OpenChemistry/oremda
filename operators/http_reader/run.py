@@ -32,19 +32,21 @@ def download_file(url, filename=None):
     return buffer.getvalue()
 
 
+cached_file_url = None
+
+
 @operator
 def http_reader(
     _inputs: Dict[PortKey, RawPort], parameters: JSONType
 ) -> Dict[PortKey, RawPort]:
-
+    global cached_file_url
     url = parameters.get("url")
     if url is None:
         raise Exception("A 'url' parameter must be configured.")
     cache = parameters.get("cache", True)
 
     # First check the cache if enabled
-    print(Path(CACHE_FILE_NAME).exists())
-    if cache and Path(CACHE_FILE_NAME).exists():
+    if url == cached_file_url and cache and Path(CACHE_FILE_NAME).exists():
         with open(CACHE_FILE_NAME, "br") as f:
             data = f.read()
     # Download the file
@@ -54,6 +56,7 @@ def http_reader(
             filename = CACHE_FILE_NAME
 
         data = download_file(url, filename=filename)
+        cached_file_url = url
 
     outputs = {
         "data": RawPort(data=data),
