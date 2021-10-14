@@ -1,7 +1,8 @@
 from abc import abstractmethod
 import os
-from typing import Any, Dict
+from typing import Any, Dict, cast
 import matplotlib
+import numpy as np
 
 from oremda.display import DisplayHandle
 from oremda.typing import (
@@ -115,7 +116,7 @@ class MatplotlibDisplayHandle2D(BaseMatplotLibDisplayHandle):
             if array is None:
                 continue
 
-            data = array.data
+            data = cast(np.ndarray, array.data)
             meta = input.meta or {}
             plot = meta.get("plot")
             label = meta.get("label")

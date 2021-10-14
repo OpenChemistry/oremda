@@ -1,7 +1,8 @@
 import base64
 import io
 import functools
-from typing import Dict, Callable
+from typing import Dict, Callable, cast
+import numpy as np
 
 from oremda.display import DisplayHandle, DisplayType
 from oremda.typing import IdType, Port
@@ -28,8 +29,10 @@ class DisplayHandle1D(DisplayHandle):
         if input.data is None:
             return
 
-        x = list(input.data.data[0])
-        y = list(input.data.data[1])
+        data = cast(np.ndarray, input.data.data)
+
+        x = list(data[0])
+        y = list(data[1])
 
         label = None
         if input.meta is not None:
@@ -84,8 +87,9 @@ class DisplayHandle2D(DisplayHandle):
         if input.data is None:
             return
 
-        shape = input.data.data.shape
-        scalars = input.data.data.flatten()
+        data = cast(np.ndarray, input.data.data)
+        shape = data.shape
+        scalars = data.flatten()
 
         payload = {
             "displayId": self.id,

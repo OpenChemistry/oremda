@@ -90,7 +90,7 @@ class DataArray(ABC):
 
 class Port(BaseModel):
     meta: Optional[MetaType] = None
-    data: Any = None
+    data: Optional[DataArray] = None
 
     class Config:
         arbitrary_types_allowed = True
