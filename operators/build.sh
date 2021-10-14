@@ -37,6 +37,8 @@ directories=(
   scatter
   vector
   histograms
+  http_reader
+  data_container
 )
 
 build_args=()

@@ -11,7 +11,7 @@ IdType = Union[str, UUID]
 PortKey = str
 ParamKey = str
 JSONType = Dict[str, Any]
-DataType = np.ndarray
+DataType = Union[np.ndarray, bytes]
 MetaType = JSONType
 
 
@@ -34,6 +34,7 @@ class NodeType(str, Enum):
 
 class PortType(str, Enum):
     Data = "data"
+    Binary = "binary"
     Display = "display"
 
 
@@ -97,7 +98,7 @@ class Port(BaseModel):
 
 class RawPort(BaseModel):
     meta: Optional[MetaType] = None
-    data: Optional[DataType] = None
+    data: Any = None
 
     class Config:
         arbitrary_types_allowed = True
