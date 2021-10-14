@@ -2,6 +2,8 @@
 
 The OREMDA project is developing an open source platform for the analysis and visualization of electron microcopy data sets. We are leveraging container technologies to encapsulate processing into scalable, reproducible pipelines. 
 
+<img src="https://github.com/OpenChemistry/oremda/blob/master/docs/images/peak.png?raw=true" >
+
 The OREMDA project is funded by DOE Office of Science contract DE-SC0021601.
 
 
