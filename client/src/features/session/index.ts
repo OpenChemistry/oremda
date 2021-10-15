@@ -19,9 +19,8 @@ export const createSession = createAsyncThunk<Session>(
   async (payload, thunkAPI) => {
     const session = await createSessionAPI();
 
-    thunkAPI.dispatch(connectWebSocket({sessionId: session.id})).then(action => {
+    thunkAPI.dispatch(connectWebSocket({sessionId: session.id}));
 
-    }) ;
     return session;
   }
 );
