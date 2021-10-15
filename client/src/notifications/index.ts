@@ -12,10 +12,10 @@ interface NotificationEventListener {
 }
 
 class NotificationEventListenerObject implements EventListenerObject {
-    listeners: Map<string, NotificationEventListener[]>
+    listeners: Map<string, Set<NotificationEventListener>>
 
     constructor() {
-        this.listeners = new Map<string, NotificationEventListener[]>();
+        this.listeners = new Map<string, Set<NotificationEventListener>>();
     }
 
     async decodeFromBlob(blob: Blob) {
@@ -35,20 +35,19 @@ class NotificationEventListenerObject implements EventListenerObject {
                 return;
             }
 
-
-            for (const listener of listeners)  {
+            listeners.forEach((listener: NotificationEventListener) => {
                 listener(data)
-            }
+            });
         });
     }
 
     addNotificationEventListener(type: string, listener: NotificationEventListener ) {
         let listeners = this.listeners.get(type)
         if (listeners === undefined) {
-            this.listeners.set(type, [listener])
+            this.listeners.set(type, new Set<NotificationEventListener>([listener]))
         }
         else {
-            listeners.push(listener);
+            listeners.add(listener);
         }
     }
 
@@ -58,10 +57,7 @@ class NotificationEventListenerObject implements EventListenerObject {
             return;
         }
 
-        const index = listeners.indexOf(listener, 0);
-        if (index > -1) {
-            listeners.splice(index, 1);
-        }
+        listeners.delete(listener)
     }
 }
 
