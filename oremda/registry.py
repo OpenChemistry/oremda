@@ -9,6 +9,8 @@ from oremda.typing import (
     OperatorConfig,
     PortKey,
     PortInfo,
+    PortType,
+    PortDataType,
     TerminateTaskMessage,
 )
 from oremda.plasma_client import PlasmaClient
@@ -16,6 +18,19 @@ from oremda.clients.base.client import ClientBase as ContainerClient
 from oremda.clients.base.container import ContainerBase
 from oremda.messengers import MQPMessenger
 from oremda.utils.mpi import mpi_rank
+
+
+def port_type_to_port_datatype(port_type: PortType) -> PortDataType:
+    """
+    Convert a high level PortType into the lower level PortDataType with the
+    appropriate constraints. For now its a simple mapping.
+    """
+    if port_type == PortType.Binary:
+        return PortDataType.Binary
+    elif port_type == PortType.Display:
+        return PortDataType.Display
+    else:
+        return PortDataType.Data
 
 
 class ImageInfo(BaseModel):
@@ -62,11 +77,15 @@ class Registry:
             **{
                 "name": labels.name,
                 "inputs": {
-                    name: PortInfo(**{"name": name, "type": value.type})
+                    name: PortInfo(
+                        **{"name": name, "type": port_type_to_port_datatype(value.type)}
+                    )
                     for name, value in labels.ports.input.items()
                 },
                 "outputs": {
-                    name: PortInfo(**{"name": name, "type": value.type})
+                    name: PortInfo(
+                        **{"name": name, "type": port_type_to_port_datatype(value.type)}
+                    )
                     for name, value in labels.ports.output.items()
                 },
                 "params": {k: v.dict() for k, v in labels.params.items()},

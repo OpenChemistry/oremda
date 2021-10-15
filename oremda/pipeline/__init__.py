@@ -28,7 +28,7 @@ from typing import (
 from oremda.pipeline.operator import OperatorException, OperatorHandle
 from oremda.utils.id import unique_id, port_id
 from oremda.typing import PortType, NodeType, IOType
-from oremda.registry import Registry
+from oremda.registry import Registry, port_type_to_port_datatype
 from oremda.plasma_client import PlasmaClient
 from oremda.display import DisplayFactory, DisplayHandle, NoopDisplayHandle
 
@@ -479,8 +479,12 @@ def deserialize_pipeline(
         port_type = _edge.type
         from_node = _edge.start
         to_node = _edge.stop
-        from_port = PortInfo(type=port_type, name=from_node.port)
-        to_port = PortInfo(type=port_type, name=to_node.port)
+        from_port = PortInfo(
+            type=port_type_to_port_datatype(port_type), name=from_node.port
+        )
+        to_port = PortInfo(
+            type=port_type_to_port_datatype(port_type), name=to_node.port
+        )
         edge = PipelineEdge(from_node.id, from_port, to_node.id, to_port)
 
         edges.append(edge)

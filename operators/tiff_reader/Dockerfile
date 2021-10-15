@@ -9,7 +9,7 @@ COPY run.py /
 
 LABEL oremda.name="tiff_reader" \
       oremda.ports.input.data.type="binary" \
-      oremda.ports.output.out.type="data" \
+      oremda.ports.output.out.type="image" \
       oremda.params.filename.type="string"
 
 USER oremda

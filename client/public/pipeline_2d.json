@@ -50,17 +50,17 @@
         "to": { "id": "10", "port": "data" }
       },
       {
-        "type": "data",
+        "type": "image",
         "from": { "id": "10", "port": "out" },
         "to": { "id": "11", "port": "image" }
       },
       {
-        "type": "data",
+        "type": "image",
         "from": { "id": "10", "port": "out" },
         "to": { "id": "20", "port": "in" }
       },
       {
-        "type": "data",
+        "type": "image",
         "from": { "id": "11", "port": "image" },
         "to": { "id": "21", "port": "in" }
       },
