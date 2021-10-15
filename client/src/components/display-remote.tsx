@@ -40,24 +40,16 @@ const DisplayRemoteComponent: React.FC<Props> = (props) => {
         return;
       }
 
-      const data = ev.data;
-
-      if (data.type !== '@@OREMDA') {
+      if (ev.payload.displayId !== props.display.id) {
         return;
       }
 
-      if (data.payload.displayId !== props.display.id) {
-        return;
-      }
-
-      if (data.action === 'DISPLAY_RENDER') {
-        const blob = new Blob([data.payload.imageSrc], { type: 'image/png' });
-        const url = URL.createObjectURL(blob);
-        displayHandle.current.render(url);
-      }
+      const blob = new Blob([ev.payload.imageSrc], { type: 'image/png' });
+      const url = URL.createObjectURL(blob);
+      displayHandle.current.render(url);
     }
 
-    notifications.addNotificationEventListener('message', listener);
+    notifications.addNotificationEventListener('DISPLAY_RENDER', listener);
 
     return () => notifications.removeNotificationEventListener('message', listener);
   }, [notifications]);

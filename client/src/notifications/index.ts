@@ -3,8 +3,8 @@ import { decodeAsync } from "@msgpack/msgpack";
 
 
 export interface NotificationEvent {
-    type: string
-    data: any
+    action: string
+    payload: any
 }
 
 interface NotificationEventListener {
@@ -12,10 +12,10 @@ interface NotificationEventListener {
 }
 
 class NotificationEventListenerObject implements EventListenerObject {
-    listener: NotificationEventListener
+    listeners: Map<string, NotificationEventListener[]>
 
-    constructor(listener: NotificationEventListener) {
-        this.listener = listener;
+    constructor() {
+        this.listeners = new Map<string, NotificationEventListener[]>();
     }
 
     async decodeFromBlob(blob: Blob) {
@@ -24,33 +24,63 @@ class NotificationEventListenerObject implements EventListenerObject {
 
     handleEvent(event: MessageEvent) {
         const type = event.type;
-        this.decodeFromBlob(event.data).then((data) => {
-            this.listener({type, data});
+        this.decodeFromBlob(event.data).then((data: any) => {
+            if (data.type !== '@@OREMDA') {
+                return;
+            }
+
+            const action = data.action;
+            const listeners = this.listeners.get(action)
+            if (listeners === undefined) {
+                return;
+            }
+
+
+            for (const listener of listeners)  {
+                listener(data)
+            }
         });
+    }
+
+    addNotificationEventListener(type: string, listener: NotificationEventListener ) {
+        let listeners = this.listeners.get(type)
+        if (listeners === undefined) {
+            this.listeners.set(type, [listener])
+        }
+        else {
+            listeners.push(listener);
+        }
+    }
+
+    removeNotificationEventListener(type: string, listener: NotificationEventListener) {
+        let listeners = this.listeners.get(type)
+        if (listeners === undefined) {
+            return;
+        }
+
+        const index = listeners.indexOf(listener, 0);
+        if (index > -1) {
+            listeners.splice(index, 1);
+        }
     }
 }
 
 export class NotificationsEventSource {
     ws: WebSocket
-    listeners: Map<NotificationEventListener, NotificationEventListenerObject>;
+    listener:  NotificationEventListenerObject;
 
     constructor(ws: WebSocket) {
         this.ws = ws;
-        this.listeners = new Map<NotificationEventListener, NotificationEventListenerObject>();
+        this.listener = new NotificationEventListenerObject();
+        this.ws.addEventListener("message", this.listener)
     }
 
     addNotificationEventListener(type: string, listener: NotificationEventListener ) {
-        const webSocketListener = new NotificationEventListenerObject(listener);
-        this.ws.addEventListener(type, webSocketListener);
-        this.listeners.set(listener, webSocketListener);
+        this.listener.addNotificationEventListener(type, listener);
     }
 
     removeNotificationEventListener(type: string, listener: NotificationEventListener) {
-        const webSocketListener = this.listeners.get(listener);
-
-        if (webSocketListener !== undefined) {
-            this.ws.removeEventListener(type, webSocketListener);
-        }
+        this.listener.removeNotificationEventListener(type, listener);
     }
 }
 

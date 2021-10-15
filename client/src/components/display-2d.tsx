@@ -86,37 +86,58 @@ const Display2DComponent: React.FC<Props> = (props) => {
       return;
     }
 
-    const listener = (ev: NotificationEvent) => {
-      if (!displayHandle.current) {
-        return;
-      }
-
-      const data = ev.data;
-
-      if (data.type !== '@@OREMDA') {
-        return;
-      }
-
-      if (data.payload.displayId !== props.display.id) {
-        return;
-      }
-
-      if (data.action === 'DISPLAY_ADD_INPUT') {
-        const { sourceId, ...rest } = data.payload;
-        displayHandle.current.addInput(sourceId, rest);
-      }  else if (data.action === 'DISPLAY_REMOVE_INPUT') {
-        const { sourceId } = data.payload;
-        displayHandle.current.removeInput(sourceId);
-      } else if (data.action === 'DISPLAY_CLEAR_INPUTS') {
-        displayHandle.current.clearInputs();
-      } else if (data.action === 'DISPLAY_RENDER') {
-        displayHandle.current.render();
-      }
+    const validDisplayHandle =  (): boolean => {
+      return displayHandle.current !== undefined;
     }
 
-    notifications.addNotificationEventListener('message', listener);
+    const matchingDisplay = (ev: NotificationEvent): boolean => {
+      return ev.payload.displayId === props.display.id;
+    }
 
-    return () => notifications.removeNotificationEventListener('message', listener);
+    const addInputListener = (ev: NotificationEvent) => {
+      if (!validDisplayHandle() || !matchingDisplay(ev)) {
+        return;
+      }
+
+      const { sourceId, ...rest } = ev.payload;
+      displayHandle.current.addInput(sourceId, rest);
+    }
+
+    const removeInputListener = (ev: NotificationEvent) => {
+      if (!validDisplayHandle() || !matchingDisplay(ev)) {
+        return;
+      }
+
+      const { sourceId } = ev.payload;
+      displayHandle.current.removeInput(sourceId);
+    }
+
+    const clearInputsListener = (ev: NotificationEvent) => {
+      if (!validDisplayHandle() || !matchingDisplay(ev)) {
+        return;
+      }
+      displayHandle.current.clearInputs();
+    }
+
+    const renderListener = (ev: NotificationEvent) => {
+      if (!validDisplayHandle() || !matchingDisplay(ev)) {
+        return;
+      }
+
+      displayHandle.current.render();
+    }
+
+    notifications.addNotificationEventListener('DISPLAY_ADD_INPUT', addInputListener);
+    notifications.addNotificationEventListener('DISPLAY_REMOVE_INPUT', removeInputListener);
+    notifications.addNotificationEventListener('DISPLAY_CLEAR_INPUTS', clearInputsListener);
+    notifications.addNotificationEventListener('DISPLAY_RENDER', renderListener);
+
+    return () => {
+      notifications.removeNotificationEventListener('DISPLAY_ADD_INPUT', addInputListener);
+      notifications.removeNotificationEventListener('DISPLAY_REMOVE_INPUT', removeInputListener);
+      notifications.removeNotificationEventListener('DISPLAY_CLEAR_INPUTS', clearInputsListener);
+      notifications.removeNotificationEventListener('DISPLAY_RENDER', renderListener);
+    }
   }, [notifications]);
     return <img style={{objectFit: 'contain', width: '100%'}} ref={container}/>;
 }
