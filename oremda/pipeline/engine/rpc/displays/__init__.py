@@ -1,4 +1,3 @@
-import base64
 import io
 import functools
 from typing import Dict, Callable, cast
@@ -132,12 +131,12 @@ class DisplayHandle2D(DisplayHandle):
 def remote_render(self):
     file_obj = io.BytesIO()
     self.raw_render(file_obj)
-    img_src = base64.b64encode(file_obj.getvalue()).decode()
+    img_src = file_obj.getvalue()
     file_obj.close()
 
     payload = {
         "displayId": self.id,
-        "imageSrc": f"data:image/png;base64,{img_src}",
+        "imageSrc": img_src,
     }
 
     message = generic_message(ActionType.DisplayRender, payload)

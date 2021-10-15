@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 
-import { useAppSelector } from '../app/hooks';
 import { Display } from '../types/pipeline';
+import { useNotifications, NotificationEvent} from '../notifications';
+
+
 
 type Props = {
     display: Display;
@@ -22,41 +24,35 @@ class RemoteDisplayHandle {
 }
 
 const DisplayRemoteComponent: React.FC<Props> = (props) => {
-  const ws = useAppSelector((state) => state.notifications.ws);
-
   const container = useRef<HTMLImageElement>(null);
 
   const displayHandle = useRef(new RemoteDisplayHandle(container));
 
+  const notifications = useNotifications();
+
   useEffect(() => {
-    if (!ws) {
+    if (notifications === undefined) {
       return;
     }
 
-    const listener = (ev: MessageEvent) => {
+    const listener = (ev: NotificationEvent) => {
       if (!displayHandle.current) {
         return;
       }
 
-      const data = JSON.parse(ev.data);
-
-      if (data.type !== '@@OREMDA') {
+      if (ev.payload.displayId !== props.display.id) {
         return;
       }
 
-      if (data.payload.displayId !== props.display.id) {
-        return;
-      }
-
-      if (data.action === 'DISPLAY_RENDER') {
-        displayHandle.current.render(data.payload.imageSrc);
-      }
+      const blob = new Blob([ev.payload.imageSrc], { type: 'image/png' });
+      const url = URL.createObjectURL(blob);
+      displayHandle.current.render(url);
     }
 
-    ws.addEventListener('message', listener);
+    notifications.addNotificationEventListener('DISPLAY_RENDER', listener);
 
-    return () => ws.removeEventListener('message', listener);
-  }, [ws]);
+    return () => notifications.removeNotificationEventListener('message', listener);
+  }, [notifications]);
     return <img style={{objectFit: 'contain', width: '100%'}} ref={container}/>;
 }
 

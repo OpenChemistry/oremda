@@ -4,7 +4,10 @@ from fastapi_websocket_rpc import RpcMethodsBase, WebSocketRpcClient
 
 from oremda.typing import DisplayType, IdType, JSONType, PipelineJSON
 from oremda.pipeline.engine.context import GlobalContext, SessionWebModel, SessionModel
-from oremda.pipeline.engine.rpc.messages import NotificationMessage, pipeline_created
+from oremda.pipeline.engine.rpc.messages import (
+    NotificationMessage,
+    pipeline_created,
+)
 from oremda.pipeline.engine.rpc.observer import ServerPipelineObserver
 from oremda.pipeline.engine.rpc.models import PipelineModel, SerializablePipelineModel
 from oremda.pipeline import deserialize_pipeline
@@ -16,12 +19,15 @@ from oremda.pipeline.engine.rpc.displays import (
     RemoteRenderDisplayHandle1D,
     RemoteRenderDisplayHandle2D,
 )
+from oremda.pipeline.engine.rpc.serialization import MsgpackSerializingWebSocket
 
 
 class RpcClient(WebSocketRpcClient):
     def __init__(self, uri: str, context: GlobalContext):
         super().__init__(
-            uri, methods=PipelineRunnerMethods(context, self)  # type: ignore
+            uri,  # type: ignore
+            methods=PipelineRunnerMethods(context, self),
+            serializing_socket_cls=MsgpackSerializingWebSocket,
         )
 
     async def notify_clients(self, message: JSONType, session_id: IdType):
