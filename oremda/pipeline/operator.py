@@ -137,20 +137,31 @@ class OperatorHandle:
         output = outputs[0]
 
         # Now grab the output parameter to stack
-        output_to_stack = settings.parallel_output_to_stack
+        output_to_join = settings.parallel_output_to_join
 
-        if output_to_stack is not None:
-            if any(output_to_stack not in x for x in outputs):
-                raise Exception(f"{output_to_stack} is not in all outputs: {outputs=}")
+        if output_to_join is not None:
+            if any(output_to_join not in x for x in outputs):
+                raise Exception(f"{output_to_join} is not in all outputs: {outputs=}")
 
-            # Stack it.
-            output[output_to_stack] = Port(
+            # Join methods take a list of arrays to join
+            join_methods = {
+                "stack": np.hstack,
+                "sum": sum,
+            }
+            method_name = settings.parallel_output_join_method
+            if method_name not in join_methods:
+                raise NotImplementedError(method_name)
+
+            join = join_methods[method_name]
+
+            # Join.
+            output[output_to_join] = Port(
                 **{
                     "data": PlasmaArray(
                         self.client,
-                        np.hstack([x[output_to_stack].data.data for x in outputs]),
+                        join([x[output_to_join].data.data for x in outputs]),
                     ),
-                    "meta": outputs[0][output_to_stack].meta,
+                    "meta": outputs[0][output_to_join].meta,
                 }
             )
 

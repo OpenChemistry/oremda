@@ -255,7 +255,8 @@ class OperatorConfig(BaseModel):
     parallel: bool = False
     distribute_parallel_tasks: bool = True
     parallel_param: Optional[str] = None
-    parallel_output_to_stack: Optional[str] = None
+    parallel_output_to_join: Optional[str] = None
+    parallel_output_join_method: str = "stack"
 
     @property
     def num_containers(self):
@@ -274,9 +275,9 @@ class OperatorConfig(BaseModel):
             raise Exception(msg)
 
         if self.parallel:
-            if not self.parallel_param or not self.parallel_output_to_stack:
+            if not self.parallel_param or not self.parallel_output_to_join:
                 msg = (
                     "If parallel is True, then parallel_param and "
-                    "parallel_output_to_stack are required!"
+                    "parallel_output_to_join are required!"
                 )
                 raise Exception(msg)
