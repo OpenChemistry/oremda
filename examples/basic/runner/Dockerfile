@@ -13,7 +13,8 @@ RUN apt-get update && \
       libgpgme11-dev \
       squashfs-tools \
       libseccomp-dev \
-      pkg-config && \
+      pkg-config \
+      wget && \
     rm -rf /var/lib/apt/lists/*
 
 RUN export VERSION=1.17 OS=linux ARCH=amd64 && \

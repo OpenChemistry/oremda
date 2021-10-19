@@ -11,4 +11,4 @@ sudo singularity run \
   --bind $OREMDA_DIR:/oremda \
   --bind $RUNNER_DIR:/runner \
   --ipc \
-  $IMAGES_DIR/oremda_runner.sif
+  $IMAGES_DIR/oremda_runner.sif "$@"
