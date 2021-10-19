@@ -253,6 +253,7 @@ class OperatorLabels(BaseModel):
 class OperatorConfig(BaseModel):
     run_locations: Sequence[int] = [0]
     parallel: bool = False
+    parallel_aware_operator: bool = False  # the operator itself is parallel-aware
     distribute_parallel_tasks: bool = True
     parallel_param: Optional[str] = None
     parallel_output_to_join: Optional[str] = None
@@ -274,7 +275,7 @@ class OperatorConfig(BaseModel):
             )
             raise Exception(msg)
 
-        if self.parallel:
+        if self.parallel and not self.parallel_aware_operator:
             if not self.parallel_param or not self.parallel_output_to_join:
                 msg = (
                     "If parallel is True, then parallel_param and "

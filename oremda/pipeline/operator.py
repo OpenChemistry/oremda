@@ -87,14 +87,19 @@ class OperatorHandle:
 
     def execute_parallel(self, inputs: Dict[PortKey, Port], output_queue: str):
         settings = self.operator_config
+        parameters = self.parameters
 
-        if settings.parallel_param is None:
-            msg = f"{settings.parallel_param} is not defined, can't run in parallel!"
-            raise Exception(msg)
+        if settings.parallel_aware_operator:
+            # The operator itself is parallel-aware. Override our settings
+            # to allow it to work.
+            settings = copy.deepcopy(settings)
+            parameters = copy.deepcopy(parameters)
 
-        if settings.parallel_param not in self.parameters:
-            msg = f"{settings.parallel_param} is not in {self.parameters}!"
-            raise Exception(msg)
+            settings.parallel_param = "parallel_index"
+            parameters["parallel_index"] = list(range(settings.num_containers))
+            parameters["parallel_world_size"] = settings.num_containers
+
+        self.validate_parallel_param(settings, parameters)
 
         msg = OperateTaskMessage(
             **{
@@ -103,14 +108,18 @@ class OperatorHandle:
             }
         )
 
-        task_list = self.parameters[settings.parallel_param]
+        task_list = parameters[settings.parallel_param]
         if settings.distribute_parallel_tasks:
             distributed = distribute_tasks(len(task_list), settings.num_containers)
             task_list = [task_list[start:stop] for start, stop in distributed]
 
+        if settings.parallel_aware_operator:
+            # There should only be one task in each. Let's reduce it down.
+            task_list = [x[0] for x in task_list]
+
         # Message queue messengers are non-blocking. Send them all right away.
         for i, task in enumerate(task_list):
-            params = copy.deepcopy(self.parameters)
+            params = copy.deepcopy(parameters)
             params[settings.parallel_param] = task
             msg.params = params
             msg.parallel_index = i
@@ -166,3 +175,13 @@ class OperatorHandle:
             )
 
         return output
+
+    @staticmethod
+    def validate_parallel_param(settings, parameters):
+        if settings.parallel_param is None:
+            msg = f"{settings.parallel_param} is not defined, can't run in parallel!"
+            raise Exception(msg)
+
+        if settings.parallel_param not in parameters:
+            msg = f"{settings.parallel_param} is not in {parameters}!"
+            raise Exception(msg)
