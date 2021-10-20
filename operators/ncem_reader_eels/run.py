@@ -5,7 +5,7 @@ from pathlib import Path
 import ncempy.io as nio
 
 from oremda import operator
-from oremda.typing import JSONType, PortKey, RawPort
+from oremda.typing import JSONType, PortKey, RawPort, EELSMetadata, Metadata
 
 
 @operator
@@ -21,9 +21,11 @@ def ncem_reader_eels(
     eloss = spectrum["coords"][1]
     spec = spectrum["data"][0, :]
 
+    meta = Metadata(dataset=EELSMetadata(units=spectrum["pixelUnit"]))
+
     outputs = {
-        "eloss": RawPort(data=eloss),
-        "spec": RawPort(data=spec),
+        "eloss": RawPort(data=eloss, meta=meta),
+        "spec": RawPort(data=spec, meta=meta),
     }
 
     return outputs
