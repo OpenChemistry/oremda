@@ -33,6 +33,19 @@ class SpectroscopyMetadata(BaseMetadata):
     units: Optional[List[str]] = None
 
 
+class EELSMetadata(SpectroscopyMetadata):
+    aperture: Optional[float] = None
+    angle: Optional[float] = None
+    exposure: Optional[float] = None
+    numberOfSpectra: Optional[int] = None
+    spectrometer: Optional[str] = None
+
+
+class EDSMetadata(SpectroscopyMetadata):
+    azimuth: Optional[float] = None
+    elevation: Optional[float] = None
+
+
 class DiffractionMetadata(BaseMetadata):
     pass
 
