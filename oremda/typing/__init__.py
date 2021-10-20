@@ -147,7 +147,7 @@ class Port(BaseModel):
 
 
 class RawPort(BaseModel):
-    meta: Optional[MetaType] = None
+    meta: Optional[Metadata] = None
     data: Any = None
 
     class Config:
@@ -158,7 +158,7 @@ class RawPort(BaseModel):
         raw_port = cls()
 
         if port.meta is not None:
-            raw_port.meta = port.meta
+            raw_port.meta = Metadata(**port.meta)
 
         if port.data is not None:
             raw_port.data = port.data.data
@@ -169,7 +169,7 @@ class RawPort(BaseModel):
         port = Port()
 
         if self.meta is not None:
-            port.meta = self.meta
+            port.meta = self.meta.dict()
 
         if self.data is not None:
             array = array_factory(self.data)
