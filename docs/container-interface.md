@@ -12,6 +12,7 @@ The format of the support is labels is as follows:
 UI to describe the operator.
 - `oremda.ports.input.<port_name>` - The data type for input port name `<port_name>`.
 - `oremda.ports.output.<port_name>` - The data type for output port name `<port_name>`.
+- `oremda.metadata.<key>` - This can be used to attach any custom metadata to the operator.
 
 Here is an example adding labels in a Dockerfile:
 
