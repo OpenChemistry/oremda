@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -26,6 +26,7 @@ class ImageInfo(BaseModel):
     containers: List[ContainerBase] = []
     running: bool = False
     operator_config: OperatorConfig = OperatorConfig()
+    metadata: Optional[Dict[str, JSONType]] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -73,6 +74,10 @@ class Registry:
                 "operator_config": OperatorConfig(**operator_config),
             }
         )
+
+        if labels.metadata is not None:
+            info.metadata = labels.metadata
+
         self.images[image_name] = info
 
     def _inspect(self, image_name: str):
