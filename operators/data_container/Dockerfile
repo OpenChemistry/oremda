@@ -6,7 +6,8 @@ COPY run.py /
 COPY data.tiff /
 
 LABEL oremda.name="data_container" \
-      oremda.ports.output.data.type="binary"
+      oremda.ports.output.data.type="binary" \
+      oremda.metadata.provenance="Tomviz dataset"
 
 USER oremda
 

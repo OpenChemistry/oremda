@@ -247,6 +247,7 @@ class OperatorLabels(BaseModel):
     description: Optional[str]
     ports: PortsLabels
     params: Dict[ParamKey, ParamLabels] = {}
+    metadata: Optional[JSONType]
 
 
 class OperatorConfig(BaseModel):
