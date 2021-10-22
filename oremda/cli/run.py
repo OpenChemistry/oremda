@@ -1,21 +1,24 @@
 #!/usr/bin/env python
 import json
 import os
-import click
 from typing import cast
 
+import click
+
 from oremda.clients import Client as ContainerClient
-from oremda.clients.singularity import SingularityClient
 from oremda.clients.docker import DockerClient
-from oremda.plasma_client import PlasmaClient
-from oremda.registry import Registry
+from oremda.clients.singularity import SingularityClient
 from oremda.constants import (
     DEFAULT_DATA_DIR,
     DEFAULT_OREMDA_VAR_DIR,
 )
-from oremda.utils.plasma import start_plasma_store
-from oremda.typing import ContainerType
 from oremda.display import display_factory
+from oremda.event_loops import MPINonRootEventLoop, MPIRootEventLoop
+from oremda.plasma_client import PlasmaClient
+from oremda.registry import Registry
+from oremda.typing import ContainerType
+from oremda.utils.mpi import mpi_rank, mpi_world_size
+from oremda.utils.plasma import start_plasma_store
 import oremda.pipeline
 
 
@@ -26,21 +29,32 @@ import oremda.pipeline
 )
 @click.argument("pipeline_json", type=click.File("r"))
 def main(pipeline_json: click.File):
-    if "SINGULARITY_BIND" in os.environ:
-        # This means we are running singularity
-        container_type = ContainerType.Singularity
 
-        # Remove this so we don't repeat the parent container's bind mounting
+    if os.environ.get("SINGULARITY_CONTAINER") and "SINGULARITY_BIND" in os.environ:
+        # The runner is in a singularity container.
+        # Avoid repeating the runner bindings for the operators.
         del os.environ["SINGULARITY_BIND"]
-    else:
-        container_type = ContainerType.Docker
+
+    container_types = {
+        "docker": ContainerType.Docker,
+        "singularity": ContainerType.Singularity,
+    }
+
+    container_type_env = os.environ.get("OREMDA_CONTAINER_TYPE", "docker")
+    if container_type_env not in container_types:
+        raise NotImplementedError(container_type_env)
+
+    container_type = container_types[container_type_env]
 
     oremda_var_dir = os.environ.get("OREMDA_VAR_DIR") or DEFAULT_OREMDA_VAR_DIR
     oremda_data_dir = os.environ.get("OREMDA_DATA_DIR") or DEFAULT_DATA_DIR
+    sif_dir = os.environ.get("OREMDA_SIF_DIR", "/images")
+    plasma_memory = int(os.environ.get("OREMDA_PLASMA_MEMORY", 50_000_000))
+    operator_config_file = os.environ.get("OREMDA_OPERATOR_CONFIG_FILE")
     plasma_socket_path = f"{oremda_var_dir}/plasma.sock"
 
     plasma_kwargs = {
-        "memory": 50_000_000,
+        "memory": plasma_memory,
         "socket_path": plasma_socket_path,
     }
 
@@ -49,9 +63,14 @@ def main(pipeline_json: click.File):
         container_client = ContainerClient(container_type)
 
         if container_type == ContainerType.Singularity:
-            cast(SingularityClient, container_client).images_dir = "/images"
+            cast(SingularityClient, container_client).images_dir = sif_dir
 
-        registry = Registry(plasma_client, container_client)
+        registry_kwargs = {
+            "plasma_client": plasma_client,
+            "container_client": container_client,
+            "operator_config_file": operator_config_file,
+        }
+        registry = Registry(**registry_kwargs)
 
         try:
             run_kwargs = {
@@ -65,7 +84,6 @@ def main(pipeline_json: click.File):
                 volumes = {
                     oremda_var_dir: {"bind": DEFAULT_OREMDA_VAR_DIR},
                     oremda_data_dir: {"bind": DEFAULT_DATA_DIR},
-                    "/oremda": {"bind": "/oremda"},
                 }
                 run_kwargs["volumes"] = volumes
             if container_type == ContainerType.Docker:
@@ -98,6 +116,21 @@ def main(pipeline_json: click.File):
             pipeline = oremda.pipeline.deserialize_pipeline(
                 pipeline_obj, plasma_client, registry, display_factory
             )
-            pipeline.run()
+
+            if mpi_rank == 0:
+                if mpi_world_size > 1:
+                    future = MPIRootEventLoop().start_event_loop()
+
+                pipeline.run()
+            else:
+                registry.start_containers()
+                future = MPINonRootEventLoop().start_event_loop(registry)
+                # Wait for the event loop to finish
+                future.result()
         finally:
-            registry.release()
+            if mpi_rank == 0:
+                registry.release()
+
+                if mpi_world_size > 1:
+                    # Wait for the event loop to finish
+                    future.result()
