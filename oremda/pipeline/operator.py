@@ -108,7 +108,7 @@ class OperatorHandle:
             }
         )
 
-        task_list = parameters[settings.parallel_param]
+        task_list = parameters[settings.parallel_param]  # type: ignore
         if settings.distribute_parallel_tasks:
             distributed = distribute_tasks(len(task_list), settings.num_containers)
             task_list = [task_list[start:stop] for start, stop in distributed]
@@ -120,7 +120,7 @@ class OperatorHandle:
         # Message queue messengers are non-blocking. Send them all right away.
         for i, task in enumerate(task_list):
             params = copy.deepcopy(parameters)
-            params[settings.parallel_param] = task
+            params[settings.parallel_param] = task  # type: ignore
             msg.params = params
             msg.parallel_index = i
             self.messenger.send(msg, self.input_queue)
