@@ -43,7 +43,7 @@ def generate_bragg_vector_map(datacube, probe, R_xys, **kwargs):
 def load_dm3_file(filepath):
     datacube = py4DSTEM.io.read(filepath, mem="MEMMAP")
 
-    # The DM3 file is old and DM3 cant store 4D data...only 3D data
+    # The DM3 file is old and DM3 can't store 4D data...only 3D data
     # We wrote tags in the DM3 with the correct shape.
     # Get the correct shape and set it
     # FIXME: hard coded

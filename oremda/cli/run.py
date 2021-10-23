@@ -71,6 +71,7 @@ def main(pipeline_json: click.File):
             "operator_config_file": operator_config_file,
         }
         registry = Registry(**registry_kwargs)
+        future = None
 
         try:
             run_kwargs = {
@@ -131,6 +132,6 @@ def main(pipeline_json: click.File):
             if mpi_rank == 0:
                 registry.release()
 
-                if mpi_world_size > 1:
+                if mpi_world_size > 1 and future is not None:
                     # Wait for the event loop to finish
                     future.result()

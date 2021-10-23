@@ -23,7 +23,7 @@ jobs:
 
       # FIXME: is there a better way for us to do these?
       # Install operator dependencies
-      - run: pip install vtk ncempy matplotlib
+      - run: pip install vtk ncempy matplotlib git+https://github.com/py4DSTEM/py4DSTEM.git@7e4933ecd593e36702a4b7a34ee13c67d2ffea9d
 
       # Install and run pre-commit
       - run: pip install pre-commit
