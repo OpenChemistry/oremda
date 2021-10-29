@@ -14,6 +14,7 @@ export enum DisplayType {
 export enum PortType {
   Data = 'data',
   Display = 'display',
+  Binary = 'binary',
 }
 
 export type BasePipelineNode = {

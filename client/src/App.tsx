@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import { useAppDispatch } from './app/hooks';
 import DisplaysPanel from './components/displays-panel';
-import PipelineComponent from './components/pipeline-graph';
 import PipelinesPanel from './components/pipelines-panel';
 import StatusBar from './components/status-bar';
 import { createSession } from './features/session';

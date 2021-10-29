@@ -2,29 +2,36 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import createEngine, {
   DefaultLinkModel,
-  DefaultNodeModel,
-  DiagramModel, DagreEngine, LinkModel, PortModel, DefaultPortModel
+  DiagramModel, DagreEngine, LinkModel,
 } from '@projectstorm/react-diagrams';
+
+import { OremdaNodeModel, OremdaPortModel } from './models';
+import { OremdaNodeFactory } from './factories';
 
 import {
   CanvasWidget
 } from '@projectstorm/react-canvas-core';
 
-import { NodeType, Pipeline } from '../types/pipeline';
+import { NodeType, Pipeline } from '../../types/pipeline';
 
 type Props = {
   pipeline: Pipeline;
 };
 
-const inputPortId = (name: string) => `in://${name}`;
-const outputPortId = (name: string) => `out://${name}`;
+function createCustomEngine() {
+  const engine = createEngine();
+
+  engine.getNodeFactories().registerFactory(new OremdaNodeFactory());
+
+  return engine;
+}
 
 const PipelineComponent: React.FC<Props> = (props) => {
 
   const { pipeline } = props;
 
   const [iter, setIter] = useState(0);
-  const engine = useRef(createEngine());
+  const engine = useRef(createCustomEngine());
   const dagre = useRef(new DagreEngine({
     graph: {
       rankdir: 'LR',
@@ -45,56 +52,37 @@ const PipelineComponent: React.FC<Props> = (props) => {
       return;
     }
 
-    const nodes: {[key: string]: DefaultNodeModel} = {};
+    const nodes: {[key: string]: OremdaNodeModel} = {};
     pipeline.nodes.forEach((node, i) => {
-      let nodeModel: DefaultNodeModel;
-
-      if (node.type === NodeType.Operator) {
-        nodeModel = new DefaultNodeModel({
-          name: `${node.id} - ${(node as any).image}`,
-          color: 'rgb(0,192,255)',
-        });
-      } else if (node.type === NodeType.Display) {
-        nodeModel = new DefaultNodeModel({
-          name: `${node.id} - Display (${(node as any).display})`,
-          color: 'rgb(255,192,0)',
-        });
-      } else {
-        throw new Error('Unknown node type');
-      }
-
+      let nodeModel = new OremdaNodeModel(node);
       nodes[node.id] = nodeModel;
     });
 
     const links: LinkModel[] = [];
     pipeline.edges.forEach((edge) => {
-      let sourcePort: PortModel | null = null;
-      let targetPort: PortModel | null = null;
+      let sourcePort: OremdaPortModel | null = null;
+      let targetPort: OremdaPortModel | null = null;
 
       if (nodes[edge.from.id]) {
         const node = nodes[edge.from.id];
         const portLabel = edge.from.port;
-        const portId = outputPortId(edge.from.port);
+        const portType = edge.type;
 
-        sourcePort = node.getPort(portId);
+        sourcePort = node.getOutPort(portLabel);
         if (!sourcePort) {
-          const port = new DefaultPortModel({name: portId, label: portLabel, in: false});
-          node.addPort(port);
-          sourcePort = port;
-        };
+          sourcePort = node.addOutPort(portLabel, portType);
+        }
       }
 
       if (nodes[edge.to.id]) {
         const node = nodes[edge.to.id];
         const portLabel = edge.to.port;
-        const portId = inputPortId(edge.to.port);
+        const portType = edge.type;
 
-        targetPort = node.getPort(portId);
+        targetPort = node.getInPort(portLabel);
         if (!targetPort) {
-          const port = new DefaultPortModel({name: portId, label: portLabel, in: true, maximumLinks: 1});
-          node.addPort(port);
-          targetPort = port;
-        };
+          targetPort = node.addInPort(portLabel, portType);
+        }
       }
 
       if (sourcePort && targetPort) {
