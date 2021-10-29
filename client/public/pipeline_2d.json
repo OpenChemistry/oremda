@@ -1,10 +1,16 @@
 {
     "nodes": [
       {
+        "id": "9",
+        "image": "oremda/http_reader",
+        "params": {
+            "url": "https://data.kitware.com/api/v1/file/616093442fa25629b9d1a2d0/download"
+        }
+      },
+      {
         "id": "10",
         "image": "oremda/tiff_reader",
         "params": {
-            "filename": "p.tiff"
         }
       },
       {
@@ -38,6 +44,11 @@
       }
     ],
     "edges": [
+      {
+        "type": "binary",
+        "from": { "id": "9", "port": "data" },
+        "to": { "id": "10", "port": "data" }
+      },
       {
         "type": "data",
         "from": { "id": "10", "port": "out" },

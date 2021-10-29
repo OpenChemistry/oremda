@@ -1,1 +1,4 @@
-{"stubPath": ""}
+{
+    "stubPath": "",
+    "exclude": ["build"]
+}

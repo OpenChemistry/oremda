@@ -5,6 +5,7 @@ import Plotly from 'plotly.js';
 import { useAppSelector } from '../app/hooks';
 import { IdType } from '../types';
 import { Display } from '../types/pipeline';
+import { useNotifications, NotificationEvent } from '../notifications';
 
 type Props = {
     display: Display;
@@ -40,49 +41,70 @@ class DisplayHandle1D {
 }
 
 const Display1DComponent: React.FC<Props> = (props) => {
-  const ws = useAppSelector((state) => state.notifications.ws);
-
   const container = useRef<HTMLDivElement>(null);
 
   const displayHandle = useRef(new DisplayHandle1D(container));
 
+  const notifications = useNotifications();
+
   useEffect(() => {
-    if (!ws) {
+    if (notifications === undefined) {
       return;
     }
 
-    const listener = (ev: MessageEvent) => {
-      if (!displayHandle.current) {
-        return;
-      }
-
-      const data = JSON.parse(ev.data);
-
-      if (data.type !== '@@OREMDA') {
-        return;
-      }
-
-      if (data.payload.displayId !== props.display.id) {
-        return;
-      }
-
-      if (data.action === 'DISPLAY_ADD_INPUT') {
-        const { sourceId, ...rest } = data.payload;
-        displayHandle.current.addInput(sourceId, rest);
-      }  else if (data.action === 'DISPLAY_REMOVE_INPUT') {
-        const { sourceId } = data.payload;
-        displayHandle.current.removeInput(sourceId);
-      } else if (data.action === 'DISPLAY_CLEAR_INPUTS') {
-        displayHandle.current.clearInputs();
-      } else if (data.action === 'DISPLAY_RENDER') {
-        displayHandle.current.render();
-      }
+    const validDisplayHandle =  (): boolean => {
+      return displayHandle.current !== undefined;
     }
 
-    ws.addEventListener('message', listener);
+    const matchingDisplay = (ev: NotificationEvent): boolean => {
+      return ev.payload.displayId === props.display.id;
+    }
 
-    return () => ws.removeEventListener('message', listener);
-  }, [ws]);
+    const addInputListener = (ev: NotificationEvent) => {
+      if (!validDisplayHandle() || !matchingDisplay(ev)) {
+        return;
+      }
+
+      const { sourceId, ...rest } = ev.payload;
+      displayHandle.current.addInput(sourceId, rest);
+    }
+
+    const removeInputListener = (ev: NotificationEvent) => {
+      if (!validDisplayHandle() || !matchingDisplay(ev)) {
+        return;
+      }
+
+      const { sourceId } = ev.payload;
+      displayHandle.current.removeInput(sourceId);
+    }
+
+    const clearInputsListener = (ev: NotificationEvent) => {
+      if (!validDisplayHandle() || !matchingDisplay(ev)) {
+        return;
+      }
+      displayHandle.current.clearInputs();
+    }
+
+    const renderListener = (ev: NotificationEvent) => {
+      if (!validDisplayHandle() || !matchingDisplay(ev)) {
+        return;
+      }
+
+      displayHandle.current.render();
+    }
+
+    notifications.addNotificationEventListener('DISPLAY_ADD_INPUT', addInputListener);
+    notifications.addNotificationEventListener('DISPLAY_REMOVE_INPUT', removeInputListener);
+    notifications.addNotificationEventListener('DISPLAY_CLEAR_INPUTS', clearInputsListener);
+    notifications.addNotificationEventListener('DISPLAY_RENDER', renderListener);
+
+    return () => {
+      notifications.removeNotificationEventListener('DISPLAY_ADD_INPUT', addInputListener);
+      notifications.removeNotificationEventListener('DISPLAY_REMOVE_INPUT', removeInputListener);
+      notifications.removeNotificationEventListener('DISPLAY_CLEAR_INPUTS', clearInputsListener);
+      notifications.removeNotificationEventListener('DISPLAY_RENDER', renderListener);
+    }
+  }, [notifications]);
     return <div className='fill' ref={container}/>;
 }
 

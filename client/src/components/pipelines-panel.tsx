@@ -7,7 +7,7 @@ import { setDisplay } from '../features/displays';
 import { pipelinesSelector, setPipeline } from '../features/pipelines';
 import { createPipeline } from '../features/pipelines/api';
 import { Pipeline, NodeType, isDisplayNode } from '../types/pipeline';
-import PipelineComponent from './pipeline-graph';
+import PipelineComponent from './pipeline';
 import { NewPipelineWidget } from './new-pipeline'
 
 type Props = {};

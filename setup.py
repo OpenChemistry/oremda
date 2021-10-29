@@ -11,6 +11,7 @@ install_requires = [
     "click",
     "click_plugins",
     "coloredlogs",
+    "msgpack",
 ]
 
 setup(
