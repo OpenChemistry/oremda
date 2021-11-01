@@ -11,7 +11,11 @@ class MPINonRootEventLoop(MPIEventLoop):
     """Forward messages between the messages queue and MPI nodes"""
 
     async def loop(self, operator_queue):
+        # Use a queue with a rank in order to avoid queue name clashes with
+        # rank 0, in case we are running on the same node as rank 0.
+        operator_queue_with_rank = f"{operator_queue}_{mpi_rank}"
         while True:
+            print(f"{mpi_rank=} Sending ready message for: {operator_queue=}")
             # First, send a message indicating we are ready for input
             ready_msg = MPINodeReadyMessage(
                 **{
@@ -25,23 +29,35 @@ class MPINonRootEventLoop(MPIEventLoop):
             msg = await self.mpi_recv(0)
             print(f"MPI message received on {mpi_rank=}, {msg=}")
 
-            # Forward to the operator
-            print(f"Sending {msg} to {operator_queue}")
-            await self.mqp_send(msg, operator_queue)
-
-            print(f"MQP message sent to: {operator_queue=}")
-
-            # If it was a terminate task, finish this node as well
             task_message = Message(**msg.dict())
             if task_message.type == MessageType.Terminate:
+                # If it was a terminate task, send it and finish this node
+                print(f"{mpi_rank=} sending terminate task...")
+                await self.mqp_send(msg, operator_queue_with_rank)
                 print(f"{mpi_rank=} Terminating...")
+                # Clean up the operator queue with rank...
+                self.mqp_messenger.unlink(operator_queue_with_rank)
                 break
 
-            # It must have been an OperateTaskMessage. Receive the output.
+            if task_message.type != MessageType.Operate:
+                raise NotImplementedError(task_message.type)
+
+            # Add the MPI rank to the output queue to ensure we don't
+            # get a name clash with rank 0.
             operate_message = OperateTaskMessage(**msg.dict())
-            output_queue = operate_message.output_queue
-            result = await self.mqp_recv(output_queue)
+            operate_message.output_queue += f"_{mpi_rank}"
+
+            # Forward to the operator
+            print(f"Sending {operate_message} to {operator_queue_with_rank}")
+            await self.mqp_send(operate_message, operator_queue_with_rank)
+
+            print(f"MQP message sent to: {operator_queue_with_rank=}")
+
+            result = await self.mqp_recv(operate_message.output_queue)
             print(f"MQP output received: {result=}")
+
+            # Clean up the output queue
+            self.mqp_messenger.unlink(operate_message.output_queue)
 
             # Forward the result back to the main node
             await self.mpi_send(result, 0)
