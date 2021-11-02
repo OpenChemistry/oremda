@@ -53,7 +53,18 @@ const DisplayRemoteComponent: React.FC<Props> = (props) => {
 
     return () => notifications.removeNotificationEventListener('message', listener);
   }, [notifications]);
-    return <img style={{objectFit: 'contain', width: '100%'}} ref={container}/>;
+
+  const style = {
+    objectFit: 'contain',
+    width: '100%',
+    top: '50%',
+    left: '50%',
+    position: 'absolute',
+    transform: 'translate(-50%,-50%)',
+    maxHeight: '100%',
+  } as any;
+
+  return <img style={style} ref={container}/>;
 }
 
 export default DisplayRemoteComponent;

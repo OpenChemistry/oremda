@@ -14,7 +14,7 @@ namespace S {
 		overflow: visible;
 		font-size: 11px;
 		border: solid 2px ${(p) => (p.selected ? 'rgb(0,192,255)' : 'black')};
-		min-width: 200px;
+		min-width: 150px;
 	`;
 
 	export const Title = styled.div`
@@ -65,6 +65,10 @@ export interface NodeProps {
 	engine: DiagramEngine;
 }
 
+function isNil(value: any) {
+	return value !== undefined && value !== null;
+}
+
 /**
  * Default node that models the DefaultNodeModel. It creates two columns
  * for both all the input ports on the left, and the output ports on the right.
@@ -92,7 +96,7 @@ export class OremdaNodeWidget extends React.Component<NodeProps> {
             return (
               <S.ParamContainer key={key}>
                 <S.ParamName>{`${key}: `}</S.ParamName>
-                <S.ParamValue>{value as any}</S.ParamValue>
+                <S.ParamValue>{(isNil(value) ? value : '' as any).toString()}</S.ParamValue>
               </S.ParamContainer>
             )
           })}
