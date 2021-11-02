@@ -5,6 +5,8 @@ import {
 import { NodeModel, NodeModelGenerics, LinkModel, PortModel, PortModelAlignment, PortModelGenerics, PortModelOptions } from '@projectstorm/react-diagrams-core';
 import { BasePositionModelOptions, AbstractModelFactory, DeserializeEvent } from '@projectstorm/react-canvas-core';
 import { NodeType, PipelineNode, PortType } from '../../types/pipeline';
+import { OperatorDefinition } from '../../types/operator';
+import { shortId } from '../../utils';
 
 const inputPortId = (name: string) => `in://${name}`;
 const outputPortId = (name: string) => `out://${name}`;
@@ -81,26 +83,39 @@ export class OremdaNodeModel extends NodeModel<OremdaNodeModelGenerics> {
   protected portsOut: {[id: string]: OremdaPortModel};
   public pipelineNode: PipelineNode;
 
-  constructor(node: PipelineNode) {
+  constructor(node: PipelineNode, definition?: OperatorDefinition) {
     let name: string;
     let color: string;
     if (node.type === NodeType.Operator) {
-      name = `${node.id} - ${(node as any).image}`;
+      name = `${shortId(node.id)} - ${(node as any).image}`;
       color = 'rgb(0,192,255)';
     } else if (node.type === NodeType.Display) {
-      name = `${node.id} - Display (${(node as any).display})`;
+      name = `${shortId(node.id)} - Display (${(node as any).display})`;
       color = 'rgb(255,192,0)';
     } else {
       throw new Error('Unknown node type');
     }
 
     super({
+        id: node.id,
         type: 'oremda',
         name,
         color,
     });
     this.portsOut = {};
     this.portsIn = {};
+
+    if (node.type === NodeType.Operator && definition) {
+      for (let [name, port] of Object.entries(definition.ports.input)) {
+        this.addInPort(name, port.type);
+      }
+
+      for (let [name, port] of Object.entries(definition.ports.output)) {
+        this.addOutPort(name, port.type);
+      }
+    } else if (node.type === NodeType.Display) {
+      this.addInPort('in', PortType.Display);
+    }
     this.pipelineNode = node;
   }
 

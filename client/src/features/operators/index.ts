@@ -4,17 +4,17 @@ import {
 } from './api';
 
 import { IdType } from '../../types';
-import { Operator } from '../../types/operator';
+import { OperatorDefinition } from '../../types/operator';
 
 export interface OperatorsState {
-  operators: Map<string, Operator> | undefined
+  operators: {[key: string]: OperatorDefinition} | undefined
 }
 
 const initialState: OperatorsState = {
   operators: undefined,
 }
 
-export const fetchOperators = createAsyncThunk<Map<string, Operator>, {sessionId: IdType}>(
+export const fetchOperators = createAsyncThunk<{[key: string]: OperatorDefinition}, {sessionId: IdType}>(
   'operators/fetch',
   async (payload, thunkAPI) => {
     const { sessionId } = payload;
@@ -26,7 +26,7 @@ export const operatorsSlice = createSlice({
   name: 'operators',
   initialState,
   reducers: {
-    setOperators(state, action: PayloadAction<Map<string, Operator>>) {
+    setOperators(state, action: PayloadAction<{[key: string]: OperatorDefinition}>) {
       const operators = action.payload;
       state.operators =  operators;
     },

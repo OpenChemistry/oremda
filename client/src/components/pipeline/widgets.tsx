@@ -2,6 +2,7 @@ import React from 'react';
 import { DiagramEngine, PortWidget } from '@projectstorm/react-diagrams-core';
 import { OremdaNodeModel, OremdaPortModel } from './models';
 import styled from '@emotion/styled';
+import { PortType } from '../../types/pipeline';
 
 namespace S {
 	export const Node = styled.div<{ background: string; selected: boolean }>`
@@ -13,6 +14,7 @@ namespace S {
 		overflow: visible;
 		font-size: 11px;
 		border: solid 2px ${(p) => (p.selected ? 'rgb(0,192,255)' : 'black')};
+		min-width: 200px;
 	`;
 
 	export const Title = styled.div`
@@ -113,9 +115,15 @@ namespace S {
 		align-items: center;
 	`;
 
-	export const Label = styled.div`
+	export const InLabel = styled.div`
 		padding: 0 5px;
 		flex-grow: 1;
+	`;
+
+	export const OutLabel = styled.div`
+		padding: 0 5px;
+		flex-grow: 1;
+		text-align: right;
 	`;
 
 	export const Port = styled.div`
@@ -130,12 +138,26 @@ namespace S {
 
 export class OremdaPortLabel extends React.Component<PortLabelProps> {
 	render() {
+		const portType = this.props.port.getOptions().portType;
+		const isIn = this.props.port.getOptions().in;
+
+		let className = 'base-port ';
+		if (portType === PortType.Display) {
+			className += 'display-port';
+		} else if (portType === PortType.Binary) {
+			className += 'display-binary';
+		} else {
+			className += 'data-port';
+		}
+
 		const port = (
-			<PortWidget engine={this.props.engine} port={this.props.port}>
+			<PortWidget engine={this.props.engine} port={this.props.port} className={className}>
 				<S.Port />
 			</PortWidget>
 		);
-		const label = <S.Label>{this.props.port.getOptions().label}</S.Label>;
+
+		const Label = isIn ? S.InLabel : S.OutLabel;
+		const label = <Label>{this.props.port.getOptions().label}</Label>;
 
 		return (
 			<S.PortLabel>

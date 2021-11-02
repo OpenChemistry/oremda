@@ -6,8 +6,8 @@ export type PortLabels = {
 }
 
 export type PortsLabels = {
-    input: Map<string, PortLabels>
-    output: Map<string, PortLabels>
+    input: {[key: string]: PortLabels;};
+    output: {[key: string]: PortLabels;};
 }
 
 export type ParamLabels = {
@@ -15,8 +15,8 @@ export type ParamLabels = {
   required: boolean;
 }
 
-export type Operator = {
+export type OperatorDefinition = {
   name: string;
-  ports: PortsLabels
-  params: Map<string, ParamLabels>
+  ports: PortsLabels;
+  params: {[key: string]: ParamLabels;};
 }

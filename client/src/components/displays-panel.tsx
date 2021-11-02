@@ -2,6 +2,7 @@ import React from 'react';
 import { useAppSelector } from '../app/hooks';
 import { displaysSelector } from '../features/displays';
 import { DisplayType } from '../types/pipeline';
+import { shortId } from '../utils';
 import RemoteDisplayComponent from './display-remote';
 
 type Props = {};
@@ -56,6 +57,7 @@ const DisplaysPanel: React.FC<Props> = () => {
             {display.type === DisplayType.TwoD &&
               <RemoteDisplayComponent display={display}/>
             }
+            <span className='display-label'>{`${shortId(display.id)} - (${display.type})`}</span>
           </div>
         );
       })}
