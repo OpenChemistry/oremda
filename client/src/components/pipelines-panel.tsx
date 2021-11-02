@@ -9,6 +9,11 @@ import { createPipeline } from '../features/pipelines/api';
 import { Pipeline, NodeType, isDisplayNode } from '../types/pipeline';
 import PipelineComponent from './pipeline';
 
+import Button from '@mui/material/Button';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Stack from '@mui/material/Stack';
+
 type Props = {};
 
 const PipelinesPanel: React.FC<Props> = () => {
@@ -49,21 +54,66 @@ const PipelinesPanel: React.FC<Props> = () => {
     createPipeline(currentSession.id, pipeline);
   }
 
+  const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event: any) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement> ) => {
+    const { pipeline } = event.currentTarget.dataset;
+
+    if (pipeline !== undefined) {
+      addPipeline(pipeline);
+    }
+
+    setAnchorEl(null);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  }
+
   return (
     <div className="pipelines-panel">
-      <h4>
-        Pipelines
-        <button onClick={() => newPipeline()}>New Pipeline</button>
-        <button onClick={() => addPipeline('pipeline_1d.json')}>Add 1D</button>
-        <button onClick={() => addPipeline('pipeline_2d.json')}>Add 2D</button>
-        <button onClick={() => addPipeline('pipeline_peak.json')}>Add Peak</button>
-      </h4>
+        <Stack spacing={1} direction="row">
+          <Button variant="contained" onClick={() => newPipeline()} size='small'>New Pipeline</Button>
+          <Button
+            id="basic-button"
+            aria-controls="basic-menu"
+            aria-haspopup="true"
+            aria-expanded={open ? 'true' : undefined}
+            onClick={handleClick}
+            variant="contained"
+            size="small"
+          >
+            Load Existing Pipeline
+          </Button>
+          <Menu
+            id="basic-menu"
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            MenuListProps={{
+              'aria-labelledby': 'basic-button',
+            }}
+          >
+            <MenuItem data-pipeline='pipeline_1d.json' onClick={handleMenuClick}>Background Subtraction</MenuItem>
+            <MenuItem data-pipeline='pipeline_2d.json' onClick={handleMenuClick}>Gaussian Blur</MenuItem>
+            <MenuItem data-pipeline='pipeline_peak.json' onClick={handleMenuClick}>Peak Fitting</MenuItem>
+            <MenuItem onClick={handleMenuClick}>Nano particle Orientation</MenuItem>
+            <MenuItem onClick={handleMenuClick}>Bragg Disc Detection</MenuItem>
+
+          </Menu>
+      </Stack>
 
       {
         pipelines.map(pipeline => {
           return (
             <React.Fragment key={pipeline.id}>
-              <p><span>Pipeline</span> {pipeline.id.slice(-8)} <button onClick={() => runPipeline(pipeline)}>run</button></p>
+              <p><span>Pipeline</span> {pipeline.id.slice(-8)} <Button variant="contained"  color="success" onClick={() => runPipeline(pipeline)} size="small">run</Button></p>
               <div className="pipeline-container">
                 <PipelineComponent pipeline={pipeline} operators={operators}/>
               </div>
