@@ -2,6 +2,7 @@ import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
 import sessionReducer from '../features/session';
 import pipelinesReducer from '../features/pipelines';
 import displaysReducer from '../features/displays';
+import operatorsReducer from '../features/operators';
 import webSocketReducer from '../features/websocket';
 
 export const store = configureStore({
@@ -9,6 +10,7 @@ export const store = configureStore({
     session: sessionReducer,
     pipelines: pipelinesReducer,
     displays: displaysReducer,
+    operators: operatorsReducer,
     websocket: webSocketReducer,
   },
 });

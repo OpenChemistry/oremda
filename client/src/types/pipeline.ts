@@ -38,6 +38,7 @@ export function isDisplayNode(node: PipelineNode): node is DisplayNode {
 }
 
 export type PipelineEdge = {
+  id: IdType;
   type: PortType;
   from: {
     id: IdType;
