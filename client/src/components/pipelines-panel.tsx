@@ -79,7 +79,7 @@ const PipelinesPanel: React.FC<Props> = () => {
   return (
     <div className="pipelines-panel">
         <Stack spacing={1} direction="row">
-          <Button variant="contained" onClick={() => newPipeline()}>New Pipeline</Button>
+          <Button variant="contained" onClick={() => newPipeline()} size='small'>New Pipeline</Button>
           <Button
             id="basic-button"
             aria-controls="basic-menu"
@@ -87,6 +87,7 @@ const PipelinesPanel: React.FC<Props> = () => {
             aria-expanded={open ? 'true' : undefined}
             onClick={handleClick}
             variant="contained"
+            size="small"
           >
             Load Existing Pipeline
           </Button>
@@ -112,7 +113,7 @@ const PipelinesPanel: React.FC<Props> = () => {
         pipelines.map(pipeline => {
           return (
             <React.Fragment key={pipeline.id}>
-              <p><span>Pipeline</span> {pipeline.id.slice(-8)} <Button variant="contained"  color="success" onClick={() => runPipeline(pipeline)}>run</Button></p>
+              <p><span>Pipeline</span> {pipeline.id.slice(-8)} <Button variant="contained"  color="success" onClick={() => runPipeline(pipeline)} size="small">run</Button></p>
               <div className="pipeline-container">
                 <PipelineComponent pipeline={pipeline} operators={operators}/>
               </div>
