@@ -87,14 +87,19 @@ class OperatorHandle:
 
     def execute_parallel(self, inputs: Dict[PortKey, Port], output_queue: str):
         settings = self.operator_config
+        parameters = self.parameters
 
-        if settings.parallel_param is None:
-            msg = f"{settings.parallel_param} is not defined, can't run in parallel!"
-            raise Exception(msg)
+        if settings.parallel_aware_operator:
+            # The operator itself is parallel-aware. Override our settings
+            # to allow it to work.
+            settings = copy.deepcopy(settings)
+            parameters = copy.deepcopy(parameters)
 
-        if settings.parallel_param not in self.parameters:
-            msg = f"{settings.parallel_param} is not in {self.parameters}!"
-            raise Exception(msg)
+            settings.parallel_param = "parallel_index"
+            parameters["parallel_index"] = list(range(settings.num_containers))
+            parameters["parallel_world_size"] = settings.num_containers
+
+        self.validate_parallel_param(settings, parameters)
 
         msg = OperateTaskMessage(
             **{
@@ -103,15 +108,19 @@ class OperatorHandle:
             }
         )
 
-        task_list = self.parameters[settings.parallel_param]
+        task_list = parameters[settings.parallel_param]  # type: ignore
         if settings.distribute_parallel_tasks:
             distributed = distribute_tasks(len(task_list), settings.num_containers)
             task_list = [task_list[start:stop] for start, stop in distributed]
 
+        if settings.parallel_aware_operator:
+            # There should only be one task in each. Let's reduce it down.
+            task_list = [x[0] for x in task_list]
+
         # Message queue messengers are non-blocking. Send them all right away.
         for i, task in enumerate(task_list):
-            params = copy.deepcopy(self.parameters)
-            params[settings.parallel_param] = task
+            params = copy.deepcopy(parameters)
+            params[settings.parallel_param] = task  # type: ignore
             msg.params = params
             msg.parallel_index = i
             self.messenger.send(msg, self.input_queue)
@@ -137,21 +146,42 @@ class OperatorHandle:
         output = outputs[0]
 
         # Now grab the output parameter to stack
-        output_to_stack = settings.parallel_output_to_stack
+        output_to_join = settings.parallel_output_to_join
 
-        if output_to_stack is not None:
-            if any(output_to_stack not in x for x in outputs):
-                raise Exception(f"{output_to_stack} is not in all outputs: {outputs=}")
+        if output_to_join is not None:
+            if any(output_to_join not in x for x in outputs):
+                raise Exception(f"{output_to_join} is not in all outputs: {outputs=}")
 
-            # Stack it.
-            output[output_to_stack] = Port(
+            # Join methods take a list of arrays to join
+            join_methods = {
+                "stack": np.hstack,
+                "sum": sum,
+            }
+            method_name = settings.parallel_output_join_method
+            if method_name not in join_methods:
+                raise NotImplementedError(method_name)
+
+            join = join_methods[method_name]
+
+            # Join.
+            output[output_to_join] = Port(
                 **{
                     "data": PlasmaArray(
                         self.client,
-                        np.hstack([x[output_to_stack].data.data for x in outputs]),
+                        join([x[output_to_join].data.data for x in outputs]),
                     ),
-                    "meta": outputs[0][output_to_stack].meta,
+                    "meta": outputs[0][output_to_join].meta,
                 }
             )
 
         return output
+
+    @staticmethod
+    def validate_parallel_param(settings, parameters):
+        if settings.parallel_param is None:
+            msg = f"{settings.parallel_param} is not defined, can't run in parallel!"
+            raise Exception(msg)
+
+        if settings.parallel_param not in parameters:
+            msg = f"{settings.parallel_param} is not in {parameters}!"
+            raise Exception(msg)

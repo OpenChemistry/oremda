@@ -1,0 +1,34 @@
+{
+  "nodes": [
+    {
+      "id": "10",
+      "image": "oremda/bragg_vector_map",
+      "params": {
+          "filename": "1_Te_190x23_ss_3nm_spots11_CL_245_alpha_p48_expt_0p06sec_bin4_300kV.dm4"
+      }
+    },
+    {
+      "id": "20",
+      "image": "oremda/picture",
+      "params": {}
+    },
+    {
+      "id": "30",
+      "type": "display",
+      "display": "2D",
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+        "type": "data",
+        "from": { "id": "10", "port": "out" },
+        "to": { "id": "20", "port": "in" }
+    },
+    {
+        "type": "display",
+        "from": { "id": "20", "port": "out" },
+        "to": { "id": "30", "port": "in" }
+    }
+  ]
+}
