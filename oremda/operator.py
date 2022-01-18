@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, Union
 from io import StringIO
 import traceback
+from typing import Any, Callable, Dict, Optional, Union
 
 from oremda import PlasmaClient
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
@@ -19,6 +19,7 @@ from oremda.typing import (
     MessageType,
     DataArray,
 )
+from oremda.utils.mpi import mpi_rank
 
 
 class Operator(ABC):
@@ -34,7 +35,10 @@ class Operator(ABC):
 
     @property
     def input_queue(self) -> str:
-        return f"/{self.name}"
+        input_queue = self.name
+        if mpi_rank != 0:
+            input_queue += f"_{mpi_rank}"
+        return input_queue
 
     def start(self):
         while True:

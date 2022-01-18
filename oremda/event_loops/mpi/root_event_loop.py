@@ -13,9 +13,12 @@ class MPIRootEventLoop(MPIEventLoop):
     async def loop(self, rank):
         while True:
             # Wait until the node indicates it is ready
+            print(f"Waiting for {rank=} to be ready...")
             msg = await self.mpi_recv(rank)
+            print(f"Received message from {rank=}!")
             ready_msg = MPINodeReadyMessage(**msg.dict())
             queue = ready_msg.queue
+            print(f"{rank=} is ready! queue is {queue}. Waiting for input...")
 
             # Wait until a task becomes available for the node
             msg = await self.mqp_recv(queue)

@@ -11,6 +11,7 @@ from oremda.clients.base import ClientBase as ContainerClient
 from oremda.plasma_client import PlasmaClient
 from oremda.registry import Registry
 from oremda.constants import DEFAULT_OREMDA_VAR_DIR
+from oremda.utils.mpi import mpi_rank
 from oremda.utils.plasma import start_plasma_store
 from oremda.typing import ContainerType
 from oremda.pipeline.engine.config import settings
@@ -47,7 +48,13 @@ class GlobalContext(BaseModel):
 def pipeline_context():
     OREMDA_VAR_DIR = settings.OREMDA_VAR_DIR
     OREMDA_DATA_DIR = settings.OREMDA_DATA_DIR
-    PLASMA_SOCKET = f"{OREMDA_VAR_DIR}/plasma.sock"
+
+    if mpi_rank == 0:
+        _plasma_sock = "plasma.sock"
+    else:
+        _plasma_sock = f"plasma_{mpi_rank}.sock"
+
+    PLASMA_SOCKET = f"{OREMDA_VAR_DIR}/{_plasma_sock}"
 
     plasma_kwargs = {"memory": 50_000_000, "socket_path": PLASMA_SOCKET}
 

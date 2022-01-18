@@ -1,3 +1,8 @@
+import os
+
+# Constants
+OREMDA_MPI_RANK_ENV_VAR = "OREMDA_MPI_RANK"
+
 try:
     from mpi4py import MPI
 except ImportError:
@@ -19,6 +24,10 @@ mpi_comm = comm
 mpi_rank = rank
 mpi_world_size = world_size
 mpi_host_name = host_name
+
+if env_rank := os.environ.get(OREMDA_MPI_RANK_ENV_VAR):
+    # Override the MPI rank with what was provided in the environment
+    mpi_rank = int(env_rank)
 
 
 def query_thread_to_string(query_thread):

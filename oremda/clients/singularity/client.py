@@ -40,6 +40,11 @@ class SingularityClient(ClientBase):
 
     @with_resolved_path
     def run(self, path, *args, **kwargs):
+        kwargs = kwargs.copy()
+
+        # Add mpi environment variables
+        self.add_mpi_environment_variables(kwargs)
+
         kwargs = self._docker_kwargs_to_singularity(kwargs)
 
         name = Path(path).stem
@@ -71,6 +76,10 @@ class SingularityClient(ClientBase):
 
         if "working_dir" in kwargs:
             options += ["--pwd", kwargs["working_dir"]]
+
+        if "environment" in kwargs:
+            for k, v in kwargs["environment"].items():
+                options += ["--env", f"{k}={v}"]
 
         ret["options"] = options
         return ret

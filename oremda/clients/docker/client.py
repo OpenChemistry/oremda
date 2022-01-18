@@ -30,9 +30,13 @@ class DockerClient(ClientBase):
             return None
 
     def run(self, *args, **kwargs):
-        # Always run in detached mode
         kwargs = kwargs.copy()
+
+        # Always run in detached mode
         kwargs["detach"] = True
+
+        # Add mpi environment variables
+        self.add_mpi_environment_variables(kwargs)
 
         container = self.client.containers.run(*args, **kwargs)
         return DockerContainer(container)

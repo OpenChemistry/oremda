@@ -51,7 +51,13 @@ def main(pipeline_json: click.File):
     sif_dir = os.environ.get("OREMDA_SIF_DIR", "/images")
     plasma_memory = int(os.environ.get("OREMDA_PLASMA_MEMORY", 50_000_000))
     operator_config_file = os.environ.get("OREMDA_OPERATOR_CONFIG_FILE")
-    plasma_socket_path = f"{oremda_var_dir}/plasma.sock"
+
+    if mpi_rank == 0:
+        plasma_sock = "plasma.sock"
+    else:
+        plasma_sock = f"plasma_{mpi_rank}.sock"
+
+    plasma_socket_path = f"{oremda_var_dir}/{plasma_sock}"
 
     plasma_kwargs = {
         "memory": plasma_memory,
