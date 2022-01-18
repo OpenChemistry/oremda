@@ -82,10 +82,19 @@ class NodeType(str, Enum):
     Display = "display"
 
 
+class PortDataType(str, Enum):
+    Data = "data"
+    Binary = "binary"
+    Display = "display"
+
+
 class PortType(str, Enum):
     Data = "data"
     Binary = "binary"
     Display = "display"
+    Image = "image"
+    Diffraction = "diffraction"
+    Spectra = "spectra"
 
 
 class IOType(str, Enum):
@@ -179,7 +188,7 @@ class RawPort(BaseModel):
 
 
 class PortInfo(BaseModel):
-    type: PortType = Field(...)
+    type: PortDataType = Field(...)
     name: PortKey = Field(...)
     required: bool = False
 

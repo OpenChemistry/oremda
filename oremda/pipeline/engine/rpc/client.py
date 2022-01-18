@@ -10,6 +10,7 @@ from oremda.pipeline.engine.rpc.messages import (
 )
 from oremda.pipeline.engine.rpc.observer import ServerPipelineObserver
 from oremda.pipeline.engine.rpc.models import PipelineModel, SerializablePipelineModel
+from oremda.pipeline import logger
 from oremda.pipeline import deserialize_pipeline
 from oremda.display import NoopDisplayHandle
 from oremda.utils.id import unique_id
@@ -71,62 +72,68 @@ class PipelineRunnerMethods(RpcMethodsBase):
         self.client = client
 
     async def run(self, session_id: IdType, pipeline_definition: dict) -> Dict:
-        pipeline_json = PipelineJSON(**pipeline_definition)
+        try:
+            pipeline_json = PipelineJSON(**pipeline_definition)
 
-        pipeline_id = unique_id()
-        pipeline_json.id = pipeline_id
+            pipeline_id = unique_id()
+            pipeline_json.id = pipeline_id
 
-        queue = asyncio.Queue()
-        notify_task = asyncio.create_task(
-            notify_clients(session_id, queue, self.client)
-        )
+            queue = asyncio.Queue()
+            notify_task = asyncio.create_task(
+                notify_clients(session_id, queue, self.client)
+            )
 
-        def cleanup_notify_task(context) -> None:
-            notify_task.cancel()
+            def cleanup_notify_task(context) -> None:
+                notify_task.cancel()
 
-        def notify(message: NotificationMessage):
-            queue.put_nowait(message)
+            def notify(message: NotificationMessage):
+                queue.put_nowait(message)
 
-        def display_factory(id: IdType, display_type: DisplayType):
-            if display_type == DisplayType.OneD:
-                return RemoteRenderDisplayHandle1D(id, notify)
-            elif display_type == DisplayType.TwoD:
-                return RemoteRenderDisplayHandle2D(id, notify)
-            else:
-                return NoopDisplayHandle(id, display_type)
+            def display_factory(id: IdType, display_type: DisplayType):
+                if display_type == DisplayType.OneD:
+                    return RemoteRenderDisplayHandle1D(id, notify)
+                elif display_type == DisplayType.TwoD:
+                    return RemoteRenderDisplayHandle2D(id, notify)
+                else:
+                    return NoopDisplayHandle(id, display_type)
 
-        pipeline = deserialize_pipeline(
-            pipeline_json.dict(by_alias=True),
-            self.context.plasma_client,
-            self.context.registry,
-            display_factory,
-        )
+            pipeline = deserialize_pipeline(
+                pipeline_json.dict(by_alias=True),
+                self.context.plasma_client,
+                self.context.registry,
+                display_factory,
+            )
 
-        pipeline.observer = ServerPipelineObserver(notify)
+            pipeline.observer = ServerPipelineObserver(notify)
 
-        model = PipelineModel(id=pipeline_id, graph=pipeline_json, pipeline=pipeline)
+            model = PipelineModel(
+                id=pipeline_id, graph=pipeline_json, pipeline=pipeline
+            )
 
-        web_session = self.context.sessions.setdefault(
-            session_id, SessionWebModel(session=SessionModel(id=session_id))
-        )
+            web_session = self.context.sessions.setdefault(
+                session_id, SessionWebModel(session=SessionModel(id=session_id))
+            )
 
-        pipeline_ids = web_session.pipelines
-        pipeline_ids.add(model.id)
+            pipeline_ids = web_session.pipelines
+            pipeline_ids.add(model.id)
 
-        self.context.pipelines[model.id] = model
+            self.context.pipelines[model.id] = model
 
-        message = pipeline_created(model)
+            message = pipeline_created(model)
 
-        asyncio.create_task(self.client.notify_clients(message.dict(), session_id))
+            asyncio.create_task(self.client.notify_clients(message.dict(), session_id))
 
-        pipeline_task = asyncio.create_task(
-            run_pipeline(session_id, model.id, self.context)
-        )
-        pipeline_task.add_done_callback(cleanup_notify_task)
+            pipeline_task = asyncio.create_task(
+                run_pipeline(session_id, model.id, self.context)
+            )
+            pipeline_task.add_done_callback(cleanup_notify_task)
 
-        return SerializablePipelineModel(id=pipeline_id, graph=pipeline_json).dict(
-            by_alias=True
-        )
+            return SerializablePipelineModel(id=pipeline_id, graph=pipeline_json).dict(
+                by_alias=True
+            )
+        except Exception as ex:
+            logger.exception(ex)
+            raise
 
     async def get_available_operators(self, session_id: IdType) -> Dict:
         operators = {}
