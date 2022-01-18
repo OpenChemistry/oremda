@@ -259,7 +259,7 @@ const PipelineComponent: React.FC<Props> = (props) => {
 
           // TODO: Remove these hardcoded parameter values
           if (imageName.startsWith('oremda/tiff_reader')) {
-            operatorNode.params['filename'] = 'passport.tiff';
+            operatorNode.params['filename'] = 'data.tiff';
           }
 
           if (imageName.startsWith('oremda/gaussian_blur')) {
@@ -267,7 +267,7 @@ const PipelineComponent: React.FC<Props> = (props) => {
           }
 
           if (imageName.startsWith('oremda/crop2d')) {
-            operatorNode.params['bounds'] = [0, 300, 0, 300];
+            operatorNode.params['bounds'] = [25, 350, 90, 305];
           }
 
           //

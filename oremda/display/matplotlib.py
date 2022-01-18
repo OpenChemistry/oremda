@@ -17,6 +17,7 @@ from oremda.constants import DEFAULT_DATA_DIR
 
 import matplotlib.pyplot as plt
 import matplotlib.colors
+from PIL import Image
 
 
 class BaseMatplotLibDisplayHandle(DisplayHandle):
@@ -55,6 +56,12 @@ class MatplotlibDisplayHandle1D(BaseMatplotLibDisplayHandle):
 
     def raw_render(self, file_obj):
         inputs = sorted(self.inputs.values(), key=z_sort)
+
+        if len(inputs) == 0:
+            img = Image.new("RGBA", (1, 1))
+            img.save(file_obj, "PNG")
+
+            return
 
         x_label = self.parameters.get("xLabel", "x")
         y_label = self.parameters.get("yLabel", "y")
@@ -95,7 +102,7 @@ class MatplotlibDisplayHandle1D(BaseMatplotLibDisplayHandle):
 
         ax.set(xlabel=x_label, ylabel=y_label)
 
-        fig.savefig(file_obj, dpi=fig.dpi)
+        fig.savefig(file_obj, dpi=fig.dpi, bbox_inches="tight")
         plt.close()
 
 
@@ -105,6 +112,12 @@ class MatplotlibDisplayHandle2D(BaseMatplotLibDisplayHandle):
 
     def raw_render(self, file_obj):
         inputs = sorted(self.inputs.values(), key=z_sort)
+
+        if len(inputs) == 0:
+            img = Image.new("RGBA", (1, 1))
+            img.save(file_obj, "PNG")
+
+            return
 
         fig, ax = plt.subplots()
 
@@ -159,7 +172,7 @@ class MatplotlibDisplayHandle2D(BaseMatplotLibDisplayHandle):
         if legend:
             ax.legend()
 
-        fig.savefig(file_obj, dpi=fig.dpi)
+        fig.savefig(file_obj, dpi=fig.dpi, bbox_inches="tight")
         plt.close()
 
 
