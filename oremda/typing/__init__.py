@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Optional, Sequence, Union
+from typing import Any, Callable, Dict, Optional, Sequence, Union, List
 from abc import ABC, abstractmethod
 from uuid import UUID
 import numpy as np
@@ -13,6 +13,56 @@ ParamKey = str
 JSONType = Dict[str, Any]
 DataType = Union[np.ndarray, bytes]
 MetaType = JSONType
+
+
+class BaseMetadata(BaseModel):
+    user: Optional[str] = None
+    fileName: Optional[str] = None
+
+
+class ImageMetadata(BaseMetadata):
+    physicalSizeX: Optional[float] = None
+    physicalSizeXOrigin: Optional[float] = None
+    physicalSizeXUnit: Optional[str] = None
+    physicalSizeY: Optional[float] = None
+    physicalSizeYOrigin: Optional[float] = None
+    physicalSizeYUnit: Optional[str] = None
+
+
+class SpectroscopyMetadata(BaseMetadata):
+    units: Optional[List[str]] = None
+
+
+class EELSMetadata(SpectroscopyMetadata):
+    aperture: Optional[float] = None
+    angle: Optional[float] = None
+    exposure: Optional[float] = None
+    numberOfSpectra: Optional[int] = None
+    spectrometer: Optional[str] = None
+
+
+class EDSMetadata(SpectroscopyMetadata):
+    azimuth: Optional[float] = None
+    elevation: Optional[float] = None
+
+
+class DiffractionMetadata(BaseMetadata):
+    pass
+
+
+class MicroscopeMetadata(BaseModel):
+    cameraLength: Optional[float] = None
+    convergenceAngle: Optional[float] = None
+    defocus: Optional[float] = None
+    dwellTime: Optional[float] = None
+    highTension: Optional[float] = None
+    magnification: Optional[float] = None
+    name: Optional[str] = None
+
+
+class Metadata(BaseModel):
+    microscope: Optional[MicroscopeMetadata]
+    dataset: Optional[Union[ImageMetadata, SpectroscopyMetadata, DiffractionMetadata]]
 
 
 # Plasma's ObjectID doesn't have proper typings (cython?),
@@ -97,7 +147,7 @@ class Port(BaseModel):
 
 
 class RawPort(BaseModel):
-    meta: Optional[MetaType] = None
+    meta: Optional[Metadata] = None
     data: Any = None
 
     class Config:
@@ -108,7 +158,7 @@ class RawPort(BaseModel):
         raw_port = cls()
 
         if port.meta is not None:
-            raw_port.meta = port.meta
+            raw_port.meta = Metadata(**port.meta)
 
         if port.data is not None:
             raw_port.data = port.data.data
@@ -119,7 +169,7 @@ class RawPort(BaseModel):
         port = Port()
 
         if self.meta is not None:
-            port.meta = self.meta
+            port.meta = self.meta.dict()
 
         if self.data is not None:
             array = array_factory(self.data)
