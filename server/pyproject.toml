@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "oremda-server"
+version = "0.1.0"
+description = ""
+authors = ["Chris Harris <chris.harris@kitware.com>"]
+readme = "README.md"
+packages = [{include = "oremda"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.72.0"
+uvicorn = {extras = ["standard"], version = "^0.17.0"}
+fastapi-websocket-rpc = "^0.1.21"
+msgpack = "^1.0.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

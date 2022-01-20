@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "oremda-core"
+version = "0.1.0"
+description = ""
+authors = ["Chris Harris <chris.harris@kitware.com>"]
+readme = "README.md"
+packages = [{include = "oremda"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+numpy = "^1.22.1"
+pyarrow = "^6.0.1"
+posix-ipc = "^1.0.5"
+matplotlib = "^3.5.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import ncempy.io as nio
 
-from oremda import operator
+from oremda.api import operator
 from oremda.typing import JSONType, PortKey, RawPort
 
 

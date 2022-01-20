@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "oremda-cli"
+version = "0.1.0"
+description = ""
+authors = ["Chris Harris <chris.harris@kitware.com>"]
+readme = "README.md"
+packages = [{include = "oremda"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+click = "^8.0.3"
+click-plugins = "^1.1.1"
+docker = "^5.0.3"
+spython = "^0.1.17"
+requests = "^2.27.1"
+coloredlogs = "^15.0.1"
+oremda-engine = {path = "../engine"}
+oremda-core = {path = "../core"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+oremda = 'oremda.cli:main'
+
+[tool.poetry.plugins."oremda.cli.plugin"]
+run = "oremda.cli.run:main"
+engine = "oremda.cli.engine:main"
+pull = "oremda.cli.pull:main"

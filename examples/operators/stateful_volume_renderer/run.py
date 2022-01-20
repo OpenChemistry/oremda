@@ -10,7 +10,7 @@ import vtk
 
 from vtk.util.numpy_support import numpy_to_vtk  # type: ignore
 
-from oremda import operator
+from oremda.api import operator
 from oremda.typing import JSONType, PortKey, RawPort
 
 ren_win = vtk.vtkRenderWindow()

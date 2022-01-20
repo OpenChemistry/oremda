@@ -4,7 +4,7 @@ from PIL import Image
 import numpy as np
 from io import BytesIO
 
-from oremda import operator
+from oremda.api import operator
 from oremda.typing import JSONType, PortKey, RawPort
 
 

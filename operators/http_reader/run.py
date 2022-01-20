@@ -2,7 +2,7 @@ from typing import Dict
 from io import BytesIO
 from pathlib import Path
 
-from oremda import operator
+from oremda.api import operator
 from oremda.typing import JSONType, PortKey, RawPort
 
 import requests

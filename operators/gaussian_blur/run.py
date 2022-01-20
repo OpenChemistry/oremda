@@ -2,7 +2,7 @@ from typing import Dict
 
 from scipy.ndimage import gaussian_filter
 
-from oremda import operator
+from oremda.api import operator
 from oremda.typing import JSONType, PortKey, RawPort
 
 
