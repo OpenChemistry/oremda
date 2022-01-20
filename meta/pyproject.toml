@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "oremda"
+version = "0.1.0"
+description = ""
+authors = ["Chris Harris <chris.harris@kitware.com>"]
+readme = "README.md"
+packages = [{include = "oremda"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+oremda-server = "^0.1.5"
+oremda-client = "^0.1.0"
+oremda-engine = "^0.1.4"
+oremda-cli = "^0.1.1"
+
+
+[tool.poetry.plugins."oremda.cli.plugin"]
+start = "oremda.meta.cli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
