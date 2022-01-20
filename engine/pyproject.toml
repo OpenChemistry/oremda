@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "oremda-engine"
-version = "0.1.0"
+version = "0.1.4"
 description = ""
 authors = ["Chris Harris <chris.harris@kitware.com>"]
 readme = "README.md"
@@ -8,7 +8,13 @@ packages = [{include = "oremda"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-oremda-core = {path = "../core"}
+oremda-cli = "^0.1.1"
+oremda-core = "^0.1.0"
+fastapi-websocket-rpc = "^0.1.21"
+msgpack = "^1.0.3"
+
+[tool.poetry.plugins."oremda.cli.plugin"]
+engine = "oremda.engine.cli:main"
 
 [build-system]
 requires = ["poetry-core"]

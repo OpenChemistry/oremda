@@ -8,7 +8,7 @@ packages = [{include = "oremda"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-oremda-core = {path = "../core"}
+oremda-core = "^0.1.1"
 
 
 [build-system]
