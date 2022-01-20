@@ -13,6 +13,9 @@ uvicorn = {extras = ["standard"], version = "^0.17.0"}
 fastapi-websocket-rpc = "^0.1.21"
 msgpack = "^1.0.3"
 
+[tool.poetry.plugins."oremda.cli.plugin"]
+server = "oremda.server.cli:main"
+
 
 [build-system]
 requires = ["poetry-core"]

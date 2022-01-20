@@ -24,7 +24,7 @@ import oremda.pipeline
 
 @click.command(
     "run",
-    short_help="oremda cli runner",
+    short_help="oremda run",
     help="Run an oremda pipeline on the command line.",
 )
 @click.argument("pipeline_json", type=click.File("r"))

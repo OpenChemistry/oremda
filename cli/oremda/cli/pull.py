@@ -70,7 +70,7 @@ def _fetch_all_dockerhub_images(client):
 
 @click.command(
     "pull",
-    short_help="Pull oremda operators",
+    short_help="oremda pull",
     help="Pull all available oremda operators.",
 )
 @click.option(
