@@ -3,7 +3,7 @@ from typing import Dict
 from fastapi_websocket_rpc import RpcMethodsBase, WebSocketRpcClient
 
 from oremda.typing import DisplayType, IdType, JSONType, PipelineJSON
-from oremda.engine.context import GlobalContext, SessionWebModel, SessionModel
+from oremda.engine.context import GlobalContext, SessionWebModel
 from oremda.engine.rpc.messages import (
     NotificationMessage,
     pipeline_created,
@@ -20,6 +20,7 @@ from oremda.engine.rpc.displays import (
     RemoteRenderDisplayHandle2D,
 )
 from oremda.engine.rpc.serialization import MsgpackSerializingWebSocket
+from oremda.models import SessionModel
 
 
 class RpcClient(WebSocketRpcClient):
