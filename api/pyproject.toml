@@ -11,6 +11,8 @@ python = "^3.9"
 oremda-core = "^0.1.1"
 
 
+[tool.poetry.dev-dependencies]
+pyright = "^0.0.13"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
