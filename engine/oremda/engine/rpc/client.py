@@ -50,7 +50,7 @@ async def run_pipeline(session_id: IdType, pipeline_id: IdType, context: GlobalC
     # pipeline.run is a blocking function, run it in a separate thread to free the
     # server to perform other tasks such as sending notifications
     # TODO: convert pipeline.run to an async function
-    await asyncio.to_thread(pipeline.run)
+    await asyncio.get_running_loop().run_in_executor(None, pipeline.run)
 
 
 async def notify_clients(session_id, queue: asyncio.Queue, client: RpcClient):
