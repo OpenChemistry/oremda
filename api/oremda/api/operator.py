@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from io import StringIO
 import traceback
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union, cast
 
 from oremda.plasma_client import PlasmaClient
 from oremda.constants import DEFAULT_PLASMA_SOCKET_PATH
@@ -67,7 +67,7 @@ class Operator(ABC):
             }
 
             outputs = {
-                key: port.to_port(self.array_constructor)
+                key: cast(RawPort, port).to_port(self.array_constructor)
                 for key, port in raw_outputs.items()
             }
 
