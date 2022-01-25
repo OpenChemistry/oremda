@@ -16,6 +16,7 @@ formatter = coloredlogs.ColoredFormatter(
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+
 async def shutdown(signal, loop, tasks):
 
     logger.info(f"Received exit signal {signal.name}...")
@@ -33,17 +34,18 @@ async def shutdown(signal, loop, tasks):
     loop = asyncio.get_event_loop()
     loop.stop()
 
+
 async def start_server():
-    proc = await asyncio.create_subprocess_shell(
-           "uvicorn oremda.server.main:app")
+    proc = await asyncio.create_subprocess_shell("uvicorn oremda.server.main:app")
 
     await proc.communicate()
+
 
 async def start_engine():
-    proc = await asyncio.create_subprocess_shell(
-           "oremda engine")
+    proc = await asyncio.create_subprocess_shell("oremda engine")
 
     await proc.communicate()
+
 
 @click.command(
     "start",
@@ -58,7 +60,10 @@ def main():
     signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
     for s in signals:
         loop.add_signal_handler(
-            s, lambda s=s: asyncio.create_task(shutdown(s, loop, [server_task, engine_task]))
+            s,
+            lambda s=s: asyncio.create_task(
+                shutdown(s, loop, [server_task, engine_task])
+            ),
         )
 
     loop.run_forever()
