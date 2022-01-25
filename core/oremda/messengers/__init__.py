@@ -20,7 +20,7 @@ from oremda.typing import LocationType
 def Messenger(location: LocationType, plasma_client: PlasmaClient) -> BaseMessenger:
     messengers = {
         LocationType.Local: lambda: MQPMessenger(plasma_client),
-        LocationType.Remote: lambda: MPIMessenger(),
+        LocationType.Remote: lambda: MPIMessenger() if MPIMessenger else None,
     }
 
     if location == LocationType.Remote and MPIMessenger is None:

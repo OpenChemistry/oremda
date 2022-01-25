@@ -12,7 +12,8 @@ class MPIEventLoop(SingletonABC):
 
     def __init__(self):
         self.client = PlasmaClient(DEFAULT_PLASMA_SOCKET_PATH)
-        self.mpi_messenger = MPIMessenger()
+        if MPIMessenger is not None:
+            self.mpi_messenger = MPIMessenger()
         self.mqp_messenger = MQPMessenger(self.client)
         self.tasks = []
         self.started = False
