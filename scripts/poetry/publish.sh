@@ -3,7 +3,7 @@
 package_dir=$(pwd)
 package_name="oremda-$(basename $package_dir)"
 
-current_published_version=$(curl https://pypi.org/pypi/${package_name}/json 2>/dev/null | jq '.info.version')
+current_published_version=$(curl https://test.pypi.org/pypi/${package_name}/json 2>/dev/null | jq '.info.version')
 if [ $? -ne 0 ]
 then
   echo "Package version not found for: $package_name"
