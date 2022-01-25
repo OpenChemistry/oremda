@@ -1,9 +1,10 @@
 #!/usr/bin/bash
 
 script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source "${script_dir}/packages.sh"
+
 cd $script_dir/../../
 
-package_dirs="core cli engine server api meta"
 for package_dir in $package_dirs
 do
     echo "Unlinking oremda-$package_dir"
@@ -19,6 +20,5 @@ do
     if [ -n "$package_versions" ]; then
         poetry add $package_versions
     fi
-
     cd ..
 done

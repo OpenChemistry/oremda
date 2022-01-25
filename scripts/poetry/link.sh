@@ -1,9 +1,11 @@
 #!/usr/bin/bash
 
 script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source "${script_dir}/packages.sh"
+
 cd $script_dir/../../
 
-find . -name "pyproject.toml" -print0 | while read -d $'\0' project_file
+for package_dir in $package_dirs
 do
     package_dir=$(dirname "$project_file")
     name=$(echo $package_dir | sed 's/\.\///g')
@@ -19,6 +21,5 @@ do
     if [ -n "$package_paths" ]; then
         poetry add $package_paths
     fi
-
     cd ..
 done
