@@ -234,6 +234,9 @@ class ErrorTaskMessage(Message):
 
 
 class TerminateTaskMessage(Message):
+    def __init__(self) -> None:
+        super().__init__(type=MessageType.Terminate)
+
     type = MessageType.Terminate
 
 

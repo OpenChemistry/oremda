@@ -19,7 +19,7 @@ from oremda.display.matplotlib import (
 
 class DisplayHandle1D(DisplayHandle):
     def __init__(self, id: IdType, notify: Callable[[NotificationMessage], None]):
-        super(DisplayHandle, self).__init__(id, DisplayType.OneD)
+        super(DisplayHandle1D, self).__init__(id, DisplayType.OneD)
         self.id = id
         self.notify = notify
         self.inputs: Dict[IdType, Port] = {}
@@ -78,7 +78,7 @@ class DisplayHandle1D(DisplayHandle):
 
 class DisplayHandle2D(DisplayHandle):
     def __init__(self, id: IdType, notify: Callable[[NotificationMessage], None]):
-        super(DisplayHandle, self).__init__(id, DisplayType.OneD)
+        super(DisplayHandle2D, self).__init__(id, DisplayType.OneD)
         self.id = id
         self.notify = notify
 
@@ -145,13 +145,13 @@ def remote_render(self):
 
 class RemoteRenderDisplayHandle1D(MatplotlibDisplayHandle1D):
     def __init__(self, id: IdType, notify: Callable[[NotificationMessage], None]):
-        super(MatplotlibDisplayHandle1D, self).__init__(id)
+        super(RemoteRenderDisplayHandle1D, self).__init__(id)
         self.notify = notify
         self.render = functools.partial(remote_render, self)
 
 
 class RemoteRenderDisplayHandle2D(MatplotlibDisplayHandle2D):
     def __init__(self, id: IdType, notify: Callable[[NotificationMessage], None]):
-        super(MatplotlibDisplayHandle2D, self).__init__(id)
+        super(RemoteRenderDisplayHandle2D, self).__init__(id)
         self.notify = notify
         self.render = functools.partial(remote_render, self)
