@@ -163,11 +163,17 @@ class OperatorHandle:
             join = join_methods[method_name]
 
             # Join.
+            join_args = []
+            for x in outputs:
+                port = x[output_to_join]
+                if port.data is not None:
+                    join_args.append(port.data.data)
+
             output[output_to_join] = Port(
                 **{
                     "data": PlasmaArray(
                         self.client,
-                        join([x[output_to_join].data.data for x in outputs]),
+                        join(join_args),
                     ),
                     "meta": outputs[0][output_to_join].meta,
                 }
