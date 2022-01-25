@@ -17,7 +17,7 @@ app.include_router(api_router, prefix="/api/v1")
 
 # If we have the oremda-client package install
 try:
-    from oremda.client import client_build
+    from oremda.client import client_build  # type: ignore
 
     print(client_build)
     app.mount("/", client_build, name="client")
