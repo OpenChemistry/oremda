@@ -471,25 +471,25 @@ reference = "public pypi"
 
 [[package]]
 name = "oremda-cli"
-version = "0.1.2"
+version = "0.1.3"
 description = ""
 category = "main"
 optional = false
-python-versions = "^3.8"
-develop = false
+python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
-click = "^8.0.3"
-click-plugins = "^1.1.1"
-coloredlogs = "^15.0.1"
-docker = "^5.0.3"
+click = ">=8.0.3,<9.0.0"
+click-plugins = ">=1.1.1,<2.0.0"
+coloredlogs = ">=15.0.1,<16.0.0"
+docker = ">=5.0.3,<6.0.0"
 oremda-core = "0.1.3"
-requests = "^2.27.1"
-spython = "^0.1.17"
+requests = ">=2.27.1,<3.0.0"
+spython = ">=0.1.17,<0.2.0"
 
 [package.source]
-type = "directory"
-url = "../cli"
+type = "legacy"
+url = "https://test.pypi.org/simple"
+reference = "test pypi"
 
 [[package]]
 name = "oremda-core"
@@ -497,23 +497,23 @@ version = "0.1.3"
 description = ""
 category = "main"
 optional = false
-python-versions = "^3.8"
-develop = false
+python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
-docker = "^5.0.3"
-fastapi = "^0.73.0"
-matplotlib = "^3.5.1"
-mpi4py = "^3.1.3"
-numpy = "^1.22.1"
-posix-ipc = "^1.0.5"
-pyarrow = "^6.0.1"
-pydantic = "^1.9.0"
-spython = "^0.1.18"
+docker = ">=5.0.3,<6.0.0"
+fastapi = ">=0.73.0,<0.74.0"
+matplotlib = ">=3.5.1,<4.0.0"
+mpi4py = ">=3.1.3,<4.0.0"
+numpy = ">=1.22.1,<2.0.0"
+posix-ipc = ">=1.0.5,<2.0.0"
+pyarrow = ">=6.0.1,<7.0.0"
+pydantic = ">=1.9.0,<2.0.0"
+spython = ">=0.1.18,<0.2.0"
 
 [package.source]
-type = "directory"
-url = "../core"
+type = "legacy"
+url = "https://test.pypi.org/simple"
+reference = "test pypi"
 
 [[package]]
 name = "packaging"
@@ -921,7 +921,7 @@ reference = "public pypi"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "882928620afcbd6920ca8f00a3a58b17261260cc3ee48c27ded8129672793a00"
+content-hash = "06f13e4b4a2dc59bfcf749d3dead4ef2f93686862618b10bbf287391bfdce2de"
 
 [metadata.files]
 aiohttp = [
@@ -1360,8 +1360,14 @@ numpy = [
     {file = "numpy-1.22.1-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e60ef82c358ded965fdd3132b5738eade055f48067ac8a5a8ac75acc00cad31f"},
     {file = "numpy-1.22.1.zip", hash = "sha256:e348ccf5bc5235fc405ab19d53bec215bb373300e5523c7b476cc0da8a5e9973"},
 ]
-oremda-cli = []
-oremda-core = []
+oremda-cli = [
+    {file = "oremda-cli-0.1.3.tar.gz", hash = "sha256:23f78afc097e56038b044f105bdea46b194e2c3d209d7a251ad90afcdb0aca14"},
+    {file = "oremda_cli-0.1.3-py3-none-any.whl", hash = "sha256:5448e51f85d1412b1a4d9da11505eb0ad7e915349d424c705a0fb9073c0baa49"},
+]
+oremda-core = [
+    {file = "oremda-core-0.1.3.tar.gz", hash = "sha256:9e6242a63ab173b55407d02a9ef38646f47798e063b8582448ff0c27491a5d40"},
+    {file = "oremda_core-0.1.3-py3-none-any.whl", hash = "sha256:e5a40d70fbf0f330a0fcfdbf960d040895262c21d4fd4df3186f716702bf02da"},
+]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
