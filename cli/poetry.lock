@@ -267,19 +267,6 @@ url = "https://pypi.python.org/simple"
 reference = "public pypi"
 
 [[package]]
-name = "mpi4py"
-version = "3.1.3"
-description = "Python bindings for MPI"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-
-[package.source]
-type = "legacy"
-url = "https://pypi.python.org/simple"
-reference = "public pypi"
-
-[[package]]
 name = "nodeenv"
 version = "1.6.0"
 description = "Node.js virtual environment builder"
@@ -307,7 +294,7 @@ reference = "public pypi"
 
 [[package]]
 name = "oremda-core"
-version = "0.1.3"
+version = "0.1.5"
 description = ""
 category = "main"
 optional = false
@@ -317,7 +304,6 @@ python-versions = ">=3.8,<4.0"
 docker = ">=5.0.3,<6.0.0"
 fastapi = ">=0.73.0,<0.74.0"
 matplotlib = ">=3.5.1,<4.0.0"
-mpi4py = ">=3.1.3,<4.0.0"
 numpy = ">=1.22.1,<2.0.0"
 posix-ipc = ">=1.0.5,<2.0.0"
 pyarrow = ">=6.0.1,<7.0.0"
@@ -668,7 +654,7 @@ reference = "public pypi"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "18d5459164777a2cae99ae17b7b0baa97dc9e54a9248386b55fc6cb8ce764c08"
+content-hash = "71c58f53f47c8d2f448298ebc13ea47f19ee0bf36388a43ba8d7c7d299262b97"
 
 [metadata.files]
 anyio = [
@@ -806,23 +792,6 @@ matplotlib = [
     {file = "matplotlib-3.5.1-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:14334b9902ec776461c4b8c6516e26b450f7ebe0b3ef8703bf5cdfbbaecf774a"},
     {file = "matplotlib-3.5.1.tar.gz", hash = "sha256:b2e9810e09c3a47b73ce9cab5a72243a1258f61e7900969097a817232246ce1c"},
 ]
-mpi4py = [
-    {file = "mpi4py-3.1.3-cp27-cp27m-win32.whl", hash = "sha256:ae07361c343539364f09b9099a3456e7849aae593c631633ea90bd164cd7e61c"},
-    {file = "mpi4py-3.1.3-cp27-cp27m-win_amd64.whl", hash = "sha256:ba67935e2d80c3d50ecd38280a082dfe586a25acd8c68ccbe24d65055cf03874"},
-    {file = "mpi4py-3.1.3-cp310-cp310-win32.whl", hash = "sha256:ad64e8daf48943c9f51ea12b11f6681754a2f3f3a0f2d7e2158844343193305c"},
-    {file = "mpi4py-3.1.3-cp310-cp310-win_amd64.whl", hash = "sha256:b5abeda929cdfd66abd9e0de8d03e6e43dcf53d8152750cb47a14837e519fcd8"},
-    {file = "mpi4py-3.1.3-cp35-cp35m-win32.whl", hash = "sha256:e309d642a22808e2cf16188e3acb66aa83c513ba8702392cd82d3c876a576131"},
-    {file = "mpi4py-3.1.3-cp35-cp35m-win_amd64.whl", hash = "sha256:44c24f7aec24f09e4b9d3d77082509e914ab836c2d8281091cfde8a1072ed08a"},
-    {file = "mpi4py-3.1.3-cp36-cp36m-win32.whl", hash = "sha256:19aada1336bbcc9b04f7e72d6a4f3074ba67e177eada7241dc259789f70e0d56"},
-    {file = "mpi4py-3.1.3-cp36-cp36m-win_amd64.whl", hash = "sha256:5a78b0948d74422e2b597f8caebd129421d22bc786301f046edf95b726a34e3e"},
-    {file = "mpi4py-3.1.3-cp37-cp37m-win32.whl", hash = "sha256:a3d3731ac7dbb6a80ff138c9321e7b31bdede804a1c7881fabce5ba3e0620a58"},
-    {file = "mpi4py-3.1.3-cp37-cp37m-win_amd64.whl", hash = "sha256:ff84488f701ce60e141bb55f57b4039e041163054e5d16bd348c874180df2451"},
-    {file = "mpi4py-3.1.3-cp38-cp38-win32.whl", hash = "sha256:2d1accd5544f78079ae19ee912e3311692219444d8cb64360b822984f94604b9"},
-    {file = "mpi4py-3.1.3-cp38-cp38-win_amd64.whl", hash = "sha256:d1989b3dd36c3bc42906183fc8ea7789e7e797c5abd0cee75b2bcbb6f3a4b59c"},
-    {file = "mpi4py-3.1.3-cp39-cp39-win32.whl", hash = "sha256:32c4ccc1fa2578bf22c01cc532aae363672a921c6efe44a4937a7990c1b12129"},
-    {file = "mpi4py-3.1.3-cp39-cp39-win_amd64.whl", hash = "sha256:57c3d41f44b6fe68c043a145a5fddbe5e0fb36af67929c6292ca41b7d9f0c6f4"},
-    {file = "mpi4py-3.1.3.tar.gz", hash = "sha256:f1e9fae1079f43eafdd9f817cdb3fd30d709edc093b5d5dada57a461b2db3008"},
-]
 nodeenv = [
     {file = "nodeenv-1.6.0-py2.py3-none-any.whl", hash = "sha256:621e6b7076565ddcacd2db0294c0381e01fd28945ab36bcf00f41c5daf63bef7"},
     {file = "nodeenv-1.6.0.tar.gz", hash = "sha256:3ef13ff90291ba2a4a7a4ff9a979b63ffdd00a464dbe04acf0ea6471517a4c2b"},
@@ -852,8 +821,8 @@ numpy = [
     {file = "numpy-1.22.1.zip", hash = "sha256:e348ccf5bc5235fc405ab19d53bec215bb373300e5523c7b476cc0da8a5e9973"},
 ]
 oremda-core = [
-    {file = "oremda-core-0.1.3.tar.gz", hash = "sha256:9e6242a63ab173b55407d02a9ef38646f47798e063b8582448ff0c27491a5d40"},
-    {file = "oremda_core-0.1.3-py3-none-any.whl", hash = "sha256:e5a40d70fbf0f330a0fcfdbf960d040895262c21d4fd4df3186f716702bf02da"},
+    {file = "oremda-core-0.1.5.tar.gz", hash = "sha256:494f2ae900d3852d598b32038782672374d6c319097f8b5cfb4747c8f382ee10"},
+    {file = "oremda_core-0.1.5-py3-none-any.whl", hash = "sha256:37a18e1382c80ec5617aad400ad61c537495c3fe2b94d177583ea71e13cde90a"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},

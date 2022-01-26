@@ -137,7 +137,7 @@ setuptools_scm = ">=4"
 name = "mpi4py"
 version = "3.1.3"
 description = "Python bindings for MPI"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -383,7 +383,7 @@ test = ["websockets"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "e62951fe143b6ae5030312b4b9221b3aefd40c117ea3b0c4ed78adbd5845b80c"
+content-hash = "97daa21608f5381aa003f3f79141590a67b601884db704bd14dae467b0c6f754"
 
 [metadata.files]
 anyio = [

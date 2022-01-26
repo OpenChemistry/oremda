@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "oremda-engine"
-version = "0.1.5"
+version = "0.1.6"
 description = ""
 authors = ["Chris Harris <chris.harris@kitware.com>"]
 readme = "README.md"
