@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "oremda"
-version = "0.1.0"
+version = "0.1.2"
 description = ""
 authors = ["Chris Harris <chris.harris@kitware.com>"]
 readme = "README.md"
@@ -12,7 +12,7 @@ oremda-server = "^0.1.6"
 oremda-client = "^0.1.1"
 oremda-engine = "^0.1.5"
 oremda-cli = "^0.1.2"
-oremda-core = "^0.1.3"
+oremda-core = "^0.1.5"
 
 
 [tool.poetry.plugins."oremda.cli.plugin"]

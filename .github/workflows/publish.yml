@@ -1,0 +1,32 @@
+# https://pre-commit.com
+# This GitHub Action assumes that the repo contains a valid .pre-commit-config.yaml file.
+name: publish
+on: [push]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+
+      - name: Install poetry
+        run: |
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+
+      - name: Setup poetry PyPi configuration
+        run: |
+          source $HOME/.poetry/env
+          poetry config repositories.test-pypi https://test.pypi.org/legacy/
+          poetry config pypi-token.test-pypi "${{ secrets.PYPI_TEST_API_TOKEN }}"
+
+      - name: Setup PyPI repo variable
+        run: |
+          echo "PYPI_REPO=${{ secrets.PYPI_REPO }}" >> $GITHUB_ENV
+          echo "PYPI_USER=${{ secrets.PYPI_USER }}" >> $GITHUB_ENV
+
+      - name: Publish packages that have had their version updated
+        run: |
+          source $HOME/.poetry/env
+          ./scripts/poetry/publish_all.sh
