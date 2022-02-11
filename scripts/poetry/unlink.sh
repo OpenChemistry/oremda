@@ -9,7 +9,7 @@ for package_dir in $package_dirs
 do
     echo "Unlinking oremda-$package_dir"
     cd $package_dir
-    oremda_packages=$(poetry show | grep "^oremda-" | sed "s/\(oremda-[a-z]*\)[^0-9]*\([0-9\.]*\).*/\1@\2/g")
+    oremda_packages=$(poetry show | grep "^oremda-" | sed "s/\(oremda-[a-z]*\)[^0-9]*\([0-9\.]*\).*/\1@^\2/g")
 
     package_versions=""
     for pkg_version in $oremda_packages
