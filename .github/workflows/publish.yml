@@ -18,13 +18,11 @@ jobs:
       - name: Setup poetry PyPi configuration
         run: |
           source $HOME/.poetry/env
-          poetry config repositories.test-pypi https://test.pypi.org/legacy/
-          poetry config pypi-token.test-pypi "${{ secrets.PYPI_TEST_API_TOKEN }}"
+          poetry config pypi-token.pypi "${{ secrets.PYPI_API_TOKEN }}"
 
       - name: Setup PyPI repo variable
         run: |
-          echo "PYPI_REPO=${{ secrets.PYPI_REPO }}" >> $GITHUB_ENV
-          echo "PYPI_USER=${{ secrets.PYPI_USER }}" >> $GITHUB_ENV
+          echo "PYPI_USER=__token__" >> $GITHUB_ENV
 
       - name: Publish packages that have had their version updated
         run: |

@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "oremda-cli"
-version = "0.1.4"
+version = "0.0.1"
 description = ""
-authors = ["Chris Harris <chris.harris@kitware.com>"]
+authors = ["Alessandro Genova <alessandro.genova@kitware.com>", "Chris Harris <chris.harris@kitware.com>", "Patrick Avery <patrick.avery@kitware.com>"]
 readme = "README.md"
+license = "BSD-3-Clause"
 packages = [{include = "oremda"}]
 
 [tool.poetry.dependencies]
@@ -14,7 +15,7 @@ docker = "^5.0.3"
 spython = "^0.1.17"
 requests = "^2.27.1"
 coloredlogs = "^15.0.1"
-oremda-core = "^0.1.5"
+oremda-core = "^0.0.1"
 
 [tool.poetry.dev-dependencies]
 pyright = "^0.0.13"
@@ -28,12 +29,3 @@ oremda = 'oremda.cli:main'
 [tool.poetry.plugins."oremda.cli.plugin"]
 run = "oremda.cli.run:main"
 pull = "oremda.cli.pull:main"
-
-[[tool.poetry.source]]
-name = "public pypi"
-url = "https://pypi.python.org/simple"
-
-[[tool.poetry.source]]
-name = "test pypi"
-url = "https://test.pypi.org/simple/"
-

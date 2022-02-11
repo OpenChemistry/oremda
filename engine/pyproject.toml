@@ -1,15 +1,16 @@
 [tool.poetry]
 name = "oremda-engine"
-version = "0.1.7"
+version = "0.0.1"
 description = ""
-authors = ["Chris Harris <chris.harris@kitware.com>"]
+authors = ["Alessandro Genova <alessandro.genova@kitware.com>", "Chris Harris <chris.harris@kitware.com>", "Patrick Avery <patrick.avery@kitware.com>"]
 readme = "README.md"
+license = "BSD-3-Clause"
 packages = [{include = "oremda"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-oremda-cli = "^0.1.3"
-oremda-core = "^0.1.3"
+oremda-cli = "^0.0.1"
+oremda-core = "^0.0.1"
 fastapi-websocket-rpc = "^0.1.21"
 msgpack = "^1.0.3"
 
@@ -22,11 +23,3 @@ engine = "oremda.engine.cli:main"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[[tool.poetry.source]]
-name = "public pypi"
-url = "https://pypi.python.org/simple"
-
-[[tool.poetry.source]]
-name = "test pypi"
-url = "https://test.pypi.org/simple/"
