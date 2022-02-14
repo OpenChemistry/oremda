@@ -424,7 +424,7 @@ spython = ">=0.1.17,<0.2.0"
 
 [[package]]
 name = "oremda-client"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 category = "main"
 optional = false
@@ -869,7 +869,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "59bab00e3f95564da27d8b070b13ea28c56c3400d25c21a3ec56828bead45ebb"
+content-hash = "a8f4f3ef5f8107cca1782e9ceae71ab814f27fc1ff87668a1ac25302cb1ee008"
 
 [metadata.files]
 aiohttp = [
@@ -1343,8 +1343,8 @@ oremda-cli = [
     {file = "oremda_cli-0.0.1-py3-none-any.whl", hash = "sha256:ff728040de06a07910742e26c8ebe8a2cbb938e96abdf723323ed6fe91966d61"},
 ]
 oremda-client = [
-    {file = "oremda-client-0.0.1.tar.gz", hash = "sha256:6b7246134e4e291d19f138170b8bfe74460ef8f7db940b2cee0172d6341dfc41"},
-    {file = "oremda_client-0.0.1-py3-none-any.whl", hash = "sha256:ddfd7b8c68cbf17c00002632825fab3a66bd024faf7bd4111a82aaf13c450ae9"},
+    {file = "oremda-client-0.0.2.tar.gz", hash = "sha256:a801ff360717560f3b6136f9b3c709f2bec1ac9398a0ec7e4743af1480844003"},
+    {file = "oremda_client-0.0.2-py3-none-any.whl", hash = "sha256:44ac0cb552efb02b456a67e4b9c95319d84b9e4d97cd4a564b1016b9f95822d2"},
 ]
 oremda-core = [
     {file = "oremda-core-0.0.1.tar.gz", hash = "sha256:47a5480b3a60c3098d763c269414cf3054896d99bf9c063a07044bcfae8b11e9"},

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "oremda-client"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 authors = ["Alessandro Genova <alessandro.genova@kitware.com>", "Chris Harris <chris.harris@kitware.com>", "Patrick Avery <patrick.avery@kitware.com>"]
 readme = "README.md"
