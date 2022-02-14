@@ -46,6 +46,13 @@ oremda start
 
 Then point your browser to: http://localhost:8000
 
+Development
+-----------
+To setup up a development environment the [following script](scripts/poetry/link.sh)
+can be used to cross link all the dependencies between the packages so local changes
+are used. Once development is finished there is a corresponding [unlink script](scripts/poetry/unlink.sh)
+that can be used to unlink the local directories.
+
 Contributing
 ------------
 
