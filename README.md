@@ -30,6 +30,13 @@ pip install oremda
 
 Getting started
 ---------------
+Fetch the OREMDA operator images by issuing the following command:
+
+```bash
+oremda pull
+```
+
+
 
 Bring up the server components by issuing the following command:
 
