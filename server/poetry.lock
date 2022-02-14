@@ -89,7 +89,7 @@ python-versions = "*"
 
 [[package]]
 name = "charset-normalizer"
-version = "2.0.11"
+version = "2.0.12"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
 category = "main"
 optional = false
@@ -369,7 +369,7 @@ spython = ">=0.1.18,<0.2.0"
 
 [[package]]
 name = "oremda-engine"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 category = "main"
 optional = false
@@ -610,7 +610,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "typing-extensions"
-version = "4.0.1"
+version = "4.1.1"
 description = "Backported and Experimental Type Hints for Python 3.6+"
 category = "main"
 optional = false
@@ -709,7 +709,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "a2f60ddcc3d726943706e17526f33b310abdcb0a0f809e2af8a8d0a3067a173f"
+content-hash = "53f55b5dc67ae9464c12f6dffccdd13bf18568abbeefe5b04bff14276dd8a327"
 
 [metadata.files]
 aiohttp = [
@@ -811,8 +811,8 @@ certifi = [
     {file = "certifi-2021.10.8.tar.gz", hash = "sha256:78884e7c1d4b00ce3cea67b44566851c4343c120abd683433ce934a68ea58872"},
 ]
 charset-normalizer = [
-    {file = "charset-normalizer-2.0.11.tar.gz", hash = "sha256:98398a9d69ee80548c762ba991a4728bfc3836768ed226b3945908d1a688371c"},
-    {file = "charset_normalizer-2.0.11-py3-none-any.whl", hash = "sha256:2842d8f5e82a1f6aa437380934d5e1cd4fcf2003b06fed6940769c164a480a45"},
+    {file = "charset-normalizer-2.0.12.tar.gz", hash = "sha256:2857e29ff0d34db842cd7ca3230549d1a697f96ee6d3fb071cfa6c7393832597"},
+    {file = "charset_normalizer-2.0.12-py3-none-any.whl", hash = "sha256:6881edbebdb17b39b4eaaa821b438bf6eddffb4468cf344f09f89def34a8b1df"},
 ]
 click = [
     {file = "click-8.0.3-py3-none-any.whl", hash = "sha256:353f466495adaeb40b6b5f592f9f91cb22372351c84caeb068132442a4518ef3"},
@@ -1163,8 +1163,8 @@ oremda-core = [
     {file = "oremda_core-0.0.1-py3-none-any.whl", hash = "sha256:5a7ec8cc90038afeb0ba69e358e838ca2daaf3a6cf9b2e0390fc4a17daf19473"},
 ]
 oremda-engine = [
-    {file = "oremda-engine-0.0.1.tar.gz", hash = "sha256:7ffdc02cf7af42496945416e1abb382f9e800e8111416b3a1e586edcc69fc475"},
-    {file = "oremda_engine-0.0.1-py3-none-any.whl", hash = "sha256:e8b7ade31cba0f5a13c1d36b84fa7d1edf1efcfc73ba711b4d46cc671ffdc1bb"},
+    {file = "oremda-engine-0.0.2.tar.gz", hash = "sha256:8621c1a022a8addc1c3e78489febfc70ab9a568562332e40c0078d7913dc5be7"},
+    {file = "oremda_engine-0.0.2-py3-none-any.whl", hash = "sha256:d836a1fb0fff0a99cc85990d52adbf99696175bd1a7484c5d9e90121999bc8e9"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
@@ -1395,8 +1395,8 @@ tomli = [
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 typing-extensions = [
-    {file = "typing_extensions-4.0.1-py3-none-any.whl", hash = "sha256:7f001e5ac290a0c0401508864c7ec868be4e701886d5b573a9528ed3973d9d3b"},
-    {file = "typing_extensions-4.0.1.tar.gz", hash = "sha256:4ca091dea149f945ec56afb48dae714f21e8692ef22a395223bcd328961b6a0e"},
+    {file = "typing_extensions-4.1.1-py3-none-any.whl", hash = "sha256:21c85e0fe4b9a155d0799430b0ad741cdce7e359660ccbd8b530613e8df88ce2"},
+    {file = "typing_extensions-4.1.1.tar.gz", hash = "sha256:1a9462dcc3347a79b1f1c0271fbe79e844580bb598bafa1ed208b94da3cdcd42"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.8-py2.py3-none-any.whl", hash = "sha256:000ca7f471a233c2251c6c7023ee85305721bfdf18621ebff4fd17a8653427ed"},
