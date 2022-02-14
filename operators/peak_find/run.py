@@ -1,6 +1,6 @@
 from typing import Dict, Any
 
-from oremda import operator
+from oremda.api import operator
 from oremda.typing import JSONType, PortKey, RawPort
 
 import peakFind  # type: ignore

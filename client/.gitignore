@@ -10,6 +10,10 @@
 
 # production
 /build
+/oremda/client/build
+
+# Python build
+/dist
 
 # misc
 .DS_Store

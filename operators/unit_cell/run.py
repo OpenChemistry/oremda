@@ -3,7 +3,7 @@ from typing import Dict
 import numpy as np
 from scipy import ndimage
 
-from oremda import operator
+from oremda.api import operator
 from oremda.typing import JSONType, PortKey, RawPort
 
 import peakFind  # type: ignore

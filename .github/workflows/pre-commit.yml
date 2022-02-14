@@ -1,7 +1,13 @@
 # https://pre-commit.com
 # This GitHub Action assumes that the repo contains a valid .pre-commit-config.yaml file.
 name: pre-commit
-on: [pull_request, push]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
@@ -11,22 +17,18 @@ jobs:
         with:
           python-version: "3.9"
 
-      # Install oremda
-      - run: pip install .
+      # Install poetry
+      - run: |
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 
-      # Install optional dependencies
+      # Install mpich for mpi4py
       - run: sudo apt-get -y install libmpich-dev
-      - run: pip install mpi4py
-
-      # Install server dependencies
-      - run: pip install fastapi uvicorn[standard] fastapi_websocket_rpc
-
-      # FIXME: is there a better way for us to do these?
-      # Install operator dependencies
-      - run: pip install vtk ncempy matplotlib git+https://github.com/py4DSTEM/py4DSTEM.git@7e4933ecd593e36702a4b7a34ee13c67d2ffea9d
 
       # Install and run pre-commit
       - run: pip install pre-commit
       - run: pre-commit --version
       - run: pre-commit install
-      - run: pre-commit run --all-files
+      - run: |
+          source $HOME/.poetry/env
+          ./scripts/poetry/install_all.sh
+          pre-commit run --all-files

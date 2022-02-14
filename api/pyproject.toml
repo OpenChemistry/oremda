@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "oremda-api"
+version = "0.0.1"
+description = ""
+authors = ["Alessandro Genova <alessandro.genova@kitware.com>", "Chris Harris <chris.harris@kitware.com>", "Patrick Avery <patrick.avery@kitware.com>"]
+readme = "README.md"
+license = "BSD-3-Clause"
+packages = [{include = "oremda"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+oremda-core = "^0.0.1"
+
+[tool.poetry.dev-dependencies]
+pyright = "^0.0.13"
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

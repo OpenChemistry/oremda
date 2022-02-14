@@ -6,7 +6,7 @@ import numpy as np
 import vtk
 from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore
 
-from oremda import operator
+from oremda.api import operator
 from oremda.typing import JSONType, PortKey, RawPort
 
 READERS = {

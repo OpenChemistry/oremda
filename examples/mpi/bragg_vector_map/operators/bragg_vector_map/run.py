@@ -16,7 +16,7 @@ from py4DSTEM.process.diskdetection.probe import (
     get_probe_kernel_edge_gaussian,
 )
 
-from oremda import operator
+from oremda.api import operator
 from oremda.typing import JSONType, PortKey, RawPort
 from oremda.utils.concurrency import distribute_tasks
 

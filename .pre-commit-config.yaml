@@ -18,9 +18,44 @@ repos:
   - repo: local
     hooks:
     - id: pyright
-      name: pyright
-      entry: env PYTHONPATH=./server pyright
-      language: node
+      name: pyright(core)
+      files: '^core/.*\.py'
+      entry: bash -c 'cd core && poetry run pyright "$@"'
+      language: system
       pass_filenames: false
       types: [python]
-      additional_dependencies: ['pyright@1.1.99']
+    - id: pyright
+      name: pyright(cli)
+      files: '^cli/.*\.py'
+      entry: bash -c 'cd cli && poetry run pyright "$@"'
+      language: system
+      pass_filenames: false
+      types: [python]
+    - id: pyright
+      name: pyright(engine)
+      files: '^engine/.*\.py'
+      entry: bash -c 'cd engine && poetry run pyright "$@"'
+      language: system
+      pass_filenames: false
+      types: [python]
+    - id: pyright
+      name: pyright(server)
+      files: '^server/.*\.py'
+      entry: bash -c 'cd server && poetry run pyright "$@"'
+      language: system
+      pass_filenames: false
+      types: [python]
+    - id: pyright
+      name: pyright(meta)
+      files: '^meta/.*\.py'
+      entry: bash -c 'cd meta && poetry run pyright "$@"'
+      language: system
+      pass_filenames: false
+      types: [python]
+    - id: pyright
+      name: pyright(api)
+      files: '^api/.*\.py'
+      entry: bash -c 'cd api && poetry run pyright "$@"'
+      language: system
+      pass_filenames: false
+      types: [python]
