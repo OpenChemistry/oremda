@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 package_dir=$(pwd)
 package_name=$(basename $package_dir)

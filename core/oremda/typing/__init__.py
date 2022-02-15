@@ -64,6 +64,9 @@ class Metadata(BaseModel):
     microscope: Optional[MicroscopeMetadata]
     dataset: Optional[Union[ImageMetadata, SpectroscopyMetadata, DiffractionMetadata]]
 
+    class Config:
+        extra = Extra.allow
+
 
 # Plasma's ObjectID doesn't have proper typings (cython?),
 # manually create a partial interface for it

@@ -2,19 +2,25 @@ FROM python:3.9-slim-bullseye
 
 RUN apt-get update && \
   apt-get install -y \
-    git \
-    gcc && \
+    curl gcc && \
   rm -rf /var/lib/apt/lists/*
 
-# Just copy over the parts that we need. Eventually we should probably split the
-# repo.
-COPY  setup.py pyproject.toml /oremda/
-COPY  oremda /oremda/oremda/
-COPY  ./.git /oremda/.git/
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 
-RUN pip install -e /oremda && \
-  rm -rf /oremda/.git
+COPY  /core /oremda/core
+COPY  /api /oremda/api
 
+# TODO: We should have option to install from PyPI for now just build and install
+# oremda-api and its dep oremda-core.
+RUN . $HOME/.poetry/env && \
+  cd /oremda/core && \
+  poetry build && \
+  pip install dist/*.whl
+
+RUN . $HOME/.poetry/env && \
+  cd /oremda/api && \
+  poetry build && \
+  pip install dist/*.whl
 
 RUN useradd -u 1001 oremda
 
