@@ -334,7 +334,7 @@ python-versions = ">=3.8"
 
 [[package]]
 name = "oremda-cli"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 category = "main"
 optional = false
@@ -345,13 +345,13 @@ click = ">=8.0.3,<9.0.0"
 click-plugins = ">=1.1.1,<2.0.0"
 coloredlogs = ">=15.0.1,<16.0.0"
 docker = ">=5.0.3,<6.0.0"
-oremda-core = ">=0.0.1,<0.0.2"
+oremda-core = ">=0.0.2,<0.0.3"
 requests = ">=2.27.1,<3.0.0"
 spython = ">=0.1.17,<0.2.0"
 
 [[package]]
 name = "oremda-core"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 category = "main"
 optional = false
@@ -369,7 +369,7 @@ spython = ">=0.1.18,<0.2.0"
 
 [[package]]
 name = "oremda-engine"
-version = "0.0.2"
+version = "0.0.4"
 description = ""
 category = "main"
 optional = false
@@ -378,8 +378,8 @@ python-versions = ">=3.8,<4.0"
 [package.dependencies]
 fastapi-websocket-rpc = ">=0.1.21,<0.2.0"
 msgpack = ">=1.0.3,<2.0.0"
-oremda-cli = ">=0.0.1,<0.0.2"
-oremda-core = ">=0.0.1,<0.0.2"
+oremda-cli = ">=0.0.2,<0.0.3"
+oremda-core = ">=0.0.2,<0.0.3"
 
 [[package]]
 name = "packaging"
@@ -631,7 +631,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "uvicorn"
-version = "0.17.4"
+version = "0.17.5"
 description = "The lightning-fast ASGI server."
 category = "main"
 optional = false
@@ -709,7 +709,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "53f55b5dc67ae9464c12f6dffccdd13bf18568abbeefe5b04bff14276dd8a327"
+content-hash = "0b03986915d95ebb175ac644c2a514478a306730c85fa28873d9a7ec224d501b"
 
 [metadata.files]
 aiohttp = [
@@ -1155,16 +1155,16 @@ numpy = [
     {file = "numpy-1.22.2.zip", hash = "sha256:076aee5a3763d41da6bef9565fdf3cb987606f567cd8b104aded2b38b7b47abf"},
 ]
 oremda-cli = [
-    {file = "oremda-cli-0.0.1.tar.gz", hash = "sha256:bbe721a839a726ef3184775068b836ee3c4329a6973b926e3cfd600fdeb4e300"},
-    {file = "oremda_cli-0.0.1-py3-none-any.whl", hash = "sha256:ff728040de06a07910742e26c8ebe8a2cbb938e96abdf723323ed6fe91966d61"},
+    {file = "oremda-cli-0.0.2.tar.gz", hash = "sha256:f099f276338297fad48b5d29c4773648807be827251ffeb6283e97dd8cb4ef2d"},
+    {file = "oremda_cli-0.0.2-py3-none-any.whl", hash = "sha256:302e3713a5664cd59822c7dba07db7426abf8e589abe2d05f59abda45fc3f5bd"},
 ]
 oremda-core = [
-    {file = "oremda-core-0.0.1.tar.gz", hash = "sha256:47a5480b3a60c3098d763c269414cf3054896d99bf9c063a07044bcfae8b11e9"},
-    {file = "oremda_core-0.0.1-py3-none-any.whl", hash = "sha256:5a7ec8cc90038afeb0ba69e358e838ca2daaf3a6cf9b2e0390fc4a17daf19473"},
+    {file = "oremda-core-0.0.2.tar.gz", hash = "sha256:f46a0437e0a0aad2e97ea0e60711c0ff9821714104518ea395128959371e01fd"},
+    {file = "oremda_core-0.0.2-py3-none-any.whl", hash = "sha256:f3012db2a2ef98472859134c538b58e400b01e88ad3cf1621d3864737a292f1e"},
 ]
 oremda-engine = [
-    {file = "oremda-engine-0.0.2.tar.gz", hash = "sha256:8621c1a022a8addc1c3e78489febfc70ab9a568562332e40c0078d7913dc5be7"},
-    {file = "oremda_engine-0.0.2-py3-none-any.whl", hash = "sha256:d836a1fb0fff0a99cc85990d52adbf99696175bd1a7484c5d9e90121999bc8e9"},
+    {file = "oremda-engine-0.0.4.tar.gz", hash = "sha256:ad2fb04bb36840cb5c458ef6ff895bfa222a6f4f2397f9c61f72223393d21953"},
+    {file = "oremda_engine-0.0.4-py3-none-any.whl", hash = "sha256:f8f1d8d768799c345bc921a74f937244297b52199664361156829da9bfc35107"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
@@ -1403,8 +1403,8 @@ urllib3 = [
     {file = "urllib3-1.26.8.tar.gz", hash = "sha256:0e7c33d9a63e7ddfcb86780aac87befc2fbddf46c58dbb487e0855f7ceec283c"},
 ]
 uvicorn = [
-    {file = "uvicorn-0.17.4-py3-none-any.whl", hash = "sha256:e85872d84fb651cccc4c5d2a71cf7ead055b8fb4d8f1e78e36092282c0cf2aec"},
-    {file = "uvicorn-0.17.4.tar.gz", hash = "sha256:25850bbc86195a71a6477b3e4b3b7b4c861fb687fb96912972ce5324472b1011"},
+    {file = "uvicorn-0.17.5-py3-none-any.whl", hash = "sha256:8adddf629b79857b48b999ae1b14d6c92c95d4d7840bd86461f09bee75f1653e"},
+    {file = "uvicorn-0.17.5.tar.gz", hash = "sha256:c04a9c069111489c324f427501b3840d306c6b91a77b00affc136a840a3f45f1"},
 ]
 uvloop = [
     {file = "uvloop-0.16.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:6224f1401025b748ffecb7a6e2652b17768f30b1a6a3f7b44660e5b5b690b12d"},

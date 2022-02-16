@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "oremda-server"
-version = "0.0.2"
+version = "0.0.3"
 description = ""
 authors = ["Alessandro Genova <alessandro.genova@kitware.com>", "Chris Harris <chris.harris@kitware.com>", "Patrick Avery <patrick.avery@kitware.com>"]
 readme = "README.md"
@@ -13,9 +13,9 @@ fastapi = "^0.73.0"
 uvicorn = {extras = ["standard"], version = "^0.17.0"}
 fastapi-websocket-rpc = "^0.1.21"
 msgpack = "^1.0.3"
-oremda-core = "^0.0.1"
-oremda-cli = "^0.0.1"
-oremda-engine = "^0.0.2"
+oremda-core = "^0.0.2"
+oremda-cli = "^0.0.2"
+oremda-engine = "^0.0.4"
 
 [tool.poetry.plugins."oremda.cli.plugin"]
 server = "oremda.server.cli:main"
