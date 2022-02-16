@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "oremda"
-version = "0.0.4"
+version = "0.0.5"
 description = ""
 authors = ["Alessandro Genova <alessandro.genova@kitware.com>", "Chris Harris <chris.harris@kitware.com>", "Patrick Avery <patrick.avery@kitware.com>"]
 readme = "README.md"
@@ -9,11 +9,11 @@ packages = [{include = "oremda"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-oremda-server = "^0.0.2"
+oremda-server = "^0.0.3"
 oremda-client = "^0.0.2"
-oremda-engine = "^0.0.2"
-oremda-cli = "^0.0.1"
-oremda-core = "^0.0.1"
+oremda-engine = "^0.0.4"
+oremda-cli = "^0.0.2"
+oremda-core = "^0.0.2"
 
 [tool.poetry.plugins."oremda.cli.plugin"]
 start = "oremda.meta.cli:main"

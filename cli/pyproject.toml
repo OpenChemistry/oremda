@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "oremda-cli"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 authors = ["Alessandro Genova <alessandro.genova@kitware.com>", "Chris Harris <chris.harris@kitware.com>", "Patrick Avery <patrick.avery@kitware.com>"]
 readme = "README.md"
@@ -15,7 +15,7 @@ docker = "^5.0.3"
 spython = "^0.1.17"
 requests = "^2.27.1"
 coloredlogs = "^15.0.1"
-oremda-core = "^0.0.1"
+oremda-core = "^0.0.2"
 
 [tool.poetry.dev-dependencies]
 pyright = "^0.0.13"

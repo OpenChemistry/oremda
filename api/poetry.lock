@@ -151,7 +151,7 @@ python-versions = ">=3.8"
 
 [[package]]
 name = "oremda-core"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 category = "main"
 optional = false
@@ -393,7 +393,7 @@ test = ["websockets"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f726ca1fdf59ef3a9f2fa9ea92c706bbeeebfed58d1cdd7fd84ebd5529bcc708"
+content-hash = "10047246121b4ca93ec69086ded7036baf6f4e5308277e0613a51da77b208b0f"
 
 [metadata.files]
 anyio = [
@@ -537,8 +537,8 @@ numpy = [
     {file = "numpy-1.22.2.zip", hash = "sha256:076aee5a3763d41da6bef9565fdf3cb987606f567cd8b104aded2b38b7b47abf"},
 ]
 oremda-core = [
-    {file = "oremda-core-0.0.1.tar.gz", hash = "sha256:47a5480b3a60c3098d763c269414cf3054896d99bf9c063a07044bcfae8b11e9"},
-    {file = "oremda_core-0.0.1-py3-none-any.whl", hash = "sha256:5a7ec8cc90038afeb0ba69e358e838ca2daaf3a6cf9b2e0390fc4a17daf19473"},
+    {file = "oremda-core-0.0.2.tar.gz", hash = "sha256:f46a0437e0a0aad2e97ea0e60711c0ff9821714104518ea395128959371e01fd"},
+    {file = "oremda_core-0.0.2-py3-none-any.whl", hash = "sha256:f3012db2a2ef98472859134c538b58e400b01e88ad3cf1621d3864737a292f1e"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
